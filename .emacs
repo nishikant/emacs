@@ -24,7 +24,7 @@ There are two things you can do about this warning:
  '(custom-enabled-themes (quote (tsdh-dark)))
  '(package-selected-packages
    (quote
-    (kubernetes magit git flymake-shell flymake-python-pyflakes flymake-jslint flymake-json find-file-in-repository egg go-autocomplete ansible yaml-imenu poly-ansible flycheck-color-mode-line flycheck-clojure flycheck-yamllint ## helm company irony powershell groovy-imports groovy-mode))))
+    (auto-complete-pcmp dumb-jump counsel-dash counsel-bbdb swiper-helm ivy-gitlab ivy-dired-history ivy-explorer ivy helm-dash company-irony company-ansible kubernetes magit git flymake-shell flymake-python-pyflakes flymake-jslint flymake-json find-file-in-repository egg go-autocomplete ansible yaml-imenu poly-ansible flycheck-color-mode-line flycheck-clojure flycheck-yamllint ## helm company irony powershell groovy-imports groovy-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -57,4 +57,21 @@ There are two things you can do about this warning:
 (require 'flymake-shell)
 (add-hook 'sh-set-shell-hook 'flymake-shell-load)
 (helm-mode 1)
-(global-set-key (kbd "M-x") 'helm-M-x)
+;;(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "C-x g") 'magit-status)
+(ivy-mode 1)
+(global-set-key "\C-s" 'swiper)
+(setq counsel-find-file-at-point t)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file) ;; gives C-x C-f counsel features. Use alt-o to get options.
+;; (ffap-bindings)
+;; Set ctrl-x b action
+(ivy-set-actions
+ 'ivy-switch-buffer
+ '(("j" switch-to-buffer-other-frame "other frame")
+   ("k" kill-buffer "kill buffer")
+   ("r" ivy-rename-buffer-action "rename buffer")))
+(dumb-jump-mode)
+(setq global-font-lock-mode t)
+(setq font-lock-maximum-decoration t)
+(semantic-mode 1)
+(require 'semantic/ia)
