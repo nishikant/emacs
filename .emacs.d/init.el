@@ -93,7 +93,7 @@
   (setq solarized-use-variable-pitch nil)
   (setq solarized-scale-org-headlines nil)
   (setq solarized-high-contrast-mode-line t)
-  (load-theme 'solarized-light t))
+  (load-theme 'solarized-dark t))
 
 ;; Mac OSX specific settings
 (if (eq system-type 'darwin)
@@ -125,6 +125,7 @@
   :config
   (setq magit-completing-read-function 'ivy-completing-read)
   :diminish auto-revert-mode)
+(global-set-key (kbd "C-x g") 'magit-status)
 
 ;; gitignore-mode
 (use-package gitignore-mode
@@ -420,3 +421,52 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   :config
   (setq auto-package-update-delete-old-versions t)
   (auto-package-update-maybe))
+
+
+;; Multi-term use multiple terminal
+(use-package multi-term)
+
+(cond
+ ((string-equal system-type "windows-nt")
+  (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))   ;; use powershell
+  ((string-equal system-type "ms-dos")
+  (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))
+ ((string-equal system-type "darwin")
+  (setq multi-term-program "/bin/bash"))
+ ((string-equal system-type "gnu/linux")
+  (setq multi-term-program "/bin/bash")));; use bash
+
+(autoload 'multi-term "multi-term" nil t)
+(autoload 'multi-term-next "multi-term" nil t)
+
+;; only needed if you use autopair
+(add-hook 'term-mode-hook
+  #'(lambda () (setq autopair-dont-activate t)))
+
+(global-set-key (kbd "C-c t") 'multi-term-next)
+(global-set-key (kbd "C-c T") 'multi-term) ;; create a new one
+
+;; Save emacs sessions and window size
+(desktop-save-mode 1)
+
+;; Sidebar
+
+(use-package dired-toggle
+  :defer t
+  :bind (("<f3>" . #'dired-toggle)
+         :map dired-mode-map
+         ("q" . #'dired-toggle-quit)
+         ([remap dired-find-file] . #'dired-toggle-find-file)
+         ([remap dired-up-directory] . #'dired-toggle-up-directory)
+         ("C-c C-u" . #'dired-toggle-up-directory))
+  :config
+  (setq dired-toggle-window-size 32)
+  (setq dired-toggle-window-side 'left)
+
+  ;; Optional, enable =visual-line-mode= for our narrow dired buffer:
+  (add-hook 'dired-toggle-mode-hook
+            (lambda () (interactive)
+              (visual-line-mode 1)
+              (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
+              (setq-local word-wrap nil))))
+
