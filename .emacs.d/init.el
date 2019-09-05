@@ -470,3 +470,15 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
               (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
               (setq-local word-wrap nil))))
 
+
+;; groovy-mode
+
+(use-package groovy-mode)
+(setq-default groovy-mode 1)
+
+;; Python ELpy
+
+(use-package elpy
+  :ensure t
+  :init
+  (elpy-enable))
