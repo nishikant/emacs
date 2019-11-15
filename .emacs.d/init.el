@@ -6,7 +6,7 @@
 ;; use-package
 (require 'package)
 (add-to-list 'package-archives
-             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)      ;;       '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 
 (package-initialize)
 
@@ -76,7 +76,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (protobuf-mode elixir-mode dockerfile-mode expand-region markdown-mode flycheck-gometalinter switch-window go-guru go-rename avy company-jedi company-go whole-line-or-region undo-tree web-mode go-eldoc go-direx go-add-tags go-mode yaml-mode counsel projectile ivy ag gitignore-mode magit ace-jump-mode use-package))))
+    (protobuf-mode elixir-mode dockerfile-mode expand-region markdown-mode flycheck-gometalinter switch-window go-guru go-rename avy company-go whole-line-or-region undo-tree web-mode go-eldoc go-direx go-add-tags go-mode yaml-mode counsel projectile ivy ag gitignore-mode magit ace-jump-mode use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -265,8 +265,8 @@
   :ensure t)
 
 ;; company-jedi
-(use-package company-jedi
-  :ensure t)
+;;(use-package company-jedi
+;;  :ensure t)
 
 
 ;; company
@@ -279,7 +279,8 @@
   ("M-/" . company-complete-common)
   :config
   (defun my/python-mode-hook ()
-    (add-to-list 'company-backends 'company-jedi))
+    (add-to-list 'company-backends ))
+  ;; 'company-jedi
   (add-hook 'python-mode-hook 'my/python-mode-hook)
   (add-to-list 'company-backends 'company-go)
   (setq company-dabbrev-downcase nil))
@@ -476,9 +477,52 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (use-package groovy-mode)
 (setq-default groovy-mode 1)
 
-;; Python ELpy
-
+;; elpy
 (use-package elpy
   :ensure t
   :init
   (elpy-enable))
+
+
+
+(setq ffap-require-prefix nil)
+(ffap-bindings)
+(setq ffap-require-prefix t)
+
+;; set line number
+(when (version<= "26.0.50" emacs-version )
+  (global-display-line-numbers-mode))
+
+;; For java
+(use-package meghanada)
+(add-hook 'java-mode-hook
+          (lambda ()
+            ;; meghanada-mode on
+            (meghanada-mode t)
+            (flycheck-mode +1)
+            (setq c-basic-offset 2)
+            ;; use code format
+            (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
+(cond
+   ((eq system-type 'windows-nt)
+    (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
+    (setq meghanada-maven-path "mvn.cmd"))
+   (t
+    (setq meghanada-java-path "java")
+    (setq meghanada-maven-path "mvn")))
+
+
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages (quote (## adoc-mode meghanada))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
