@@ -189,6 +189,9 @@
   (add-hook 'projectile-after-switch-project-hook #'go-set-project)
   (add-hook 'go-mode-hook (lambda ()
                             (subword-mode)
+			    (setq truncate-lines t)
+			    (setq indent-tabs-mode t)
+			    (setq tab-width 4)
                             (local-set-key (kbd "C-c C-k") 'godoc-at-point))))
 
 
@@ -494,6 +497,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   (global-display-line-numbers-mode))
 
 ;; For java
+(use-package jdee)
 (use-package meghanada)
 (add-hook 'java-mode-hook
           (lambda ()
@@ -526,3 +530,15 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+
+;; jenkins
+(use-package jenkins)
+
+;; jinja2-mode
+(use-package jinja2-mode)
+
+;; ffap find file at point
+(ffap-bindings)
+
+;;(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
