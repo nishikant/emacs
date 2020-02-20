@@ -95,6 +95,11 @@
   (setq solarized-high-contrast-mode-line t)
   (load-theme 'solarized-dark t))
 
+;; make environement variables look same in emacs
+
+(use-package exec-path-from-shell)
+
+
 ;; Mac OSX specific settings
 (if (eq system-type 'darwin)
     (progn
@@ -181,6 +186,7 @@
 
 
 ;; go-mode
+
 (use-package go-mode
   :ensure t
   :config
@@ -194,6 +200,18 @@
 			    (setq tab-width 4)
                             (local-set-key (kbd "C-c C-k") 'godoc-at-point))))
 
+(add-to-list 'exec-path "~/project/go_code/bin")
+(add-hook 'before-save-hook 'gofmt-before-save)
+(add-to-list 'load-path "PATH CONTAINING govet.el" t)
+(require 'govet)
+(use-package go-projectile)
+(use-package gotest)
+
+(setq exec-path (append '("/usr/local/go/bin") exec-path))
+(setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
+
+; As-you-type error highlighting
+(add-hook 'after-init-hook #'global-flycheck-mode)
 
 (use-package go-rename
   :load-path "vendor"
@@ -432,7 +450,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 
 (cond
  ((string-equal system-type "windows-nt")
-  (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))   ;; use powershell
+  (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.g0/powershell.exe"))   ;; use powershell
   ((string-equal system-type "ms-dos")
   (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))
  ((string-equal system-type "darwin")
@@ -542,3 +560,55 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (ffap-bindings)
 
 ;;(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+
+;; Dumb Jump
+
+(use-package dumb-jump
+  :bind (("M-g o" . dumb-jump-go-other-window)
+         ("M-g j" . dumb-jump-go)
+         ("M-g b" . dumb-jump-back)
+         ("M-g i" . dumb-jump-go-prompt)
+         ("M-g x" . dumb-jump-go-prefer-external)
+         ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+  :ensure)
+
+
+;; GOPLS config LSP mode
+
+(use-package lsp-mode
+  :ensure t
+  :commands (lsp lsp-deferred)
+  :hook (go-mode . lsp-deferred))
+
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+;; Optional - provides fancier overlays.
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode)
+
+;; Company mode is a standard completion package that works well with lsp-mode.
+(use-package company
+  :ensure t
+  :config
+  ;; Optionally enable completion-as-you-type behavior.
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 1))
+
+;; company-lsp integrates company mode completion with lsp-mode.
+;; completion-at-point also works out of the box but doesn't support snippets.
+(use-package company-lsp
+  :ensure t
+  :commands company-lsp)
+
+;; Optional - provides snippet support.
+(use-package yasnippet
+  :ensure t
+  :commands yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
