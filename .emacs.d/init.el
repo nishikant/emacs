@@ -179,10 +179,11 @@
 ;; yaml-mode
 (use-package yaml-mode
   :ensure t
-  :mode "\\.sls$"
   :config
-  (add-hook 'yaml-mode-hook (lambda ()
-                              (setq require-final-newline t))))
+  (add-hook 'yaml-mode-hook
+	    '(lambda ()
+	       (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 
 
 ;; go-mode
@@ -429,6 +430,8 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 ;; jinja2 mode, https://github.com/paradoxxxzero/jinja2-mode
 (use-package jinja2-mode
   :load-path "vendor")
+(add-to-list 'auto-mode-alist '("\\.jinja2\\'" . jinja2-mode))
+(add-to-list 'auto-mode-alist '("\\.j2\\'" . jinja2-mode))
 
 (use-package qml-mode
   :ensure t)
@@ -612,3 +615,44 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
+
+;; Terraform mode
+
+(use-package terraform-mode)
+(custom-set-variables
+ '(terraform-indent-level 4))
+
+;; AWS Cloudformation linter cfn-linter
+;; Set up a mode for YAML based templates if yaml-mode is installed
+;; Get yaml-mode here https://github.com/yoshiki/yaml-mode
+(when (featurep 'yaml-mode)
+
+  (define-derived-mode cfn-yaml-mode yaml-mode
+    "CFN-YAML"
+    "Simple mode to edit CloudFormation template in YAML format.")
+
+  (add-to-list 'magic-mode-alist
+               '("\\(---\n\\)?AWSTemplateFormatVersion:" . cfn-yaml-mode)))
+
+;; Set up cfn-lint integration if flycheck is installed
+;; Get flycheck here https://www.flycheck.org/
+(when (featurep 'flycheck)
+  (flycheck-define-checker cfn-lint
+    "AWS CloudFormation linter using cfn-lint.
+
+Install cfn-lint first: pip install cfn-lint
+
+See `https://github.com/aws-cloudformation/cfn-python-lint'."
+
+    :command ("cfn-lint" "-f" "parseable" source)
+    :error-patterns ((warning line-start (file-name) ":" line ":" column
+                              ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                              (id "W" (one-or-more digit)) ":" (message) line-end)
+                     (error line-start (file-name) ":" line ":" column
+                            ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                            (id "E" (one-or-more digit)) ":" (message) line-end))
+    :modes (cfn-json-mode cfn-yaml-mode))
+
+  (add-to-list 'flycheck-checkers 'cfn-lint)
+  (add-hook 'cfn-json-mode-hook 'flycheck-mode)
+  (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
