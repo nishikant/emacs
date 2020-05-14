@@ -93,7 +93,11 @@
   (setq solarized-use-variable-pitch nil)
   (setq solarized-scale-org-headlines nil)
   (setq solarized-high-contrast-mode-line t)
-  (load-theme 'solarized-dark t))
+;;  (load-theme 'solarized-dark t)
+  )
+
+(use-package material-theme)
+(load-theme 'material t)            ;; Load material theme
 
 ;; make environement variables look same in emacs
 
@@ -399,11 +403,6 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (use-package tern
   :ensure t)
 
-(use-package company-tern
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-tern))
-
 ;; sml-mode
 (use-package sml-mode
   :ensure t)
@@ -656,3 +655,22 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (add-to-list 'flycheck-checkers 'cfn-lint)
   (add-hook 'cfn-json-mode-hook 'flycheck-mode)
   (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
+
+;; testin org-mode
+(use-package org)
+
+;; paredit you can manipulate text as a tree
+
+(use-package paredit)
+(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+ (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+ (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+ (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+ (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+ (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+ (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+
+;; python
+(use-package pyvenv)
+(use-package blacken)
+(use-package ein)
