@@ -17,7 +17,7 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-; then define packages you use
+					; then define packages you use
 (use-package ace-jump-mode
   :bind ("M-SPC" . ace-jump-mode))
 
@@ -39,8 +39,8 @@
 ;; disable confirmation when kill a buffer with a live process
 ;; attached to it
 (setq kill-buffer-query-functions
-  (remq 'process-kill-buffer-query-function
-        kill-buffer-query-functions))
+      (remq 'process-kill-buffer-query-function
+	    kill-buffer-query-functions))
 
 ;; making tooltips appear in the echo area
 (tooltip-mode 0)
@@ -60,14 +60,14 @@
 
 
 ;; use ibuffer instead of buffer
-; (bind-key "C-x C-b" 'ibuffer)
+					; (bind-key "C-x C-b" 'ibuffer)
 
 ;; use trash
 (setq delete-by-moving-to-trash t)
 
 ;; When saving a file that starts with `#!', make it executable.
 (add-hook 'after-save-hook
-            'executable-make-buffer-file-executable-if-script-p)
+	  'executable-make-buffer-file-executable-if-script-p)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -93,7 +93,7 @@
   (setq solarized-use-variable-pitch nil)
   (setq solarized-scale-org-headlines nil)
   (setq solarized-high-contrast-mode-line t)
-;;  (load-theme 'solarized-dark t)
+  ;;  (load-theme 'solarized-dark t)
   )
 
 (use-package material-theme)
@@ -165,20 +165,11 @@
 (use-package projectile
   :ensure t
   :config
-  (projectile-global-mode)
+  (projectile-mode)
   (setq projectile-mode-line
         '(:eval (format " [%s]" (projectile-project-name))))
   (setq projectile-remember-window-configs t)
   (setq projectile-completion-system 'ivy))
-
-;; counsel
-(use-package counsel
-  :ensure t
-  :bind
-  ("M-x" . counsel-M-x)
-  ("C-c f" . counsel-describe-function)
-  ("C-c v" . counsel-describe-variable)
-  ("C-c k" . counsel-ag))
 
 ;; yaml-mode
 (use-package yaml-mode
@@ -187,7 +178,9 @@
   (add-hook 'yaml-mode-hook
 	    '(lambda ()
 	       (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
-  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+  (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
+  (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+  )
 
 
 ;; go-mode
@@ -215,7 +208,7 @@
 (setq exec-path (append '("/usr/local/go/bin") exec-path))
 (setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
 
-; As-you-type error highlighting
+					; As-you-type error highlighting
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
 (use-package go-rename
@@ -374,21 +367,21 @@
 
 
 (defun setup-local-standard ()
-    "If standard found in node_modules directory - use that for flycheck.
+  "If standard found in node_modules directory - use that for flycheck.
 Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
-    (interactive)
-    (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
-      (setq flycheck-javascript-standard-executable
-            (and (file-exists-p local-standard) local-standard))))
+  (interactive)
+  (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
+    (setq flycheck-javascript-standard-executable
+	  (and (file-exists-p local-standard) local-standard))))
 
 (defun setup-local-tern ()
-    "If tern found in node_modules directory - use that for tern mode."
-    (interactive)
-    (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
-      (message local-tern)
-      (and (file-exists-p local-tern)
-           (setq tern-command (list local-tern))
-           (tern-mode t))))
+  "If tern found in node_modules directory - use that for tern mode."
+  (interactive)
+  (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
+    (message local-tern)
+    (and (file-exists-p local-tern)
+	 (setq tern-command (list local-tern))
+	 (tern-mode t))))
 
 ;; js-mode
 (use-package js
@@ -453,7 +446,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (cond
  ((string-equal system-type "windows-nt")
   (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.g0/powershell.exe"))   ;; use powershell
-  ((string-equal system-type "ms-dos")
+ ((string-equal system-type "ms-dos")
   (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))
  ((string-equal system-type "darwin")
   (setq multi-term-program "/bin/bash"))
@@ -465,7 +458,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 
 ;; only needed if you use autopair
 (add-hook 'term-mode-hook
-  #'(lambda () (setq autopair-dont-activate t)))
+	  #'(lambda () (setq autopair-dont-activate t)))
 
 (global-set-key (kbd "C-c t") 'multi-term-next)
 (global-set-key (kbd "C-c T") 'multi-term) ;; create a new one
@@ -506,8 +499,6 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   :init
   (elpy-enable))
 
-
-
 (setq ffap-require-prefix nil)
 (ffap-bindings)
 (setq ffap-require-prefix t)
@@ -528,12 +519,12 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
             ;; use code format
             (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
 (cond
-   ((eq system-type 'windows-nt)
-    (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
-    (setq meghanada-maven-path "mvn.cmd"))
-   (t
-    (setq meghanada-java-path "java")
-    (setq meghanada-maven-path "mvn")))
+ ((eq system-type 'windows-nt)
+  (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
+  (setq meghanada-maven-path "mvn.cmd"))
+ (t
+  (setq meghanada-java-path "java")
+  (setq meghanada-maven-path "mvn")))
 
 
 
@@ -663,12 +654,12 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 (use-package paredit)
 (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
- (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
- (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
- (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
- (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
- (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
- (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
 
 ;; python
 (use-package pyvenv)
