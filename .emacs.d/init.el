@@ -1,23 +1,101 @@
+;;; package --- Gattu's Emacs init
 
-;; Added by Package.el.  This must come before configurations of
-;; installed packages.  Don't delete this line.  If you don't want it,
-;; just comment it out by adding a semicolon to the start of the line.
-;; You may delete these explanatory comments.
-;; use-package
+
+;;; Commentary:
+
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)      ;;       '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;;; Code:
 
 (package-initialize)
 
+;; Install use-package if not installed
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
 
+;; Compile the latest versions
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-					; then define packages you use
+(use-package auto-compile
+  :config (auto-compile-on-load-mode))
+
+(setq load-prefer-newer t)
+
+;; Disable menu and scroll bars
+
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+(scroll-bar-mode -1)
+(set-window-scroll-bars (minibuffer-window) nil nil)
+
+;; Set default frame title
+(setq frame-title-format '((:eval (projectile-project-name))))
+
+;; Use fancy lambdas
+(global-prettify-symbols-mode t)
+
+;; Themes
+
+(use-package solarized-theme
+  :config
+  (setq solarized-use-variable-pitch nil
+        solarized-height-plus-1 1.0
+        solarized-height-plus-2 1.0
+        solarized-height-plus-3 1.0
+        solarized-height-plus-4 1.0)
+
+  (let ((line (face-attribute 'mode-line :underline)))
+    (set-face-attribute 'mode-line          nil :overline   line)
+    (set-face-attribute 'mode-line-inactive nil :overline   line)
+    (set-face-attribute 'mode-line-inactive nil :underline  line)
+    (set-face-attribute 'mode-line          nil :box        nil)
+    (set-face-attribute 'mode-line-inactive nil :box        nil)
+    (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
+
+(defun transparency (value)
+  "Sets the transparency of the frame window. 0=transparent/100=opaque."
+  (interactive "nTransparency Value 0 - 100 opaque:")
+  (set-frame-parameter (selected-frame) 'alpha value))
+
+(defun apply-theme ()
+  "Apply the `solarized-light' theme and make frames just slightly transparent."
+  (interactive)
+  (load-theme 'solarized-light t)
+  (transparency 90))
+
+;; Apply theme in emacs --daemon mode
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (with-selected-frame frame (apply-theme))))
+  (apply-theme))
+
+;; use moody for a beautiful modeline
+
+(use-package moody
+  :config
+  (setq x-underline-at-descent-line t
+        moody-mode-line-height 30)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode))
+
+;; hide minor modes
+(use-package minions
+  :config
+  (setq minions-mode-line-lighter ""
+        minions-mode-line-delimiters '("" . ""))
+  (minions-mode 1))
+
+;; Scroll conservatively
+
+(setq scroll-conservatively 100)
+
+
+;; then define packages you use
 (use-package ace-jump-mode
   :bind ("M-SPC" . ace-jump-mode))
 
@@ -49,6 +127,13 @@
 ;; highlight current line
 (global-hl-line-mode 1)
 
+;; Highlight uncommitted changes
+
+(use-package diff-hl
+  :config
+  (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+  (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode))
+
 ;; display column number in mode line
 (column-number-mode 1)
 
@@ -60,7 +145,7 @@
 
 
 ;; use ibuffer instead of buffer
-					; (bind-key "C-x C-b" 'ibuffer)
+;; (bind-key "C-x C-b" 'ibuffer)
 
 ;; use trash
 (setq delete-by-moving-to-trash t)
@@ -83,21 +168,6 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
-
-;; solarized-theme
-(use-package solarized-theme
-  :ensure t
-  :config
-  (setq solarized-distinct-fringe-background t)
-  (setq solarized-use-variable-pitch nil)
-  (setq solarized-scale-org-headlines nil)
-  (setq solarized-high-contrast-mode-line t)
-  ;;  (load-theme 'solarized-dark t)
-  )
-
-(use-package material-theme)
-(load-theme 'material t)            ;; Load material theme
 
 ;; make environement variables look same in emacs
 
@@ -200,8 +270,6 @@
 
 (add-to-list 'exec-path "~/project/go_code/bin")
 (add-hook 'before-save-hook 'gofmt-before-save)
-(add-to-list 'load-path "PATH CONTAINING govet.el" t)
-(require 'govet)
 (use-package go-projectile)
 (use-package gotest)
 
@@ -665,3 +733,4 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (use-package pyvenv)
 (use-package blacken)
 (use-package ein)
+(use-package jupyter)
