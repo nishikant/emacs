@@ -38,34 +38,106 @@
 ;; Use fancy lambdas
 (global-prettify-symbols-mode t)
 
+;; Custom Functions
+
+(defun hrs/rename-file (new-name)
+  (interactive "FNew name: ")
+  (let ((filename (buffer-file-name)))
+    (if filename
+        (progn
+          (when (buffer-modified-p)
+            (save-buffer))
+          (rename-file filename new-name t)
+          (kill-buffer (current-buffer))
+          (find-file new-name)
+          (message "Renamed '%s' -> '%s'" filename new-name))
+      (message "Buffer '%s' isn't backed by a file!" (buffer-name)))))
+
+(defun hrs/generate-scratch-buffer ()
+  "Create and switch to a temporary scratch buffer with a random
+       name."
+  (interactive)
+  (switch-to-buffer (make-temp-name "scratch-")))
+
+(defun hrs/kill-current-buffer ()
+  "Kill the current buffer without prompting."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun hrs/visit-last-migration ()
+  "Open the most recent Rails migration. Relies on projectile."
+  (interactive)
+  (let ((migrations
+         (directory-files
+          (expand-file-name "db/migrate" (projectile-project-root)) t)))
+    (find-file (car (last migrations)))))
+
+(defun hrs/add-auto-mode (mode &rest patterns)
+  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
+  (dolist (pattern patterns)
+    (add-to-list 'auto-mode-alist (cons pattern mode))))
+
+(defun hrs/find-file-as-sudo ()
+	"Search as sudo user."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (when file-name
+      (find-alternate-file (concat "/sudo::" file-name)))))
+
+(defun hrs/region-or-word ()
+	"Camel case to separate word."
+  (if mark-active
+      (buffer-substring-no-properties (region-beginning)
+                                      (region-end))
+    (thing-at-point 'word)))
+
+(defun hrs/append-to-path (path)
+  "Add a path both to the PATH variable and to Emacs' `exec-path'."
+  (setenv "PATH" (concat (getenv "PATH") ":" path))
+  (add-to-list 'exec-path path))
+
+(defun hrs/insert-password ()
+  (interactive)
+  (shell-command "pwgen 30 -1" t))
+
+(defun hrs/notify-send (title message)
+  "Display a desktop notification by shelling out to `notify-send' TITLE MESSAGE."
+  (call-process-shell-command
+   (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
+
 ;; Themes
-
-(use-package solarized-theme
-  :config
-  (setq solarized-use-variable-pitch nil
-        solarized-height-plus-1 1.0
-        solarized-height-plus-2 1.0
-        solarized-height-plus-3 1.0
-        solarized-height-plus-4 1.0)
-
-  (let ((line (face-attribute 'mode-line :underline)))
-    (set-face-attribute 'mode-line          nil :overline   line)
-    (set-face-attribute 'mode-line-inactive nil :overline   line)
-    (set-face-attribute 'mode-line-inactive nil :underline  line)
-    (set-face-attribute 'mode-line          nil :box        nil)
-    (set-face-attribute 'mode-line-inactive nil :box        nil)
-    (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
-
+(load-theme 'solarized-dark t)
 (defun transparency (value)
-  "Sets the transparency of the frame window. 0=transparent/100=opaque."
+  "VALUE Set the transparency of the frame window.  0=transparent/100=opaque."
   (interactive "nTransparency Value 0 - 100 opaque:")
   (set-frame-parameter (selected-frame) 'alpha value))
 
 (defun apply-theme ()
   "Apply the `solarized-light' theme and make frames just slightly transparent."
   (interactive)
-  (load-theme 'solarized-light t)
+  (load-theme 'solarized-dark t)
   (transparency 90))
+
+;; wombat color-theme with misc face definition
+(solarized-create-theme-file-with-palette 'dark 'solarized-wombat-dark
+  '("#2a2a29" "#f6f3e8"
+    "#e5c06d" "#ddaa6f" "#ffb4ac" "#e5786d" "#834c98" "#a4b5e6" "#7ec98f" "#8ac6f2")
+  '((custom-theme-set-faces
+     theme-name
+     `(default ((,class (:foreground ,(solarized-color-blend base03 base3 0.15 2) :background ,base03))))
+     `(highlight ((,class (:background ,violet))))
+     `(font-lock-builtin-face ((,class (:foreground ,magenta))))
+     `(font-lock-constant-face ((,class (:foreground ,blue))))
+     `(font-lock-comment-face ((,class (:foreground ,base00))))
+     `(mode-line
+       ((,class (:foreground ,base2 :background ,(solarized-color-blend base03 base3 0.85 2)))))
+     `(mode-line-inactive
+       ((,class (:foreground ,base00 :background ,(solarized-color-blend base03 "black" 0.85 2)))))
+     `(mode-line-buffer-id ((,class (:foreground ,base3 :weight bold))))
+     `(minibuffer-prompt ((,class (:foreground ,base1))))
+     `(vertical-border ((,class (:foreground ,base03)))))))
+
+(load-theme 'solarized-wombat-dark t)
 
 ;; Apply theme in emacs --daemon mode
 (if (daemonp)
@@ -122,10 +194,10 @@
 
 ;; making tooltips appear in the echo area
 (tooltip-mode 0)
-(setq tooltip-use-echo-area t)
 
 ;; highlight current line
-(global-hl-line-mode 1)
+(global-hl-line-mode)
+(set-face-background hl-line-face "gray13")
 
 ;; Highlight uncommitted changes
 
@@ -199,6 +271,7 @@
   :diminish highlight-changes-mode)
 
 ;; magit
+(use-package git-timemachine)
 (use-package magit
   :ensure t
   :config
@@ -222,6 +295,10 @@
   (setq ag-highlight-search t)
   (setq ag-reuse-buffers 't))
 
+;; avy
+(use-package avy
+  :bind*
+  ("C-;" . avy-goto-char-2))
 
 ;; ivy
 (use-package ivy
@@ -233,13 +310,43 @@
 
 ;; projectile
 (use-package projectile
-  :ensure t
+  :bind
+  ("C-c v" . projectile-ag)
+
   :config
-  (projectile-mode)
-  (setq projectile-mode-line
-        '(:eval (format " [%s]" (projectile-project-name))))
-  (setq projectile-remember-window-configs t)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+  (setq projectile-switch-project-action 'projectile-dired)
+  (setq projectile-require-project-root nil)
   (setq projectile-completion-system 'ivy))
+
+;; Test tab-width 2
+(setq-default tab-width 2)
+
+(use-package subword
+  :config (global-subword-mode 1))
+
+(setq compilation-scroll-output t)
+
+;; CSS Sass and Less
+
+(use-package css-mode
+	:config
+	(setq css-indent-offset 2))
+
+(use-package scss-mode
+	:config
+	(setq scss-compile-at-save nil))
+
+(use-package less-css-mode)
+
+;; Javascript and coffeescript
+(use-package coffee-mode)
+(setq js-indent-level 2)
+(add-hook 'coffee-mode-hook
+					(lambda ()
+						(yas-minor-mode 1)
+						(setq coffee-tab-width 2)))
 
 ;; yaml-mode
 (use-package yaml-mode
@@ -333,7 +440,6 @@
 
 ;; undo-tree
 (use-package undo-tree
-  :ensure t
   :diminish undo-tree-mode
   :config
   (global-undo-tree-mode 1))
@@ -357,26 +463,9 @@
 
 
 ;; company
-(use-package company
-  :ensure t
-  :diminish company-mode
-  :init
-  (add-hook 'after-init-hook 'global-company-mode)
-  :bind
-  ("M-/" . company-complete-common)
-  :config
-  (defun my/python-mode-hook ()
-    (add-to-list 'company-backends ))
-  ;; 'company-jedi
-  (add-hook 'python-mode-hook 'my/python-mode-hook)
-  (add-to-list 'company-backends 'company-go)
-  (setq company-dabbrev-downcase nil))
-
-;; avy
-(use-package avy
-  :ensure t
-  :bind
-  (("C-c SPC" . avy-goto-word-1)))
+(use-package company)
+(add-hook 'after-init-hook 'global-company-mode)
+(global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
 
 ;; switch-window
 (use-package switch-window
@@ -390,6 +479,8 @@
   (setq flycheck-gometalinter-fast t)
   (setq flycheck-gometalinter-disable-linters '("gotype")))
 
+;;
+(use-package let-alist)
 
 ;; flycheck
 (use-package flycheck
@@ -400,12 +491,22 @@
   (add-hook 'go-mode-hook 'flycheck-mode)
   (add-hook 'sh-mode-hook 'flycheck-mode)
   (add-hook 'rst-mode-hook 'flycheck-mode)
-  (add-hook 'js-mode-hook 'flycheck-mode))
+  (add-hook 'js-mode-hook 'flycheck-mode)
+	(add-hook 'elpy-mode-hook 'flycheck-mode))
+
+
 
 ;; markdown-mode
+
 (use-package markdown-mode
-  :ensure t
-  :mode "\\.md\\'")
+  :commands gfm-mode
+
+  :mode (("\\.md$" . gfm-mode))
+
+  :config
+  (setq markdown-command "pandoc --standalone --mathjax --from=markdown")
+  (custom-set-faces
+   '(markdown-code-face ((t nil)))))
 
 ;; expand-region
 (use-package expand-region
@@ -481,11 +582,405 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 
 ;; org-mode
 (use-package org
-  :ensure t
-  :bind (("C-c l" . org-store-link)
-         ("C-c a" . org-agenda)
-         ("C-c c" . org-capture)
-         ("C-c b" . org-iswitchb)))
+  :ensure org-plus-contrib
+	:config
+	(require 'org-tempo)
+	(add-hook 'org-mode-hook
+						'(lambda ()
+							 (setq mailcap-mime-data '())
+							 (mailcap-parse-mailcap "~/.mailcap")
+							 (setq org-file-apps
+										 '((remote . emacs)
+											 ("mobi" . "fbreader %s")
+											 (system . mailcap)
+											 ("org" . emacs)
+											 (t . mailcap))))))
+
+(setq initial-major-mode 'org-mode)
+(setq org-ellipsis "⤵")
+(setq org-src-fontify-natively t)
+(setq org-src-tab-acts-natively t)
+(setq org-src-window-setup 'current-window)
+(add-to-list 'org-structure-template-alist
+						 '("el" . "src emacs-lisp"))
+(setq org-adapt-indentation nil)
+
+(setq org-directory "~/documents/org")
+
+(defun org-file-path (filename)
+	"Return the absolute address of an org file, given its relative name."
+	(concat (file-name-as-directory org-directory) filename))
+
+(setq org-inbox-file "~/sync/Dropbox/inbox.org")
+(setq org-index-file (org-file-path "index.org"))
+(setq org-archive-location
+      (concat (org-file-path "archive.org") "::* From %s"))
+
+(defun hrs/copy-tasks-from-inbox ()
+	(when (file-exists-p org-inbox-file)
+		(save-excursion
+			(find-file org-index-file)
+			(goto-char (point-max))
+			(insert-file-contents org-inbox-file)
+			(delete-file org-inbox-file))))
+
+(setq org-agenda-files (list org-index-file
+                             (org-file-path "events.org")
+                             (org-file-path "goals.org")
+                             (org-file-path "recurring-events.org")
+                             (org-file-path "work.org")))
+
+(defun hrs/mark-done-and-archive ()
+  "Mark the state of an org-mode item as DONE and archive it."
+  (interactive)
+  (org-todo 'done)
+  (org-archive-subtree))
+
+(define-key org-mode-map (kbd "C-c C-x C-s") 'hrs/mark-done-and-archive)
+
+(setq org-log-done 'time)
+
+(setq org-enforce-todo-dependencies t)
+(setq org-enforce-todo-checkbox-dependencies t)
+
+(setq org-agenda-start-on-weekday nil)
+
+(setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+                                 (todo . " %i ")
+                                 (tags . " %i ")
+                                 (search . " %i ")))
+
+(require 'org-habit)
+
+(defun org-habit-build-graph (habit starting current ending)
+  "                             ")
+(setq org-habit-graph-column 60)
+
+(defun hrs/org-skip-subtree-if-priority (priority)
+  "Skip an agenda subtree if it has a priority of PRIORITY.
+
+PRIORITY may be one of the characters ?A, ?B, or ?C."
+  (let ((subtree-end (save-excursion (org-end-of-subtree t)))
+        (pri-value (* 1000 (- org-lowest-priority priority)))
+        (pri-current (org-get-priority (thing-at-point 'line t))))
+    (if (= pri-value pri-current)
+        subtree-end
+      nil)))
+
+(defun hrs/org-skip-subtree-if-habit ()
+  "Skip an agenda entry if it has a STYLE property equal to \"habit\"."
+  (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+    (if (string= (org-entry-get nil "STYLE") "habit")
+        subtree-end
+      nil)))
+
+(setq org-agenda-custom-commands
+      '(("p" "Personal agenda"
+         ((tags ":today:" ((org-agenda-overriding-header "Today's tasks:")))
+          (agenda "")
+          (todo "TODO"
+                ((org-agenda-skip-function '(or (hrs/org-skip-subtree-if-priority ?A)
+                                                (hrs/org-skip-subtree-if-habit)))
+                 (org-agenda-overriding-header "Other tasks:")))
+          (todo "PENDING"
+                ((org-agenda-skip-function '(hrs/org-skip-subtree-if-priority ?A))
+                 (org-agenda-overriding-header "Pending:")))
+          (todo "BLOCKED"
+                ((org-agenda-skip-function '(hrs/org-skip-subtree-if-priority ?A))
+                 (org-agenda-overriding-header "Blocked:")))))))
+
+(defun hrs/dashboard ()
+  (interactive)
+  (hrs/copy-tasks-from-inbox)
+  (find-file org-index-file)
+  (org-agenda nil "p"))
+
+(global-set-key (kbd "C-c d") 'hrs/dashboard)
+
+
+(setq org-capture-templates
+      '(("b" "Blog idea"
+         entry
+         (file "~/documents/notes/blog-ideas.org")
+         "* %?\n")
+
+        ("c" "Contact"
+         entry
+         (file "~/documents/contacts.org")
+         "* %(org-contacts-template-name)
+:PROPERTIES:
+:ADDRESS: %^{123 Fake St., City, ST 12345}
+:PHONE: %^{555-555-5555}
+:EMAIL: %(org-contacts-template-email)
+:NOTE: %^{note}
+:END:")
+
+        ("d" "Delivery" entry
+         (file+headline "~/documents/org/events.org" "Deliveries")
+         "** %?\n   SCHEDULED: %t\n")
+
+        ("e" "Email" entry
+         (file+headline org-index-file "Inbox")
+         "* TODO %?\n\n%a\n\n")
+
+        ("f" "Finished book"
+         table-line (file "~/documents/notes/books-read.org")
+         "| %^{Title} | %^{Author} | %u |")
+
+        ("s" "Subscribe to an RSS feed"
+         plain
+         (file "~/documents/rss-feeds.org")
+         "*** [[%^{Feed URL}][%^{Feed name}]]")
+
+        ("t" "Todo"
+         entry
+         (file+headline org-index-file "Inbox")
+         "* TODO %?\n:PROPERTIES:\nCREATED: %u\n:END:\n")))
+
+(setq org-refile-use-outline-path t)
+(setq org-outline-path-complete-in-steps nil)
+
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(define-key global-map "\C-cc" 'org-capture)
+
+(defun hrs/open-index-file ()
+  "Open the master org TODO list."
+  (interactive)
+  (hrs/copy-tasks-from-inbox)
+  (find-file org-index-file)
+  (flycheck-mode -1)
+  (end-of-buffer))
+
+(global-set-key (kbd "C-c i") 'hrs/open-index-file)
+
+(defun org-capture-todo ()
+  (interactive)
+  (org-capture :keys "t"))
+
+(global-set-key (kbd "M-n") 'org-capture-todo)
+(add-hook 'gfm-mode-hook
+          (lambda () (local-set-key (kbd "M-n") 'org-capture-todo)))
+(add-hook 'haskell-mode-hook
+          (lambda () (local-set-key (kbd "M-n") 'org-capture-todo)))
+
+(defun hrs/open-work-file ()
+  "Open the work TODO list."
+  (interactive)
+  (find-file (org-file-path "work.org"))
+  (flycheck-mode -1)
+  (end-of-buffer))
+
+(global-set-key (kbd "C-c w") 'hrs/open-work-file)
+
+(require 'ox-md)
+(require 'ox-beamer)
+
+(use-package gnuplot)
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (ruby . t)
+   (dot . t)
+   (gnuplot . t)))
+
+(setq org-confirm-babel-evaluate nil)
+(use-package htmlize)
+
+(use-package graphviz-dot-mode)
+(add-to-list 'org-src-lang-modes '("dot" . graphviz-dot))
+
+(setq org-export-with-smart-quotes t)
+
+(setq org-html-postamble nil)
+
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "firefox")
+
+(setenv "BROWSER" "firefox")
+
+(setq org-latex-pdf-process
+      '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+(add-to-list 'org-latex-packages-alist '("" "minted"))
+(setq org-latex-listings 'minted)
+
+(setq TeX-parse-self t)
+(setq TeX-PDF-mode t)
+
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+            (LaTeX-math-mode)
+            (setq TeX-master t)))
+
+(add-hook 'git-commit-mode-hook 'orgtbl-mode)
+(add-hook 'markdown-mode-hook 'orgtbl-mode)
+(add-hook 'message-mode-hook 'orgtbl-mode)
+
+(use-package orgalist
+  :config
+  (add-hook 'git-commit-mode-hook 'orgalist-mode)
+  (add-hook 'markdown-mode-hook 'orgalist-mode)
+(add-hook 'message-mode-hook 'orgalist-mode))
+
+
+;; org mode end
+
+;; Proselint
+
+(defvar prose-modes
+  '(gfm-mode
+    git-commit-mode
+    markdown-mode
+    message-mode
+    mu4e-compose-mode
+    org-mode
+    text-mode))
+
+(defvar prose-mode-hooks
+  (mapcar (lambda (mode) (intern (format "%s-hook" mode)))
+          prose-modes))
+
+(require 'flycheck)
+
+(flycheck-def-executable-var proselint "proselint")
+(flycheck-define-command-checker 'proselint
+  "A linter for prose."
+  :command '("proselint" source-inplace)
+  :error-patterns
+  '((warning line-start (file-name) ":" line ":" column ": "
+             (id (one-or-more (not (any " "))))
+             (message (one-or-more not-newline)
+                      (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+             line-end))
+  :modes prose-modes
+  :next-checkers 'nil
+  :standard-input 'nil
+  :working-directory 'nil)
+
+(add-to-list 'flycheck-checkers 'proselint)
+
+(dolist (hook prose-mode-hooks)
+(add-hook hook 'flycheck-mode))
+
+;; Dictionary
+
+(defun hrs/dictionary-prompt ()
+  (read-string
+   (format "Word (%s): " (or (hrs/region-or-word) ""))
+   nil
+   nil
+   (hrs/region-or-word)))
+
+(defun hrs/dictionary-define-word ()
+  (interactive)
+  (let* ((word (hrs/dictionary-prompt))
+         (buffer-name (concat "Definition: " word)))
+    (with-output-to-temp-buffer buffer-name
+      (shell-command (format "sdcv -n %s" word) buffer-name))))
+
+(define-key global-map (kbd "C-x w") 'hrs/dictionary-define-word)
+
+
+
+;; Email with mu4e
+
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+(require 'mu4e)
+
+(setq mu4e-maildir "~/.mail")
+
+(setq mu4e-contexts
+      `(,(make-mu4e-context
+          :name "personal"
+          :match-func (lambda (msg)
+                        (when msg
+                          (string-prefix-p "/personal" (mu4e-message-field msg :maildir))))
+          :vars '((user-mail-address . "gattusevalkar@gmail.com")
+                  (mu4e-trash-folder . "/personal/archive")
+                  (mu4e-refile-folder . "/personal/archive")
+                  (mu4e-sent-folder . "/personal/sent")
+                  (mu4e-drafts-folder . "/personal/drafts")))))
+
+(setq mu4e-get-mail-command "~/.bin/get-new-mail")
+
+(setq mu4e-change-filenames-when-moving t)
+
+(defun hrs/visit-inbox ()
+  (interactive)
+  (mu4e~headers-jump-to-maildir "/personal/inbox"))
+
+(global-set-key (kbd "C-c m") 'hrs/visit-inbox)
+
+(setq mu4e-split-view 'single-window)
+
+(setq mu4e-headers-include-related nil)
+
+(setq mu4e-confirm-quit nil)
+
+(setq mu4e-compose-context-policy 'pick-first)
+(setq mail-user-agent 'mu4e-user-agent)
+(setq message-kill-buffer-on-exit t)
+(setq mu4e-view-show-addresses t)
+(setq mu4e-attachment-dir "~/downloads")
+(define-key mu4e-view-mode-map (kbd "C-c C-o") 'mu4e~view-browse-url-from-binding)
+
+(require 'mu4e-contrib)
+(setq mu4e-html2text-command 'mu4e-shr2text
+      shr-color-visible-luminance-min 60
+      shr-color-visible-distance-min 5
+      shr-use-fonts nil
+      shr-use-colors nil)
+(advice-add #'shr-colorize-region
+            :around (defun shr-no-colourise-region (&rest ignore)))
+
+(add-to-list 'mu4e-view-actions
+             '("html in browser" . mu4e-action-view-in-browser)
+             t)
+
+(setq mu4e-maildir-shortcuts
+    '(("/personal/archive" . ?A)))
+
+(fset 'hrs/mu4e-move-to-archive "mA")
+
+(defun hrs/encrypt-responses ()
+  "Encrypt the current message if it's a reply to another encrypted message."
+  (let ((msg mu4e-compose-parent-message))
+    (when (and msg (member 'encrypted (mu4e-message-field msg :flags)))
+        (mml-secure-message-encrypt-pgpmime))))
+
+(add-hook 'mu4e-compose-mode-hook 'hrs/encrypt-responses)
+
+(setq message-send-mail-function 'message-send-mail-with-sendmail)
+(setq message-sendmail-extra-arguments '("--read-envelope-from"))
+(setq message-sendmail-f-is-evil 't)
+(setq sendmail-program "msmtp")
+
+(require 'org-mu4e)
+(setq org-mu4e-link-query-in-headers-mode nil)
+
+ (use-package org-contacts
+   :ensure nil
+   :after org
+   :custom (org-contacts-files '("~/documents/contacts.org")))
+
+(setq mu4e-org-contacts-file (car org-contacts-files))
+(add-to-list 'mu4e-headers-actions
+  '("org-contact-add" . mu4e-action-add-org-contact) t)
+(add-to-list 'mu4e-view-actions
+						 '("org-contact-add" . mu4e-action-add-org-contact) t)
+
+
+
+;;end email
+
+
+(use-package org-bullets
+	:init
+	(add-hook 'org-mode-hook 'org-bullets-mode))
 
 ;; jinja2 mode, https://github.com/paradoxxxzero/jinja2-mode
 (use-package jinja2-mode
@@ -510,6 +1005,21 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 
 ;; Multi-term use multiple terminal
 (use-package multi-term)
+(global-set-key (kbd "C-c t") 'multi-term)
+
+(defun hrs/term-paste (&optional string)
+	(interactive)
+	(process-send-string
+	 (get-buffer-process (current-buf))
+	 (if string string (current-kill 0))))
+
+(add-hook 'term-mode-hook
+					(lambda ()
+						(goto-address-mode)
+						(define-key term-raw-map (kbd "C-y") 'hrs/term-paste)
+						(define-key term-raw-map (kbd "<mouse-2>") 'hrs/term-paste)
+						(define-key term-raw-map (kbd "M-o") 'other-window)
+						(setq yas-dont-activate t)))
 
 (cond
  ((string-equal system-type "windows-nt")
@@ -715,22 +1225,62 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (add-hook 'cfn-json-mode-hook 'flycheck-mode)
   (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
 
-;; testin org-mode
-(use-package org)
-
 ;; paredit you can manipulate text as a tree
 
 (use-package paredit)
-(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
-(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
-(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
-(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+(use-package rainbow-delimiters)
+
+(setq lispy-mode-hooks
+			'(clojure-mode-hook
+				emacs-lisp-mode-hook
+				lisp-mode-hook
+				scheme-mode-hook))
+
+(dolist (hook lispy-mode-hooks)
+	(add-hook hook (lambda ()
+									 (setq show-paren-style 'expression)
+									 (paredit-mode)
+									 (rainbow-delimiters-mode))))
+(use-package eldoc
+	:config
+	(add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
+
+(use-package flycheck-package)
+(eval-after-load 'flycheck
+	'(flycheck-package-setup))
 
 ;; python
+(use-package python-mode)
+(use-package py-autopep8)
+(require 'py-autopep8)
+(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
 (use-package pyvenv)
 (use-package blacken)
 (use-package ein)
 (use-package jupyter)
+
+
+;; sh
+
+(add-hook 'sh-mode-hook
+					(lambda ()
+						(setq sh-basic-offset 2
+									sh-indentation 2)))
+
+;; web-mode
+
+(add-hook 'web-mode-hook
+					(lambda ()
+						(rainbow-mode)
+						(rspec-mode)
+						(setq web-mode-markup-indent-offset 2)))
+
+(hrs/add-auto-mode
+ 'web-mode
+ "\\.erb$"
+ "\\.html$"
+ "\\.php$"
+ "\\.rhtml$")
+
+;; Terminal
