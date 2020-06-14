@@ -149,18 +149,18 @@
 ;; use moody for a beautiful modeline
 
 (use-package moody
-  :config
-  (setq x-underline-at-descent-line t
-        moody-mode-line-height 30)
-  (moody-replace-mode-line-buffer-identification)
-  (moody-replace-vc-mode))
+ :config
+ (setq x-underline-at-descent-line t)
+ (setq moody-mode-line-height 30)
+ (moody-replace-mode-line-buffer-identification)
+ (moody-replace-vc-mode))
 
 ;; hide minor modes
 (use-package minions
-  :config
-  (setq minions-mode-line-lighter ""
-        minions-mode-line-delimiters '("" . ""))
-  (minions-mode 1))
+ :config
+ (setq minions-mode-line-lighter ""
+       minions-mode-line-delimiters '("" . ""))
+ (minions-mode 1))
 
 ;; Scroll conservatively
 
@@ -254,7 +254,7 @@
         :config
         (exec-path-from-shell-initialize))
       ;; use bash installed from macports
-      (setq explicit-shell-file-name "/opt/local/bin/bash")
+      (setq explicit-shell-file-name "/bin/bash")
       ;;(set-frame-font "PragmataPro 12" t t)
       (setq mac-command-modifier 'meta)
       (setq mac-right-option-modifier 'control)
@@ -608,7 +608,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (setq org-directory "~/documents/org")
 
 (defun org-file-path (filename)
-	"Return the absolute address of an org file, given its relative name."
+	"Return the absolute address of an org FILENAME, given its relative name."
 	(concat (file-name-as-directory org-directory) filename))
 
 (setq org-inbox-file "~/sync/Dropbox/inbox.org")
@@ -887,8 +887,11 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 
 
 ;; Email with mu4e
-
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+(cond
+ ((string-equal system-type "darwin")
+			(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"))
+ ((string-equal system-type "gnu/linux")
+			(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")))
 (require 'mu4e)
 
 (setq mu4e-maildir "~/.mail")
