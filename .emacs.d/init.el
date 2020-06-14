@@ -1,3 +1,6 @@
+;;; init.el --- Initialization file for Emacs
+;;; Commentary: Emacs Startup File --- initialization for Emacs
+
 ;;; package --- Gattu's Emacs init
 
 
@@ -29,7 +32,7 @@
 
 (tool-bar-mode 0)
 (menu-bar-mode 0)
-(scroll-bar-mode -1)
+;; (scroll-bar-mode -1)
 (set-window-scroll-bars (minibuffer-window) nil nil)
 
 ;; Set default frame title
@@ -41,6 +44,7 @@
 ;; Custom Functions
 
 (defun hrs/rename-file (new-name)
+	"Rename file to NEW-NAME."
   (interactive "FNew name: ")
   (let ((filename (buffer-file-name)))
     (if filename
@@ -54,8 +58,7 @@
       (message "Buffer '%s' isn't backed by a file!" (buffer-name)))))
 
 (defun hrs/generate-scratch-buffer ()
-  "Create and switch to a temporary scratch buffer with a random
-       name."
+  "Create and switch to a temporary scratch buffer with a random name."
   (interactive)
   (switch-to-buffer (make-temp-name "scratch-")))
 
@@ -65,7 +68,7 @@
   (kill-buffer (current-buffer)))
 
 (defun hrs/visit-last-migration ()
-  "Open the most recent Rails migration. Relies on projectile."
+  "Open the most recent Rails migration.  Relies on projectile."
   (interactive)
   (let ((migrations
          (directory-files
@@ -97,6 +100,7 @@
   (add-to-list 'exec-path path))
 
 (defun hrs/insert-password ()
+	"Insert password."
   (interactive)
   (shell-command "pwgen 30 -1" t))
 
@@ -254,13 +258,13 @@
         :config
         (exec-path-from-shell-initialize))
       ;; use bash installed from macports
-      (setq explicit-shell-file-name "/bin/bash")
+      (defvar explicit-shell-file-name "/bin/bash")
       ;;(set-frame-font "PragmataPro 12" t t)
       (setq mac-command-modifier 'meta)
       (setq mac-right-option-modifier 'control)
       ;;(mac-auto-operator-composition-mode)
       ;; macOS ls doesn't support --dired
-      (setq dired-use-ls-dired nil))) 
+      (defvar dired-use-ls-dired nil)))
 
 ;; electric-pair-mode
 (electric-pair-mode 1)
@@ -342,7 +346,7 @@
 
 ;; Javascript and coffeescript
 (use-package coffee-mode)
-(setq js-indent-level 2)
+(defvar js-indent-level 2)
 (add-hook 'coffee-mode-hook
 					(lambda ()
 						(yas-minor-mode 1)
@@ -448,9 +452,9 @@
 ;; whole-line-ore-region
 (use-package whole-line-or-region
   :ensure t
-  :diminish whole-line-or-region-mode
+  :diminish whole-line-or-region-global-mode
   :config
-  (whole-line-or-region-mode 1))
+  (whole-line-or-region-global-mode 1))
 
 
 ;; company-go
@@ -549,7 +553,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
     (message local-tern)
     (and (file-exists-p local-tern)
-	 (setq tern-command (list local-tern))
+	 (defvar tern-command (list local-tern))
 	 (tern-mode t))))
 
 ;; js-mode
@@ -559,7 +563,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   (add-hook 'projectile-after-switch-project-hook 'setup-local-standard)
   (add-hook 'projectile-after-switch-project-hook 'setup-local-tern)
   (add-hook 'js-mode-hook
-            (lambda () (setq flycheck-enabled-checkers '(javascript-standard)))))
+            (lambda () (defvar flycheck-enabled-checkers '(javascript-standard)))))
 
 ;; ternjs
 (use-package tern
@@ -611,12 +615,13 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 	"Return the absolute address of an org FILENAME, given its relative name."
 	(concat (file-name-as-directory org-directory) filename))
 
-(setq org-inbox-file "~/sync/Dropbox/inbox.org")
-(setq org-index-file (org-file-path "index.org"))
+(defvar org-inbox-file "~/sync/Dropbox/inbox.org")
+(defvar org-index-file (org-file-path "index.org"))
 (setq org-archive-location
       (concat (org-file-path "archive.org") "::* From %s"))
 
 (defun hrs/copy-tasks-from-inbox ()
+	"Copy task from inbox."
 	(when (file-exists-p org-inbox-file)
 		(save-excursion
 			(find-file org-index-file)
@@ -631,7 +636,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
                              (org-file-path "work.org")))
 
 (defun hrs/mark-done-and-archive ()
-  "Mark the state of an org-mode item as DONE and archive it."
+  "Mark the state of an `org-mode' item as DONE and archive it."
   (interactive)
   (org-todo 'done)
   (org-archive-subtree))
@@ -643,9 +648,9 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (setq org-enforce-todo-dependencies t)
 (setq org-enforce-todo-checkbox-dependencies t)
 
-(setq org-agenda-start-on-weekday nil)
+(defvar org-agenda-start-on-weekday nil)
 
-(setq org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+(defvar org-agenda-prefix-format '((agenda . " %i %?-12t% s")
                                  (todo . " %i ")
                                  (tags . " %i ")
                                  (search . " %i ")))
@@ -653,7 +658,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (require 'org-habit)
 
 (defun org-habit-build-graph (habit starting current ending)
-  "                             ")
+  "Build graph with HABIT STARTING CURRENT ENDING.")
 (setq org-habit-graph-column 60)
 
 (defun hrs/org-skip-subtree-if-priority (priority)
@@ -690,6 +695,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
                  (org-agenda-overriding-header "Blocked:")))))))
 
 (defun hrs/dashboard ()
+	"Create Dashboard."
   (interactive)
   (hrs/copy-tasks-from-inbox)
   (find-file org-index-file)
@@ -698,7 +704,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (global-set-key (kbd "C-c d") 'hrs/dashboard)
 
 
-(setq org-capture-templates
+(defvar org-capture-templates
       '(("b" "Blog idea"
          entry
          (file "~/documents/notes/blog-ideas.org")
@@ -755,6 +761,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (global-set-key (kbd "C-c i") 'hrs/open-index-file)
 
 (defun org-capture-todo ()
+	"Capture todo."
   (interactive)
   (org-capture :keys "t"))
 
@@ -808,13 +815,13 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (add-to-list 'org-latex-packages-alist '("" "minted"))
 (setq org-latex-listings 'minted)
 
-(setq TeX-parse-self t)
-(setq TeX-PDF-mode t)
+(defvar TeX-parse-self t)
+(defvar TeX-PDF-mode t)
 
 (add-hook 'LaTeX-mode-hook
           (lambda ()
             (LaTeX-math-mode)
-            (setq TeX-master t)))
+            (defvar TeX-master t)))
 
 (add-hook 'git-commit-mode-hook 'orgtbl-mode)
 (add-hook 'markdown-mode-hook 'orgtbl-mode)
@@ -869,6 +876,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; Dictionary
 
 (defun hrs/dictionary-prompt ()
+	"Dictionary prompt."
   (read-string
    (format "Word (%s): " (or (hrs/region-or-word) ""))
    nil
@@ -876,6 +884,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
    (hrs/region-or-word)))
 
 (defun hrs/dictionary-define-word ()
+	"Define dictionary word."
   (interactive)
   (let* ((word (hrs/dictionary-prompt))
          (buffer-name (concat "Definition: " word)))
@@ -889,10 +898,11 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; Email with mu4e
 (cond
  ((string-equal system-type "darwin")
-			(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"))
+	(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"))
  ((string-equal system-type "gnu/linux")
 			(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")))
 (require 'mu4e)
+
 
 (setq mu4e-maildir "~/.mail")
 
@@ -913,6 +923,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (setq mu4e-change-filenames-when-moving t)
 
 (defun hrs/visit-inbox ()
+	"Check Inbox."
   (interactive)
   (mu4e~headers-jump-to-maildir "/personal/inbox"))
 
@@ -1011,6 +1022,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (global-set-key (kbd "C-c t") 'multi-term)
 
 (defun hrs/term-paste (&optional string)
+	"Paste STRING from clipboard."
 	(interactive)
 	(process-send-string
 	 (get-buffer-process (current-buf))
@@ -1158,6 +1170,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
 (defun lsp-go-install-save-hooks ()
+	"Save Hooks."
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
@@ -1286,4 +1299,5 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
  "\\.php$"
  "\\.rhtml$")
 
-;; Terminal
+
+;;; init.el ends here
