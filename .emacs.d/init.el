@@ -365,30 +365,33 @@
 
 
 ;; go-mode
-
+(use-package go-errcheck)
 (use-package go-mode
   :ensure t
   :config
   (setq gofmt-command "goimports")
-  (add-hook 'before-save-hook #'gofmt-before-save)
-  (add-hook 'projectile-after-switch-project-hook #'go-set-project)
+  (add-hook 'projectile-after-switch-project-hook 'go-set-project)
   (add-hook 'go-mode-hook (lambda ()
                             (subword-mode)
-			    (setq truncate-lines t)
-			    (setq indent-tabs-mode t)
-			    (setq tab-width 4)
+														(setq truncate-lines t)
+														(setq indent-tabs-mode t)
+														(setq tab-width 4)
                             (local-set-key (kbd "C-c C-k") 'godoc-at-point))))
 
 (add-to-list 'exec-path "~/project/go_code/bin")
 (add-hook 'before-save-hook 'gofmt-before-save)
+
 (use-package go-projectile)
 (use-package gotest)
 
 (setq exec-path (append '("/usr/local/go/bin") exec-path))
 (setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
+(setenv "GOPATH" "~/project/go")
+(setenv "GOBIN" "/usr/local/go/bin")
+(hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
 
-					; As-you-type error highlighting
-(add-hook 'after-init-hook #'global-flycheck-mode)
+;; As-you-type error highlighting
+(add-hook 'after-init-hook 'global-flycheck-mode)
 
 (use-package go-rename
   :load-path "vendor"
