@@ -908,11 +908,11 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; Email with mu4e
 (cond
  ((string-equal system-type "darwin")
-	(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"))
+	(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu/mu4e")
+	(require 'mu4e))
  ((string-equal system-type "gnu/linux")
-			(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")))
-(require 'mu4e)
-
+	(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+	(require 'mu4e)))
 
 (setq mu4e-maildir "~/.mail")
 
