@@ -378,7 +378,14 @@
 														(setq tab-width 4)
                             (local-set-key (kbd "C-c C-k") 'godoc-at-point))))
 
-(add-to-list 'exec-path "~/project/go_code/bin")
+(cond
+ ((string-equal system-type "gnu/linux")
+	(add-to-list 'exec-path "/home/nishikant/project/go_code/bin")
+	(setenv "GOPATH" "/home/nishikant/project/go_code"))
+ ((string-equal system-type "darwin")
+	(add-to-list 'exec-path "/home/gattu/project/go_code/bin")
+	(setenv "GOPATH" "/home/gattu/project/go_code")))
+
 (add-hook 'before-save-hook 'gofmt-before-save)
 
 (use-package go-projectile)
@@ -386,7 +393,7 @@
 
 (setq exec-path (append '("/usr/local/go/bin") exec-path))
 (setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
-(setenv "GOPATH" "~/project/go")
+
 (setenv "GOBIN" "/usr/local/go/bin")
 (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
 
