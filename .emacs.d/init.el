@@ -1078,6 +1078,25 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :commands (lsp lsp-deferred)
   :hook (go-mode . lsp-deferred))
 
+(use-package dap-mode)
+(use-package lsp-java)
+(require 'lsp-java)
+(add-hook 'java-mode-hook #'lsp)
+(use-package posframe)
+(dap-mode 1)
+(setq dap-auto-configure-features '(sessions locals controls tooltip))
+;; The modes above are optional
+
+(dap-ui-mode 1)
+;; enables mouse hover support
+(dap-tooltip-mode 1)
+;; use tooltips for mouse hover
+;; if it is not enabled `dap-mode' will use the minibuffer.
+(tooltip-mode 1)
+;; displays floating panel with debug buttons
+;; requies emacs 26+
+(dap-ui-controls-mode 1)
+
 ;; Set up before-save hooks to format buffer and add/delete imports.
 ;; Make sure you don't have other gofmt/goimports hooks enabled.
 (defun lsp-go-install-save-hooks ()
