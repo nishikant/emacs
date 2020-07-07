@@ -376,7 +376,8 @@
 														(setq truncate-lines t)
 														(setq indent-tabs-mode t)
 														(setq tab-width 4)
-                            (local-set-key (kbd "C-c C-k") 'godoc-at-point))))
+														(local-set-key (kbd "C-c C-k") 'godoc-at-point)
+														(local-set-key (kbd "C-c c") 'go-run))))
 
 (cond
  ((string-equal system-type "gnu/linux")
