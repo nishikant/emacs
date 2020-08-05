@@ -1,4 +1,4 @@
-;; init.el --- Initialization file for Emacs
+;;; init.el --- Initialization file for Emacs
 ;;; Commentary: Emacs Startup File --- initialization for Emacs
 
 ;;; package --- Gattu's Emacs init
@@ -40,6 +40,14 @@
 
 ;; Use fancy lambdas
 (global-prettify-symbols-mode t)
+
+;; Abbrevs expands abbreviations
+
+(setq abbrev-file-name             ;; tell emacs where to read abbrev
+      "~/project/emacs/abbrev_defs")    ;; definitions from...
+
+;; default directory
+(setq default-directory "~/")
 
 ;; Custom Functions
 
@@ -385,8 +393,8 @@
 	(add-to-list 'exec-path "/home/nishikant/project/go_code/bin")
 	(setenv "GOPATH" "/home/nishikant/project/go_code"))
  ((string-equal system-type "darwin")
-	(add-to-list 'exec-path "/home/gattu/project/go_code/bin")
-	(setenv "GOPATH" "/home/gattu/project/go_code")))
+	(add-to-list 'exec-path "/Users/gattu/project/go_code/bin")
+	(setenv "GOPATH" "/Users/gattu/project/go_code")))
 
 (add-hook 'before-save-hook 'gofmt-before-save)
 
