@@ -1,4 +1,4 @@
-;;; init.el --- Initialization file for Emacs
+;; init.el --- Initialization file for Emacs
 ;;; Commentary: Emacs Startup File --- initialization for Emacs
 
 ;;; package --- Gattu's Emacs init
@@ -110,6 +110,7 @@
    (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
 
 ;; Themes
+(use-package solarized-theme)
 (load-theme 'solarized-dark t)
 (defun transparency (value)
   "VALUE Set the transparency of the frame window.  0=transparent/100=opaque."
