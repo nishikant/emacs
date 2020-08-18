@@ -41,6 +41,16 @@
 ;; Use fancy lambdas
 (global-prettify-symbols-mode t)
 
+;; ctags
+(setq path-to-ctags "/usr/local/bin/ctags") ;; <- your ctags path here
+
+(defun create-tags (dir-name)
+  "Create tags file DIR-NAME."
+  (interactive "DDirectory: ")
+  (shell-command
+   (format "%s -f TAGS -e -R %s" path-to-ctags (directory-file-name dir-name)))
+	)
+
 ;; Abbrevs expands abbreviations
 
 (setq abbrev-file-name             ;; tell emacs where to read abbrev
@@ -1238,6 +1248,14 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
  "\\.html$"
  "\\.php$"
  "\\.rhtml$")
+
+;; add go yasnippet
+(yas-global-mode 1)
+(use-package go-snippets)
+(use-package java-snippets)
+(use-package js-react-redux-yasnippets)
+(use-package react-snippets)
+(use-package yasnippet-snippets)
 
 
 ;;; init.el ends here
