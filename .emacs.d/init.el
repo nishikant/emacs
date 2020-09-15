@@ -804,7 +804,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (defun hrs/open-work-file ()
   "Open the work TODO list."
   (interactive)
-  (find-file (org-file-path "work.org"))
+  (find-file (org-file-path "todo.org"))
   (flycheck-mode -1)
   (end-of-buffer))
 
@@ -1257,5 +1257,19 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (use-package react-snippets)
 (use-package yasnippet-snippets)
 
+;; Emmet Mode for HTML
+
+(use-package emmet-mode)
+(add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+(add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+(add-hook 'emmet-mode-hook (lambda () (setq emmet-indentation 2))) ;; indent 2 spaces.
+(setq emmet-move-cursor-between-quotes t) ;; default nil
+(setq emmet-self-closing-tag-style " /") ;; default "/"
+
+;; Ansible minor mode
+
+(use-package ansible)
+;; only " /", "/" and "" are valid.
+;; eg. <meta />, <meta/>, <meta>
 
 ;;; init.el ends here
