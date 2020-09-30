@@ -385,18 +385,7 @@
 
 ;; go-mode
 (use-package go-errcheck)
-(use-package go-mode
-  :ensure t
-  :config
-  (setq gofmt-command "goimports")
-  (add-hook 'projectile-after-switch-project-hook 'go-set-project)
-  (add-hook 'go-mode-hook (lambda ()
-                            (subword-mode)
-														(setq truncate-lines t)
-														(setq indent-tabs-mode t)
-														(setq tab-width 4)
-														(local-set-key (kbd "C-c C-k") 'godoc-at-point)
-														(local-set-key (kbd "C-c c") 'go-run))))
+(use-package go-mode)
 
 (cond
  ((string-equal system-type "gnu/linux")
@@ -406,7 +395,7 @@
 	(add-to-list 'exec-path "/Users/gattu/project/go_code/bin")
 	(setenv "GOPATH" "/Users/gattu/project/go_code")))
 
-(add-hook 'before-save-hook 'gofmt-before-save)
+;; (add-hook 'before-save-hook 'gofmt-before-save)
 
 (use-package go-projectile)
 (use-package gotest)
@@ -416,37 +405,6 @@
 
 (setenv "GOBIN" "/usr/local/go/bin")
 (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
-
-;; As-you-type error highlighting
-(add-hook 'after-init-hook 'global-flycheck-mode)
-
-(use-package go-rename
-  :load-path "vendor"
-  :config
-  (add-hook 'go-mode-hook (lambda ()
-                            (local-set-key (kbd "C-c r") 'go-rename))))
-
-(use-package go-guru
-  :load-path "vendor")
-
-;; go-add-tags
-(use-package go-add-tags
-  :ensure t
-  :config
-  (with-eval-after-load 'go-mode
-    (define-key go-mode-map (kbd "C-c t") #'go-add-tags)))
-
-;; go-direx
-(use-package go-direx
-  :ensure t
-  :config
-  (define-key go-mode-map (kbd "C-c C-t") 'go-direx-switch-to-buffer))
-
-;; go-eldoc
-(use-package go-eldoc
-  :ensure t
-  :config
-  (add-hook 'go-mode-hook 'go-eldoc-setup))
 
 
 ;; rst-mode
@@ -1016,6 +974,10 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 
 (use-package groovy-mode)
 (setq-default groovy-mode 1)
+(add-hook 'groovy-mode-hook 'git-auto-commit-mode)
+(add-hook 'groovy-mode-hook #'lsp-deferred)
+(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
 ;; elpy
 (use-package elpy
@@ -1090,16 +1052,74 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :config (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
   :ensure)
 
+(setq dump-jump-force-searcher 'rg)
+(setq dumb-jump-prefer-searcher 'rg)
+
+(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+;; Counsel
+
+(setq recentf-max-saved-items 100)
+
+(global-set-key "\C-cq" #'bury-buffer)
+
+(use-package flx
+  :after ivy)
+
+(use-package counsel
+  :demand
+  :init
+  (setq ivy-use-virtual-buffers t
+        ivy-re-builders-alist
+        '((counsel-git-grep . ivy--regex-plus)
+          (counsel-rg . ivy--regex-plus)
+          (swiper . ivy--regex-plus)
+          (swiper-all . ivy--regex-plus)
+          (t . ivy--regex-fuzzy)))
+  :config
+  (add-to-list 'ivy-ignore-buffers "\\`\\*remind-bindings\\*")
+  (ivy-mode 1)
+  (counsel-mode 1)
+  :bind
+  (("C-c E" . counsel-flycheck)
+   ("C-c f" . counsel-fzf)
+   ("C-c g" . counsel-git)
+   ("C-c j" . counsel-git-grep)
+   ("C-c L" . counsel-locate)
+   ("C-c o" . counsel-outline)
+   ("C-c r" . counsel-rg)
+   ("C-c R" . counsel-register)
+   ("C-c T" . counsel-load-theme)))
+
+(use-package ivy-posframe
+  :init
+  (setq ivy-posframe-display-functions-alist
+        '((t . ivy-posframe-display-at-frame-center)))
+  :config
+  (ivy-posframe-mode 1))
 
 ;; GOPLS config LSP mode
 
 (use-package lsp-mode
   :ensure t
   :commands (lsp lsp-deferred)
-  :hook (go-mode . lsp-deferred))
+  ;; reformat code and add missing (or remove old) imports
+  :hook ((go-mode . lsp-deferred)
+				 (before-save . lsp-format-buffer)
+         (before-save . lsp-organize-imports))
+  :bind (("C-c d" . lsp-describe-thing-at-point)
+         ("C-c e n" . flymake-goto-next-error)
+         ("C-c e p" . flymake-goto-prev-error)
+         ("C-c e r" . lsp-find-references)
+         ("C-c e R" . lsp-rename)
+         ("C-c e i" . lsp-find-implementation)
+         ("C-c e t" . lsp-find-type-definition)))
 
 (use-package dap-mode)
-(use-package lsp-java)
+(use-package which-key :config (which-key-mode))
+(use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
+(use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+(use-package dap-java :ensure nil)
+;; (setq lsp-groovy-server-file "/Users/gattu/.emacs/groovy-language-server/groovy-language-server-all.jar") 
 (require 'lsp-java)
 (add-hook 'java-mode-hook #'lsp)
 (use-package posframe)
@@ -1266,9 +1286,115 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (setq emmet-move-cursor-between-quotes t) ;; default nil
 (setq emmet-self-closing-tag-style " /") ;; default "/"
 
+;; treemacs
+
+(use-package treemacs
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (progn
+    (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay      0.5
+          treemacs-directory-name-transformer    #'identity
+          treemacs-display-in-side-window        t
+          treemacs-eldoc-display                 t
+          treemacs-file-event-delay              5000
+          treemacs-file-extension-regex          treemacs-last-period-regex-value
+          treemacs-file-follow-delay             0.2
+          treemacs-file-name-transformer         #'identity
+          treemacs-follow-after-init             t
+          treemacs-git-command-pipe              ""
+          treemacs-goto-tag-strategy             'refetch-index
+          treemacs-indentation                   2
+          treemacs-indentation-string            " "
+          treemacs-is-never-other-window         nil
+          treemacs-max-git-entries               5000
+          treemacs-missing-project-action        'ask
+          treemacs-move-forward-on-expand        nil
+          treemacs-no-png-images                 nil
+          treemacs-no-delete-other-windows       t
+          treemacs-project-follow-cleanup        nil
+          treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                      'left
+          treemacs-recenter-distance             0.1
+          treemacs-recenter-after-file-follow    nil
+          treemacs-recenter-after-tag-follow     nil
+          treemacs-recenter-after-project-jump   'always
+          treemacs-recenter-after-project-expand 'on-distance
+          treemacs-show-cursor                   nil
+          treemacs-show-hidden-files             t
+          treemacs-silent-filewatch              nil
+          treemacs-silent-refresh                nil
+          treemacs-sorting                       'alphabetic-asc
+          treemacs-space-between-root-nodes      t
+          treemacs-tag-follow-cleanup            t
+          treemacs-tag-follow-delay              1.5
+          treemacs-user-mode-line-format         nil
+          treemacs-user-header-line-format       nil
+          treemacs-width                         35
+          treemacs-workspace-switch-cleanup      nil)
+
+    ;; The default width and height of the icons is 22 pixels. If you are
+    ;; using a Hi-DPI display, uncomment this to double the icon size.
+    ;;(treemacs-resize-icons 44)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode t)
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple))))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-projectile
+  :after treemacs projectile
+  :ensure t)
+
+(use-package treemacs-icons-dired
+  :after treemacs dired
+  :ensure t
+  :config (treemacs-icons-dired-mode))
+
+(use-package treemacs-magit
+  :after treemacs magit
+  :ensure t)
+
+(use-package treemacs-persp ;;treemacs-persective if you use perspective.el vs. persp-mode
+  :after treemacs persp-mode ;;or perspective vs. persp-mode
+  :ensure t
+  :config (treemacs-set-scope-type 'Perspectives))
+
+;;
+
+(use-package fzf)
 ;; Ansible minor mode
 
 (use-package ansible)
+
+;; Git autocommit used for groovy
+(use-package git-auto-commit-mode)
+
+;; Drag line up/down
+(use-package drag-stuff)
+(drag-stuff-global-mode 1)
+(drag-stuff-define-keys)
+
+;; Json mode
+
+(use-package json-mode)
 ;; only " /", "/" and "" are valid.
 ;; eg. <meta />, <meta/>, <meta>
 
