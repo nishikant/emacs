@@ -10,6 +10,7 @@
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+(add-to-list 'load-path "~/.emacs.d/ob-sclang")
 ;;; Code:
 
 (package-initialize)
@@ -1414,6 +1415,9 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Json mode
 
 (use-package json-mode)
+(setq openapi-yaml-use-yaml-mode-syntax-highlight t)
+;;(require 'flycheck-swagger-tools)
+
 ;; only " /", "/" and "" are valid.
 ;; eg. <meta />, <meta/>, <meta>
 
