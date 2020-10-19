@@ -29,7 +29,7 @@
 (setq load-prefer-newer t)
 
 ;; Disable menu and scroll bars
-
+;; (setq debug-on-error t)
 (tool-bar-mode 0)
 (menu-bar-mode 0)
 ;; (scroll-bar-mode -1)
@@ -1377,8 +1377,27 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   :ensure t
   :config (treemacs-set-scope-type 'Perspectives))
 
-;;
+;; lsp-mode for c++
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
+(setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
+(setq ccls-executable "/usr/local/bin/ccls")
+;; (setq ccls-args '("--log-file=/tmp/ccls.log"))
 
+(use-package ivy-xref
+  :ensure t
+  :init
+  ;; xref initialization is different in Emacs 27 - there are two different
+  ;; variables which can be set rather than just one
+  (when (>= emacs-major-version 27)
+    (setq xref-show-definitions-function #'ivy-xref-show-defs))
+  ;; Necessary in Emacs <27. In Emacs 27 it will affect all xref-based
+  ;; commands other than xref-find-definitions (e.g. project-find-regexp)
+  ;; as well
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+
+;; fuzzy search 
 (use-package fzf)
 ;; Ansible minor mode
 
