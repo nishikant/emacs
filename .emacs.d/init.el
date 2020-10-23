@@ -1002,7 +1002,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
             ;; meghanada-mode on
             (meghanada-mode t)
             (flycheck-mode +1)
-            (setq c-basic-offset 2)
+            (setq c-basic-offset 4)
             ;; use code format
             (add-hook 'before-save-hook 'meghanada-code-beautify-before-save)))
 (cond
@@ -1105,7 +1105,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :commands (lsp lsp-deferred)
   ;; reformat code and add missing (or remove old) imports
   :hook ((go-mode . lsp-deferred)
-				 (before-save . lsp-format-buffer)
+;;				 (before-save . lsp-format-buffer)
          (before-save . lsp-organize-imports))
   :bind (("C-c d" . lsp-describe-thing-at-point)
          ("C-c e n" . flymake-goto-next-error)
@@ -1417,6 +1417,13 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (use-package json-mode)
 (setq openapi-yaml-use-yaml-mode-syntax-highlight t)
 ;;(require 'flycheck-swagger-tools)
+
+;; winner mode to handle windows config rollback
+(when (fboundp 'winner-mode)
+  (winner-mode 1))
+
+(setq c-default-style "java"
+      c-basic-offset 4)
 
 ;; only " /", "/" and "" are valid.
 ;; eg. <meta />, <meta/>, <meta>
