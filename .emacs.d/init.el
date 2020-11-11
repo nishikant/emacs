@@ -345,7 +345,7 @@
   (setq projectile-completion-system 'ivy))
 
 ;; Test tab-width 2
-(setq-default tab-width 2)
+(setq-default tab-width 4)
 
 (use-package subword
   :config (global-subword-mode 1))
@@ -388,13 +388,17 @@
 (use-package go-errcheck)
 (use-package go-mode)
 
+;; use golangci
+(use-package flycheck-golangci-lint
+  :ensure t)
+
 (cond
  ((string-equal system-type "gnu/linux")
-	(add-to-list 'exec-path "/home/nishikant/project/go_code/bin")
-	(setenv "GOPATH" "/home/nishikant/project/go_code"))
+	(add-to-list 'exec-path "/home/nishikant/project/go/bin")
+	(setenv "GOPATH" "/home/nishikant/project/go"))
  ((string-equal system-type "darwin")
-	(add-to-list 'exec-path "/Users/gattu/project/go_code/bin")
-	(setenv "GOPATH" "/Users/gattu/project/go_code")))
+	(add-to-list 'exec-path "/Users/gattu/project/go/bin")
+	(setenv "GOPATH" "/Users/gattu/project/go")))
 
 ;; (add-hook 'before-save-hook 'gofmt-before-save)
 
@@ -1098,6 +1102,41 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :config
   (ivy-posframe-mode 1))
 
+;; Hydra
+
+;; go hydra
+(use-package use-package-hydra)
+(use-package hydra
+  :ensure t
+  :config
+  (require 'hydra)
+  (require 'dap-mode)
+  (require 'dap-ui)
+  ;;:commands (ace-flyspell-setup)
+  :bind
+  ;;("M-s" . hydra-go/body)
+  :init
+  (add-hook 'dap-stopped-hook
+          (lambda (arg) (call-interactively #'hydra-go/body)))
+  :hydra  (hydra-go (:color pink :hint nil :foreign-keys run)
+  "
+   _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
+   _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
+   _Q_: Disconnect _q_: quit     _l_: locals
+   "
+	     ("n" dap-next)
+	     ("c" dap-continue)
+	     ("s" dap-step-in)
+	     ("o" dap-step-out)
+	     ("g" dap-ui-sessions)
+	     ("l" dap-ui-locals)
+	     ("e" dap-eval-thing-at-point)
+	     ("h" dap-breakpoint-hit-condition)
+	     ("k" dap-breakpoint-condition)
+	     ("i" dap-breakpoint-log-message)
+	     ("q" nil "quit" :color blue)
+	     ("Q" dap-disconnect :color red)))
+
 ;; GOPLS config LSP mode
 
 (use-package lsp-mode
@@ -1115,20 +1154,33 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
          ("C-c e i" . lsp-find-implementation)
          ("C-c e t" . lsp-find-type-definition)))
 
-(use-package dap-mode)
+;; DAP mode
+(use-package dap-mode
+  :config
+  (dap-mode 1)
+  (dap-auto-configure-mode)
+  (setq dap-print-io t)
+  (require 'dap-hydra)
+  (require 'dap-go)
+  (dap-go-setup)
+  (use-package dap-ui
+	:ensure nil
+	:config
+	(dap-ui-mode 1)))
+
+
 (use-package which-key :config (which-key-mode))
 (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
-(use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+
 (use-package dap-java :ensure nil)
-;; (setq lsp-groovy-server-file "/Users/gattu/.emacs/groovy-language-server/groovy-language-server-all.jar") 
+(setq lsp-groovy-server-file "/Users/gattu/.emacs.d/groovy-language-server/groovy-language-server-all.jar") 
 (require 'lsp-java)
 (add-hook 'java-mode-hook #'lsp)
 (use-package posframe)
-(dap-mode 1)
+
 (setq dap-auto-configure-features '(sessions locals controls tooltip))
 ;; The modes above are optional
 
-(dap-ui-mode 1)
 ;; enables mouse hover support
 (dap-tooltip-mode 1)
 ;; use tooltips for mouse hover
@@ -1149,7 +1201,8 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; Optional - provides fancier overlays.
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode)
+  :commands lsp-ui-mode
+	:init)
 
 ;; Company mode is a standard completion package that works well with lsp-mode.
 (use-package company
@@ -1170,6 +1223,19 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
+
+(lsp-register-custom-settings
+ '(("gopls.completeUnimported" t t)
+   ("gopls.staticcheck" t t)))
+
+;; lsp-ui-doc-enable is false because I don't like the popover that shows up on the right
+;; I'll change it if I want it back
+
+;; (setq lsp-ui-doc-enable nil
+;;       lsp-ui-peek-enable t
+;;       lsp-ui-sideline-enable t
+;;       lsp-ui-imenu-enable t
+;;       lsp-ui-flycheck-enable t)
 
 ;; Terraform mode
 
