@@ -386,7 +386,9 @@
 
 ;; go-mode
 (use-package go-errcheck)
-(use-package go-mode)
+(use-package go-mode
+  :config
+  (define-key go-mode-map (kbd "C-c c") 'go-run))
 
 ;; use golangci
 (use-package flycheck-golangci-lint
@@ -1161,13 +1163,12 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   (dap-auto-configure-mode)
   (setq dap-print-io t)
   (require 'dap-hydra)
-  (require 'dap-go)
+  (require 'dap-go)   ;  (require 'dap-go)		; download and expand vscode-go-extenstion to the =~/.extensions/go=
   (dap-go-setup)
   (use-package dap-ui
 	:ensure nil
 	:config
 	(dap-ui-mode 1)))
-
 
 (use-package which-key :config (which-key-mode))
 (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
