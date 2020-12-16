@@ -388,6 +388,7 @@
 (use-package go-errcheck)
 (use-package go-mode
   :config
+  (use-package godoctor)
   (define-key go-mode-map (kbd "C-c c") 'go-run))
 
 ;; use golangci
@@ -456,11 +457,6 @@
 (use-package company-go
   :ensure t)
 
-;; company-jedi
-;;(use-package company-jedi
-;;  :ensure t)
-
-
 ;; company
 (use-package company)
 (add-hook 'after-init-hook 'global-company-mode)
@@ -486,12 +482,13 @@
   :ensure t
   :config
   (setq flycheck-check-syntax-automatically '(mode-enabled save))
+  (setq compilation-auto-jump-to-first-error t)
   (add-hook 'python-mode-hook 'flycheck-mode)
   (add-hook 'go-mode-hook 'flycheck-mode)
   (add-hook 'sh-mode-hook 'flycheck-mode)
   (add-hook 'rst-mode-hook 'flycheck-mode)
   (add-hook 'js-mode-hook 'flycheck-mode)
-	(add-hook 'elpy-mode-hook 'flycheck-mode))
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
 
 
 
@@ -986,11 +983,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
-;; elpy
-(use-package elpy
-  :ensure t
-  :init
-  (elpy-enable))
+
 
 (setq ffap-require-prefix nil)
 (ffap-bindings)
@@ -1146,15 +1139,34 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :commands (lsp lsp-deferred)
   ;; reformat code and add missing (or remove old) imports
   :hook ((go-mode . lsp-deferred)
-;;				 (before-save . lsp-format-buffer)
-         (before-save . lsp-organize-imports))
+         (before-save . lsp-organize-imports)
+		 (lsp-mode . lsp-enable-which-key-integration)
+		 )
   :bind (("C-c d" . lsp-describe-thing-at-point)
          ("C-c e n" . flymake-goto-next-error)
          ("C-c e p" . flymake-goto-prev-error)
          ("C-c e r" . lsp-find-references)
          ("C-c e R" . lsp-rename)
          ("C-c e i" . lsp-find-implementation)
-         ("C-c e t" . lsp-find-type-definition)))
+         ("C-c e t" . lsp-find-type-definition)
+		 )
+  :config
+  (with-eval-after-load 'lsp-mode
+  ;; :global/:workspace/:file
+	(setq lsp-modeline-diagnostics-scope :workspace))
+  (with-eval-after-load 'lsp-mode
+	(add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
+  (setq lsp-headerline-breadcrumb-enable t)
+  (setq lsp-modeline-code-actions-segments '(count icon))
+  (setq lsp-file-watch-threshold 4000)
+  (setq lsp-headerline-breadcrumb-mode t)
+  (setq lsp-semantic-highlighting 'immediate)
+  (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+  
+  (lsp-register-custom-settings
+   '(("gopls.completeUnimported" t t)
+     ("gopls.staticcheck" t t)
+	 )))
 
 ;; DAP mode
 (use-package dap-mode
@@ -1174,7 +1186,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
 
 (use-package dap-java :ensure nil)
-(setq lsp-groovy-server-file "/Users/gattu/.emacs.d/groovy-language-server/groovy-language-server-all.jar") 
+(setq lsp-groovy-server-file "/Users/gattu/groovy-language-server/groovy-language-server-all.jar") 
 (require 'lsp-java)
 (add-hook 'java-mode-hook #'lsp)
 (use-package posframe)
@@ -1203,6 +1215,16 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (use-package lsp-ui
   :ensure t
   :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-show-hover t
+                lsp-ui-sideline-delay 0.5
+                lsp-ui-doc-delay 0.5
+                lsp-ui-sideline-ignore-duplicates t
+                lsp-ui-doc-position 'bottom
+                lsp-ui-doc-alignment 'frame
+                lsp-ui-doc-header nil
+                lsp-ui-doc-include-signature t
+                lsp-ui-doc-use-childframe t)
 	:init)
 
 ;; Company mode is a standard completion package that works well with lsp-mode.
@@ -1232,11 +1254,11 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 ;; lsp-ui-doc-enable is false because I don't like the popover that shows up on the right
 ;; I'll change it if I want it back
 
-;; (setq lsp-ui-doc-enable nil
-;;       lsp-ui-peek-enable t
-;;       lsp-ui-sideline-enable t
-;;       lsp-ui-imenu-enable t
-;;       lsp-ui-flycheck-enable t)
+(setq lsp-ui-doc-enable t
+      lsp-ui-peek-enable t
+      lsp-ui-sideline-enable t
+      lsp-ui-imenu-enable t
+      lsp-ui-flycheck-enable t)
 
 ;; Terraform mode
 
@@ -1292,29 +1314,54 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 (dolist (hook lispy-mode-hooks)
 	(add-hook hook (lambda ()
-									 (setq show-paren-style 'expression)
-									 (paredit-mode)
-									 (rainbow-delimiters-mode))))
-(use-package eldoc
-	:config
-	(add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
+					 (setq show-paren-style 'expression)
+					 (paredit-mode)
+					 (rainbow-delimiters-mode))))
 
 (use-package flycheck-package)
 (eval-after-load 'flycheck
-	'(flycheck-package-setup))
+  '(flycheck-package-setup))
 
 ;; python
+
 (use-package python-mode)
+(setq python-shell-interpreter "python3")
 (use-package py-autopep8)
 (require 'py-autopep8)
 (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
-
-(use-package pyvenv)
+;; elpy
+(use-package elpy
+  :ensure t
+  :init
+  (elpy-enable))
+;; (use-package pyvenv
+  ;; :demand t
+  ;; :config
+  ;; (setq pyvenv-workon "emacs")  ; Default venv
+  ;; (pyvenv-tracking-mode 1))
 (use-package blacken)
 (use-package ein)
 (use-package jupyter)
 
+(use-package eldoc
+	:config
+	(add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
 
+(use-package lsp-jedi
+  :ensure t
+  :config
+  (with-eval-after-load "lsp-mode"
+    (add-to-list 'lsp-disabled-clients 'pyls)
+    (add-to-list 'lsp-enabled-clients 'jedi)))
+(use-package jedi)
+(add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:complete-on-dot t)
+
+;; Used by virtualenvwrapper.el
+;; (setq venv-location (expand-file-name "~/project/python/env")) Change with the path to your virtualenvs
+;; Used python-environment.el and by extend jedi.el
+;; (setq python-environment-directory venv-location)
+(setq jedi:server-command (list "python3" jedi:server-script))
 ;; sh
 
 (add-hook 'sh-mode-hook
