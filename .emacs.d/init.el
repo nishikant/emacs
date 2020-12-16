@@ -1140,8 +1140,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   ;; reformat code and add missing (or remove old) imports
   :hook ((go-mode . lsp-deferred)
          (before-save . lsp-organize-imports)
-		 (lsp-mode . lsp-enable-which-key-integration)
-		 )
+		 (lsp-mode . lsp-enable-which-key-integration))
   :bind (("C-c d" . lsp-describe-thing-at-point)
          ("C-c e n" . flymake-goto-next-error)
          ("C-c e p" . flymake-goto-prev-error)
@@ -1246,7 +1245,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :ensure t
   :commands yas-minor-mode
   :hook (go-mode . yas-minor-mode))
-
+(add-to-list 'lsp-enabled-clients 'gopls)
 (lsp-register-custom-settings
  '(("gopls.completeUnimported" t t)
    ("gopls.staticcheck" t t)))
@@ -1362,6 +1361,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Used python-environment.el and by extend jedi.el
 ;; (setq python-environment-directory venv-location)
 (setq jedi:server-command (list "python3" jedi:server-script))
+
 ;; sh
 
 (add-hook 'sh-mode-hook
