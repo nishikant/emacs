@@ -38,9 +38,53 @@
 
 ;; Set default frame title
 (setq frame-title-format '((:eval (projectile-project-name))))
+(setq delete-auto-save-files t)
+(setq delete-old-versions t)
 
 ;; Use fancy lambdas
 (global-prettify-symbols-mode t)
+
+;; Generic emacs stuff
+
+(defalias 'qrr 'query-regexp-replace)
+(fset 'yes-or-no-p 'y-or-n-p)  ;; only type `y` instead of `yes`
+(setq inhibit-splash-screen t) ;; no splash screen
+(setq-default indent-tabs-mode nil)      ;; no tabs!
+(setq fill-column 80) ;; M-q should fill at 80 chars, not 75
+(setq initial-buffer-choice "~/Documents/org/work.org") ;; make the eng log the first file that's open.
+
+;; general programming things
+;; other fonts I like: proggy clean, inconsolata, terminus.
+(setq-default truncate-lines 1) ;; no wordwrap
+
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward)  ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
+(setq desktop-load-locked-desktop "ask") ;; sometimes desktop is locked, ask if we want to load it.
+(desktop-save-mode 1) ;; auto-save buffer state on close for a later time.
+
+(use-package doom-modeline)
+(require 'doom-modeline)
+;; note, if the fonts are weird, run `M-x all-the-icons-install-fonts`
+(doom-modeline-mode 1) ;; enable pretty modeline
+
+;; colorize the output of the compilation mode.
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region (point-min) (point-max))
+
+  ;; mocha seems to output some non-standard control characters that
+  ;; aren't recognized by ansi-color-apply-on-region, so we'll
+  ;; manually convert these into the newlines they should be.
+  (goto-char (point-min))
+  (while (re-search-forward "\\[2K\\[0G" nil t)
+    (progn
+      (replace-match "
+")))
+  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+;; End generic emacs stuff
 
 ;; ctags
 (setq path-to-ctags "/usr/local/bin/ctags") ;; <- your ctags path here
@@ -172,19 +216,19 @@
 
 ;; use moody for a beautiful modeline
 
-(use-package moody
- :config
- (setq x-underline-at-descent-line t)
- (setq moody-mode-line-height 30)
- (moody-replace-mode-line-buffer-identification)
- (moody-replace-vc-mode))
+;; (use-package moody
+;;   :config
+;;   (setq x-underline-at-descent-line t)
+;;   (setq moody-mode-line-height 30)
+;;   (moody-replace-mode-line-buffer-identification)
+;;   (moody-replace-vc-mode))
 
 ;; hide minor modes
 (use-package minions
- :config
- (setq minions-mode-line-lighter ""
-       minions-mode-line-delimiters '("" . ""))
- (minions-mode 1))
+  :config
+  (setq minions-mode-line-lighter ""
+		minions-mode-line-delimiters '("" . ""))
+  (minions-mode 1))
 
 ;; Scroll conservatively
 
@@ -214,7 +258,7 @@
 ;; attached to it
 (setq kill-buffer-query-functions
       (remq 'process-kill-buffer-query-function
-	    kill-buffer-query-functions))
+			kill-buffer-query-functions))
 
 ;; making tooltips appear in the echo area
 (tooltip-mode 0)
@@ -248,7 +292,7 @@
 
 ;; When saving a file that starts with `#!', make it executable.
 (add-hook 'after-save-hook
-	  'executable-make-buffer-file-executable-if-script-p)
+		  'executable-make-buffer-file-executable-if-script-p)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -355,12 +399,16 @@
 ;; CSS Sass and Less
 
 (use-package css-mode
-	:config
-	(setq css-indent-offset 2))
+  :config
+  (setq css-indent-offset 2))
 
 (use-package scss-mode
-	:config
-	(setq scss-compile-at-save nil))
+  :config
+  (setq scss-compile-at-save nil))
+
+;; (require 'flymake-less)
+(use-package css-eldoc)
+(require 'css-eldoc)
 
 (use-package less-css-mode)
 
@@ -368,17 +416,17 @@
 (use-package coffee-mode)
 (defvar js-indent-level 2)
 (add-hook 'coffee-mode-hook
-					(lambda ()
-						(yas-minor-mode 1)
-						(setq coffee-tab-width 2)))
+		  (lambda ()
+			(yas-minor-mode 1)
+			(setq coffee-tab-width 2)))
 
 ;; yaml-mode
 (use-package yaml-mode
   :ensure t
   :config
   (add-hook 'yaml-mode-hook
-	    '(lambda ()
-	       (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+			'(lambda ()
+			   (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
   (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
   )
@@ -397,11 +445,11 @@
 
 (cond
  ((string-equal system-type "gnu/linux")
-	(add-to-list 'exec-path "/home/nishikant/project/go/bin")
-	(setenv "GOPATH" "/home/nishikant/project/go"))
+  (add-to-list 'exec-path "/home/nishikant/project/go/bin")
+  (setenv "GOPATH" "/home/nishikant/project/go"))
  ((string-equal system-type "darwin")
-	(add-to-list 'exec-path "/Users/gattu/project/go/bin")
-	(setenv "GOPATH" "/Users/gattu/project/go")))
+  (add-to-list 'exec-path "/Users/gattu/project/go/bin")
+  (setenv "GOPATH" "/Users/gattu/project/go")))
 
 ;; (add-hook 'before-save-hook 'gofmt-before-save)
 
@@ -414,6 +462,9 @@
 (setenv "GOBIN" "/usr/local/go/bin")
 (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
 
+;; Clojure
+
+(use-package cider)
 
 ;; rst-mode
 (use-package rst
@@ -437,6 +488,20 @@
   :ensure t
   :mode "\\.html?\\'")
 
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.hb\\.html\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.jsp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.hbs\\'" . web-mode))
+
+;; everything is indented 2 spaces
+(setq web-mode-markup-indent-offset 2)
+(setq web-mode-css-indent-offset 2)
+(setq web-mode-code-indent-offset 2)
 
 ;; undo-tree
 (use-package undo-tree
@@ -490,19 +555,33 @@
   (add-hook 'js-mode-hook 'flycheck-mode)
   (add-hook 'elpy-mode-hook 'flycheck-mode))
 
+;; spell check text
 
+(add-hook 'text-mode-hook 'flyspell-mode)
 
 ;; markdown-mode
 
 (use-package markdown-mode
-  :commands gfm-mode
-
-  :mode (("\\.md$" . gfm-mode))
-
+  :commands markdown-mode
+  :ensure-system-package (markdown pandoc)
+  :init
+  (add-hook 'markdown-mode-hook #'visual-line-mode)
+  (add-hook 'markdown-mode-hook #'variable-pitch-mode)
+  (add-hook 'markdown-mode-hook #'flyspell-mode)
   :config
-  (setq markdown-command "pandoc --standalone --mathjax --from=markdown")
+  (setq flymd-markdown-regex (mapconcat 'identity '("\\.md\\'" "\\.markdown\\'" "markdown") "\\|"))
+
+  ;; The default command for markdown (~markdown~), doesn't support tables
+  ;; (e.g. GitHub flavored markdown). Pandoc does, so let's use that.
+  (setq markdown-command "pandoc --from markdown --to html")
+  (setq markdown-command-needs-filename t)
   (custom-set-faces
    '(markdown-code-face ((t nil)))))
+
+(use-package flymd
+  :hook markdown-mode
+  :commands flymd-flyit
+  :requires markdown-mode)
 
 ;; expand-region
 (use-package expand-region
@@ -537,7 +616,7 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   (interactive)
   (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
     (setq flycheck-javascript-standard-executable
-	  (and (file-exists-p local-standard) local-standard))))
+		  (and (file-exists-p local-standard) local-standard))))
 
 (defun setup-local-tern ()
   "If tern found in node_modules directory - use that for tern mode."
@@ -545,8 +624,8 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
   (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
     (message local-tern)
     (and (file-exists-p local-tern)
-	 (defvar tern-command (list local-tern))
-	 (tern-mode t))))
+		 (defvar tern-command (list local-tern))
+		 (tern-mode t))))
 
 ;; js-mode
 (use-package js
@@ -579,18 +658,18 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 ;; org-mode
 (use-package org
   :ensure org-plus-contrib
-	:config
-	(require 'org-tempo)
-	(add-hook 'org-mode-hook
-						'(lambda ()
-							 (setq mailcap-mime-data '())
-							 (mailcap-parse-mailcap "~/.mailcap")
-							 (setq org-file-apps
-										 '((remote . emacs)
-											 ("mobi" . "fbreader %s")
-											 (system . mailcap)
-											 ("org" . emacs)
-											 (t . mailcap))))))
+  :config
+  (require 'org-tempo)
+  (add-hook 'org-mode-hook
+			'(lambda ()
+			   (setq mailcap-mime-data '())
+			   (mailcap-parse-mailcap "~/.mailcap")
+			   (setq org-file-apps
+					 '((remote . emacs)
+					   ("mobi" . "fbreader %s")
+					   (system . mailcap)
+					   ("org" . emacs)
+					   (t . mailcap))))))
 
 (setq initial-major-mode 'org-mode)
 (setq org-ellipsis "⤵")
@@ -598,14 +677,14 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (setq org-src-tab-acts-natively t)
 (setq org-src-window-setup 'current-window)
 (add-to-list 'org-structure-template-alist
-						 '("el" . "src emacs-lisp"))
+			 '("el" . "src emacs-lisp"))
 (setq org-adapt-indentation nil)
 
 (setq org-directory "~/documents/org")
 
 (defun org-file-path (filename)
-	"Return the absolute address of an org FILENAME, given its relative name."
-	(concat (file-name-as-directory org-directory) filename))
+  "Return the absolute address of an org FILENAME, given its relative name."
+  (concat (file-name-as-directory org-directory) filename))
 
 (defvar org-inbox-file "~/sync/Dropbox/inbox.org")
 (defvar org-index-file (org-file-path "index.org"))
@@ -613,13 +692,13 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
       (concat (org-file-path "archive.org") "::* From %s"))
 
 (defun hrs/copy-tasks-from-inbox ()
-	"Copy task from inbox."
-	(when (file-exists-p org-inbox-file)
-		(save-excursion
-			(find-file org-index-file)
-			(goto-char (point-max))
-			(insert-file-contents org-inbox-file)
-			(delete-file org-inbox-file))))
+  "Copy task from inbox."
+  (when (file-exists-p org-inbox-file)
+	(save-excursion
+	  (find-file org-index-file)
+	  (goto-char (point-max))
+	  (insert-file-contents org-inbox-file)
+	  (delete-file org-inbox-file))))
 
 (setq org-agenda-files (list org-index-file
                              (org-file-path "events.org")
@@ -643,9 +722,9 @@ Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactna
 (defvar org-agenda-start-on-weekday nil)
 
 (defvar org-agenda-prefix-format '((agenda . " %i %?-12t% s")
-                                 (todo . " %i ")
-                                 (tags . " %i ")
-                                 (search . " %i ")))
+                                   (todo . " %i ")
+                                   (tags . " %i ")
+                                   (search . " %i ")))
 
 (require 'org-habit)
 
@@ -687,7 +766,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
                  (org-agenda-overriding-header "Blocked:")))))))
 
 (defun hrs/dashboard ()
-	"Create Dashboard."
+  "Create Dashboard."
   (interactive)
   (hrs/copy-tasks-from-inbox)
   (find-file org-index-file)
@@ -697,15 +776,15 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 
 
 (defvar org-capture-templates
-      '(("b" "Blog idea"
-         entry
-         (file "~/documents/notes/blog-ideas.org")
-         "* %?\n")
+  '(("b" "Blog idea"
+     entry
+     (file "~/documents/notes/blog-ideas.org")
+     "* %?\n")
 
-        ("c" "Contact"
-         entry
-         (file "~/documents/contacts.org")
-         "* %(org-contacts-template-name)
+    ("c" "Contact"
+     entry
+     (file "~/documents/contacts.org")
+     "* %(org-contacts-template-name)
 :PROPERTIES:
 :ADDRESS: %^{123 Fake St., City, ST 12345}
 :PHONE: %^{555-555-5555}
@@ -713,27 +792,27 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 :NOTE: %^{note}
 :END:")
 
-        ("d" "Delivery" entry
-         (file+headline "~/documents/org/events.org" "Deliveries")
-         "** %?\n   SCHEDULED: %t\n")
+    ("d" "Delivery" entry
+     (file+headline "~/documents/org/events.org" "Deliveries")
+     "** %?\n   SCHEDULED: %t\n")
 
-        ("e" "Email" entry
-         (file+headline org-index-file "Inbox")
-         "* TODO %?\n\n%a\n\n")
+    ("e" "Email" entry
+     (file+headline org-index-file "Inbox")
+     "* TODO %?\n\n%a\n\n")
 
-        ("f" "Finished book"
-         table-line (file "~/documents/notes/books-read.org")
-         "| %^{Title} | %^{Author} | %u |")
+    ("f" "Finished book"
+     table-line (file "~/documents/notes/books-read.org")
+     "| %^{Title} | %^{Author} | %u |")
 
-        ("s" "Subscribe to an RSS feed"
-         plain
-         (file "~/documents/rss-feeds.org")
-         "*** [[%^{Feed URL}][%^{Feed name}]]")
+    ("s" "Subscribe to an RSS feed"
+     plain
+     (file "~/documents/rss-feeds.org")
+     "*** [[%^{Feed URL}][%^{Feed name}]]")
 
-        ("t" "Todo"
-         entry
-         (file+headline org-index-file "Inbox")
-         "* TODO %?\n:PROPERTIES:\nCREATED: %u\n:END:\n")))
+    ("t" "Todo"
+     entry
+     (file+headline org-index-file "Inbox")
+     "* TODO %?\n:PROPERTIES:\nCREATED: %u\n:END:\n")))
 
 (setq org-refile-use-outline-path t)
 (setq org-outline-path-complete-in-steps nil)
@@ -753,7 +832,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (global-set-key (kbd "C-c i") 'hrs/open-index-file)
 
 (defun org-capture-todo ()
-	"Capture todo."
+  "Capture todo."
   (interactive)
   (org-capture :keys "t"))
 
@@ -823,7 +902,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   :config
   (add-hook 'git-commit-mode-hook 'orgalist-mode)
   (add-hook 'markdown-mode-hook 'orgalist-mode)
-(add-hook 'message-mode-hook 'orgalist-mode))
+  (add-hook 'message-mode-hook 'orgalist-mode))
 
 
 ;; org mode end
@@ -863,12 +942,12 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (add-to-list 'flycheck-checkers 'proselint)
 
 (dolist (hook prose-mode-hooks)
-(add-hook hook 'flycheck-mode))
+  (add-hook hook 'flycheck-mode))
 
 ;; Dictionary
 
 (defun hrs/dictionary-prompt ()
-	"Dictionary prompt."
+  "Dictionary prompt."
   (read-string
    (format "Word (%s): " (or (hrs/region-or-word) ""))
    nil
@@ -876,7 +955,7 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
    (hrs/region-or-word)))
 
 (defun hrs/dictionary-define-word ()
-	"Define dictionary word."
+  "Define dictionary word."
   (interactive)
   (let* ((word (hrs/dictionary-prompt))
          (buffer-name (concat "Definition: " word)))
@@ -886,8 +965,8 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (define-key global-map (kbd "C-x w") 'hrs/dictionary-define-word)
 
 (use-package org-bullets
-	:init
-	(add-hook 'org-mode-hook 'org-bullets-mode))
+  :init
+  (add-hook 'org-mode-hook 'org-bullets-mode))
 
 ;; jinja2 mode, https://github.com/paradoxxxzero/jinja2-mode
 (use-package jinja2-mode
@@ -915,19 +994,19 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 (global-set-key (kbd "C-c t") 'multi-term)
 
 (defun hrs/term-paste (&optional string)
-	"Paste STRING from clipboard."
-	(interactive)
-	(process-send-string
-	 (get-buffer-process (current-buf))
-	 (if string string (current-kill 0))))
+  "Paste STRING from clipboard."
+  (interactive)
+  (process-send-string
+   (get-buffer-process (current-buf))
+   (if string string (current-kill 0))))
 
 (add-hook 'term-mode-hook
-					(lambda ()
-						(goto-address-mode)
-						(define-key term-raw-map (kbd "C-y") 'hrs/term-paste)
-						(define-key term-raw-map (kbd "<mouse-2>") 'hrs/term-paste)
-						(define-key term-raw-map (kbd "M-o") 'other-window)
-						(setq yas-dont-activate t)))
+		  (lambda ()
+			(goto-address-mode)
+			(define-key term-raw-map (kbd "C-y") 'hrs/term-paste)
+			(define-key term-raw-map (kbd "<mouse-2>") 'hrs/term-paste)
+			(define-key term-raw-map (kbd "M-o") 'other-window)
+			(setq yas-dont-activate t)))
 
 (cond
  ((string-equal system-type "windows-nt")
@@ -944,13 +1023,10 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
 
 ;; only needed if you use autopair
 (add-hook 'term-mode-hook
-	  #'(lambda () (setq autopair-dont-activate t)))
+		  #'(lambda () (setq autopair-dont-activate t)))
 
 (global-set-key (kbd "C-c t") 'multi-term-next)
 (global-set-key (kbd "C-c T") 'multi-term) ;; create a new one
-
-;; Save emacs sessions and window size
-(desktop-save-mode 1)
 
 ;; Sidebar
 
@@ -1112,25 +1188,25 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
   ;;("M-s" . hydra-go/body)
   :init
   (add-hook 'dap-stopped-hook
-          (lambda (arg) (call-interactively #'hydra-go/body)))
+			(lambda (arg) (call-interactively #'hydra-go/body)))
   :hydra  (hydra-go (:color pink :hint nil :foreign-keys run)
-  "
+					"
    _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
    _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
    _Q_: Disconnect _q_: quit     _l_: locals
    "
-	     ("n" dap-next)
-	     ("c" dap-continue)
-	     ("s" dap-step-in)
-	     ("o" dap-step-out)
-	     ("g" dap-ui-sessions)
-	     ("l" dap-ui-locals)
-	     ("e" dap-eval-thing-at-point)
-	     ("h" dap-breakpoint-hit-condition)
-	     ("k" dap-breakpoint-condition)
-	     ("i" dap-breakpoint-log-message)
-	     ("q" nil "quit" :color blue)
-	     ("Q" dap-disconnect :color red)))
+					("n" dap-next)
+					("c" dap-continue)
+					("s" dap-step-in)
+					("o" dap-step-out)
+					("g" dap-ui-sessions)
+					("l" dap-ui-locals)
+					("e" dap-eval-thing-at-point)
+					("h" dap-breakpoint-hit-condition)
+					("k" dap-breakpoint-condition)
+					("i" dap-breakpoint-log-message)
+					("q" nil "quit" :color blue)
+					("Q" dap-disconnect :color red)))
 
 ;; GOPLS config LSP mode
 
@@ -1149,23 +1225,30 @@ PRIORITY may be one of the characters ?A, ?B, or ?C."
          ("C-c e i" . lsp-find-implementation)
          ("C-c e t" . lsp-find-type-definition)
 		 )
+  :ensure-system-package
+  ((typescript-language-server . "npm install -g typescript-language-server")
+   (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
+   (yaml-language-server . "npm install -g yaml-language-server")
+   (tsc . "npm install -g typescript")
+   (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
+
   :config
   (with-eval-after-load 'lsp-mode
-  ;; :global/:workspace/:file
-	(setq lsp-modeline-diagnostics-scope :workspace))
+    ;; :global/:workspace/:file
+    (setq lsp-modeline-diagnostics-scope :workspace))
   (with-eval-after-load 'lsp-mode
-	(add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
+    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
   (setq lsp-headerline-breadcrumb-enable t)
   (setq lsp-modeline-code-actions-segments '(count icon))
   (setq lsp-file-watch-threshold 4000)
   (setq lsp-headerline-breadcrumb-mode t)
   (setq lsp-semantic-highlighting 'immediate)
   (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
-  
+
   (lsp-register-custom-settings
    '(("gopls.completeUnimported" t t)
      ("gopls.staticcheck" t t)
-	 )))
+     )))
 
 ;; DAP mode
 (use-package dap-mode
@@ -1334,13 +1417,20 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   :init
   (elpy-enable))
 ;; (use-package pyvenv
-  ;; :demand t
-  ;; :config
-  ;; (setq pyvenv-workon "emacs")  ; Default venv
-  ;; (pyvenv-tracking-mode 1))
+;; :demand t
+;; :config
+;; (setq pyvenv-workon "emacs")  ; Default venv
+;; (pyvenv-tracking-mode 1))
 (use-package blacken)
 (use-package ein)
 (use-package jupyter)
+
+;; Use IPython for REPL
+(setq python-shell-interpreter "jupyter"
+      python-shell-interpreter-args "console --simple-prompt"
+      python-shell-prompt-detect-failure-warning nil)
+(add-to-list 'python-shell-completion-native-disabled-interpreters
+             "jupyter")
 
 (use-package eldoc
 	:config
@@ -1356,6 +1446,11 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (add-hook 'python-mode-hook 'jedi:setup)
 (setq jedi:complete-on-dot t)
 
+;; Enable Flycheck
+(when (require 'flycheck nil t)
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
+
 ;; Used by virtualenvwrapper.el
 ;; (setq venv-location (expand-file-name "~/project/python/env")) Change with the path to your virtualenvs
 ;; Used python-environment.el and by extend jedi.el
@@ -1365,17 +1460,17 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; sh
 
 (add-hook 'sh-mode-hook
-					(lambda ()
-						(setq sh-basic-offset 2
-									sh-indentation 2)))
+		  (lambda ()
+			(setq sh-basic-offset 2
+				  sh-indentation 2)))
 
 ;; web-mode
 
 (add-hook 'web-mode-hook
-					(lambda ()
-						(rainbow-mode)
-						(rspec-mode)
-						(setq web-mode-markup-indent-offset 2)))
+		  (lambda ()
+			(rainbow-mode)
+			(rspec-mode)
+			(setq web-mode-markup-indent-offset 2)))
 
 (hrs/add-auto-mode
  'web-mode
@@ -1494,6 +1589,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; lsp-mode for c++
 (use-package ccls
+
   :hook ((c-mode c++-mode objc-mode cuda-mode) .
          (lambda () (require 'ccls) (lsp))))
 (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
