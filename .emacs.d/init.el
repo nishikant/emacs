@@ -1,4 +1,6 @@
 (require 'org)
-(org-babel-load-file
- (expand-file-name "init.org"
-		   user-emacs-directory))
+(require 'ob-tangle)
+(org-babel-tangle-file "~/project/emacs/init.org"
+                       "~/.emacs.d/settings.el")
+(load "~/.emacs.d/settings.el")
+

@@ -1,5 +1,6 @@
+
 #+TITLE: Emacs Configuration
-#+PROPERTY: header-args:emacs-lisp :tangle ./.emacs.d/init.el
+#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/settings.el
 
 This is an ongoing evolution of my original Emacs configuration files, inspired by a bunch of resources I've found online.
 
@@ -16,6 +17,126 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 - [[#update-load-path][Update Load Path]]
 - [[#server-mode][Server Mode]]
 :END:
+
+* Package Management
+
+Setup Melpa, org, gnu and elpa packaage repositories and load use-package to manage package configuration.
+
+#+begin_src emacs-lisp
+
+;; Initialize package sources
+(require 'package)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+
+;; Install use-package if not installed
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+
+;; Compile the latest versions
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+(use-package use-package-ensure-system-package
+  :ensure t)
+
+(use-package auto-compile
+  :config (auto-compile-on-load-mode))
+
+
+#+end_src
+
+* Custom Functions
+Custom functions that help in OrgMode and other functionality.
+#+begin_src emacs-lisp
+
+
+;; Custom Functions
+
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+	"Save Hooks."
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+(defun hrs/rename-file (new-name)
+	"Rename file to NEW-NAME."
+  (interactive "FNew name: ")
+  (let ((filename (buffer-file-name)))
+    (if filename
+        (progn
+          (when (buffer-modified-p)
+            (save-buffer))
+          (rename-file filename new-name t)
+          (kill-buffer (current-buffer))
+          (find-file new-name)
+          (message "Renamed '%s' -> '%s'" filename new-name))
+      (message "Buffer '%s' isn't backed by a file!" (buffer-name)))))
+
+(defun hrs/generate-scratch-buffer ()
+  "Create and switch to a temporary scratch buffer with a random name."
+  (interactive)
+  (switch-to-buffer (make-temp-name "scratch-")))
+
+(defun hrs/kill-current-buffer ()
+  "Kill the current buffer without prompting."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun hrs/visit-last-migration ()
+  "Open the most recent Rails migration.  Relies on projectile."
+  (interactive)
+  (let ((migrations
+         (directory-files
+          (expand-file-name "db/migrate" (projectile-project-root)) t)))
+    (find-file (car (last migrations)))))
+
+(defun hrs/add-auto-mode (mode &rest patterns)
+  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
+  (dolist (pattern patterns)
+    (add-to-list 'auto-mode-alist (cons pattern mode))))
+
+(defun hrs/find-file-as-sudo ()
+	"Search as sudo user."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (when file-name
+      (find-alternate-file (concat "/sudo::" file-name)))))
+
+(defun hrs/region-or-word ()
+	"Camel case to separate word."
+  (if mark-active
+      (buffer-substring-no-properties (region-beginning)
+                                      (region-end))
+    (thing-at-point 'word)))
+
+(defun hrs/append-to-path (path)
+  "Add a path both to the PATH variable and to Emacs' `exec-path'."
+  (setenv "PATH" (concat (getenv "PATH") ":" path))
+  (add-to-list 'exec-path path))
+
+(defun hrs/insert-password ()
+	"Insert password."
+  (interactive)
+  (shell-command "pwgen 30 -1" t))
+
+(defun hrs/notify-send (title message)
+  "Display a desktop notification by shelling out to `notify-send' TITLE MESSAGE."
+  (call-process-shell-command
+   (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
+
+
+
+#+end_src
+
 
 * Startup Performance
 Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time.
@@ -49,175 +170,162 @@ Make startup faster by reducing the frequency of garbage collection and then use
 
 #+end_src
 
-* Package Management
-
-Setup Melpa, org, gnu and elpa packaage repositories and load use-package to manage package configuration.
-
-#+begin_src emacs-lisp
-
-;; Initialize package sources
-(require 'package)
-
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-
-(package-initialize)
-
-;; Install use-package if not installed
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-#+end_src
-
 * System Settings
 
 Some basic settings around how emacs should look and behave. Like no scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
-(setq load-prefer-newer t)
+  (setq load-prefer-newer t)
 
-;; Disable menu and scroll bars
-;; (setq debug-on-error t)
-(tool-bar-mode 0)
-(menu-bar-mode 0)
+  ;; Disable menu and scroll bars
+  (setq debug-on-error t)
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
 
-;; (scroll-bar-mode -1)
-(set-window-scroll-bars (minibuffer-window) nil nil)
+  ;; (scroll-bar-mode -1)
+  (set-window-scroll-bars (minibuffer-window) nil nil)
 
-;; Set default frame title
-(setq frame-title-format '((:eval (projectile-project-name))))
-(setq delete-auto-save-files t)
-(setq delete-old-versions t)
-(setq global-semantic-folding-mode t)
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+  ;; Set default frame title
+  (setq frame-title-format '((:eval (projectile-project-name))))
+  (setq delete-auto-save-files t)
+  (setq delete-old-versions t)
+  (setq global-semantic-folding-mode t)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-;; getting rid of the "yes or no" prompt and replace it with "y or n"
-(defalias 'yes-or-no-p 'y-or-n-p)
+  ;; getting rid of the "yes or no" prompt and replace it with "y or n"
+  (defalias 'yes-or-no-p 'y-or-n-p)
 
-(setq inhibit-splash-screen t) ;; no splash screen
-(setq-default indent-tabs-mode nil)      ;; no tabs!
-(setq fill-column 80) ;; M-q should fill at 80 chars, not 75
-(setq initial-buffer-choice "~/Documents/org/work.org") ;; make the eng log the first file that's open.
+  (setq inhibit-splash-screen t) ;; no splash screen
+  (setq-default indent-tabs-mode nil)      ;; no tabs!
+  (setq fill-column 80) ;; M-q should fill at 80 chars, not 75
+  (setq initial-buffer-choice "~/Documents/org/work.org") ;; make the eng log the first file that's open.
 
-;; async enables basic async capabilities for emacs
-(use-package async
-  :init
-  (autoload 'dired-async-mode "dired-async.el" nil t)
-  (dired-async-mode 1)
-  (async-bytecomp-package-mode 1)
-  (require 'smtpmail-async)
-  (setq send-mail-function 'async-smtpmail-send-it))
+  ;; async enables basic async capabilities for emacs
 
-;; sometimes desktop is locked, ask if we want to load it.
-(setq desktop-load-locked-desktop "ask")
+  (use-package async
+    :init
+    (autoload 'dired-async-mode "dired-async.el" nil t)
+    (dired-async-mode 1)
+    (async-bytecomp-package-mode 1)
+    (require 'smtpmail-async)
+    (setq send-mail-function 'async-smtpmail-send-it))
 
-;; auto-save buffer state on close for a later time.
-(desktop-save-mode 1)
+  ;; sometimes desktop is locked, ask if we want to load it.
+  (setq desktop-load-locked-desktop "ask")
 
-;; Abbrevs expands abbreviations
+  ;; auto-save buffer state on close for a later time.
+  (desktop-save-mode 1)
 
-(setq abbrev-file-name             ;; tell emacs where to read abbrev
-      "~/project/emacs/abbrev_defs")    ;; definitions from...
+  ;; Abbrevs expands abbreviations
 
-;; default directory
-(setq default-directory "~/")
+  (setq abbrev-file-name             ;; tell emacs where to read abbrev
+        "~/project/emacs/abbrev_defs")    ;; definitions from...
 
-;; Dont show minor modes in mode line
-(use-package diminish)
+  ;; default directory
+  (setq default-directory "~/")
 
-;; disable startup message
-(setq inhibit-startup-message t)
+  ;; Dont show minor modes in mode line
+  (use-package diminish)
 
-;; disable beep sound
-(setq ring-bell-function 'ignore)
+  ;; disable startup message
+  (setq inhibit-startup-message t)
 
-;; disable confirmation if a file or buffer does not exist when you
-;; use C-x C-f or C-x b
-(setq confirm-nonexistent-file-or-buffer nil)
+  ;; disable beep sound
+  (setq ring-bell-function 'ignore)
 
-;; disable confirmation when kill a buffer with a live process
-;; attached to it
-(setq kill-buffer-query-functions
-      (remq 'process-kill-buffer-query-function
-			kill-buffer-query-functions))
+  ;; disable confirmation if a file or buffer does not exist when you
+  ;; use C-x C-f or C-x b
+  (setq confirm-nonexistent-file-or-buffer nil)
 
-;; use trash
-(setq delete-by-moving-to-trash t)
+  ;; disable confirmation when kill a buffer with a live process
+  ;; attached to it
+  (setq kill-buffer-query-functions
+        (remq 'process-kill-buffer-query-function
+                          kill-buffer-query-functions))
 
-;; undo-tree (need to explore)
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :config
-  (global-undo-tree-mode 1))
+  ;; use trash
+  (setq delete-by-moving-to-trash t)
 
-
-;; whole-line-ore-region use currentline if no region is selected.
-;; primarily used to cut currentline if no region is defined
-(use-package whole-line-or-region
-  :ensure t
-  :diminish whole-line-or-region-global-mode
-  :config
-  (whole-line-or-region-global-mode 1))
+  ;; undo-tree (need to explore)
+  (use-package undo-tree
+    :diminish undo-tree-mode
+    :config
+    (global-undo-tree-mode 1))
 
 
-;; company completion framework for all text
-;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
-;; Search through the completions with C-s, C-r and C-o.
-;; Press M-(digit) to quickly complete with one of the first 10 candidates.
-(use-package company
-  :ensure t
-  :config
-  ;; Optionally enable completion-as-you-type behavior.
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1))
-(add-hook 'after-init-hook 'global-company-mode)
-(global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
-
-;; switch-window gives a visual indicator when switching windows.
-(use-package switch-window
-  :ensure t
-  :bind ("C-x o" . switch-window))
+  ;; whole-line-ore-region use currentline if no region is selected.
+  ;; primarily used to cut currentline if no region is defined
+  (use-package whole-line-or-region
+    :ensure t
+    :diminish whole-line-or-region-global-mode
+    :config
+    (whole-line-or-region-global-mode 1))
 
 
-;; expand-region expand selection of your region 
-(use-package expand-region
-  :ensure t
-  :config
-  (bind-key* "C-=" 'er/expand-region))
+  ;; company completion framework for all text
+  ;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
+  ;; Search through the completions with C-s, C-r and C-o.
+  ;; Press M-(digit) to quickly complete with one of the first 10 candidates.
+  (use-package company
+    :ensure t
+    :config
+    ;; Optionally enable completion-as-you-type behavior.
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 1))
+  (add-hook 'after-init-hook 'global-company-mode)
+  (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
 
-;; set line number
-(when (version<= "26.0.50" emacs-version )
-  (global-display-line-numbers-mode))
-
-
-(setq ffap-require-prefix nil)
-(ffap-bindings)
-(setq ffap-require-prefix t)
-
-(use-package use-package-hydra)
-(use-package hydra
-  :ensure t)
-(use-package which-key :config (which-key-mode))
-(use-package yasnippet-snippets)
-(yas-global-mode 1)
+  ;; switch-window gives a visual indicator when switching windows.
+  (use-package switch-window
+    :ensure t
+    :bind ("C-x o" . switch-window))
 
 
-;; fuzzy search
-(use-package fzf)
+  ;; expand-region expand selection of your region
+  (use-package expand-region
+    :ensure t
+    :config
+    (bind-key* "C-=" 'er/expand-region))
+
+  ;; set line number
+  (when (version<= "26.0.50" emacs-version )
+    (global-display-line-numbers-mode))
 
 
-;; Drag line up/down
-(use-package drag-stuff)
-(drag-stuff-global-mode 1)
-(drag-stuff-define-keys)
+  (setq ffap-require-prefix nil)
+  (ffap-bindings)
+  (setq ffap-require-prefix t)
+
+  (use-package use-package-hydra)
+  (use-package hydra
+    :ensure t)
+  (use-package which-key :config (which-key-mode))
 
 
-;; winner mode to handle windows config rollback
-(when (fboundp 'winner-mode)
-  (winner-mode 1))
+  ;; Optional - provides snippet support.
+  (use-package yasnippet
+    :ensure t
+    :commands yas-minor-mode)
+
+  (use-package yasnippet-snippets)
+  (require 'yasnippet)
+  (yas-global-mode 1)
+
+
+  ;; fuzzy search
+  (use-package fzf)
+
+
+  ;; Drag line up/down
+  (use-package drag-stuff)
+  (require 'drag-stuff)
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys)
+
+
+  ;; winner mode to handle windows config rollback
+  (when (fboundp 'winner-mode)
+    (winner-mode 1))
 
 
 #+end_src
@@ -391,7 +499,7 @@ Configuration for currently used theme
      `(minibuffer-prompt ((,class (:foreground ,base1))))
      `(vertical-border ((,class (:foreground ,base03)))))))
 
-(load-theme 'solarized-wombat-dark t)
+(load-theme 'solarized-dark t)
 
 ;; Apply theme in emacs --daemon mode
 (if (daemonp)
@@ -609,12 +717,6 @@ LSP mode settings. Custom language settings also included here.
   :ensure t
   :commands company-lsp)
 
-;; Optional - provides snippet support.
-(use-package yasnippet
-  :ensure t
-  :commands yas-minor-mode
-  :hook (go-mode . yas-minor-mode))
-
 #+end_src
 
 #+RESULTS:
@@ -744,7 +846,7 @@ Use Projectile to handle interaction with projects
 
 #+begin_src emacs-lisp
 
-   
+
 ;; projectile
 (use-package projectile
   :bind
@@ -829,7 +931,7 @@ Use Projectile to handle interaction with projects
         ("C-x t t"   . treemacs)
         ("C-x t B"   . treemacs-bookmark)
         ("C-x t C-t" . treemacs-find-file)
-
+        ("C-x t M-t" . treemacs-find-tag)))
 
 (use-package treemacs-projectile
   :after treemacs projectile
@@ -902,9 +1004,10 @@ Golang related configs
 
 ;; go-mode
 (use-package go-errcheck)
+(use-package godoctor)
 (use-package go-mode
   :config
-  (use-package godoctor)
+
   (define-key go-mode-map (kbd "C-c c") 'go-run))
 
 ;; use golangci
@@ -1289,8 +1392,8 @@ Set Emacs as Java IDE
 #+begin_src emacs-lisp
 
 ;; For java
-(use-package jdee)
-(setq jdee-server-dir "~/project/jdee-server/target")
+;; (use-package jdee)
+;; (setq jdee-server-dir "~/project/jdee-server/target")
 (use-package meghanada)
 (add-hook 'java-mode-hook
           (lambda ()
@@ -1420,14 +1523,13 @@ Cleanup needed
 (use-package ein)
 
 ;; Try ein and decide if this is needed
-;; (use-package jupyter)
+(use-package jupyter)
 
 ;; Use IPython for REPL
+
 (setq python-shell-interpreter "jupyter"
-      python-shell-interpreter-args "console --simple-prompt"
-      python-shell-prompt-detect-failure-warning nil)
-(add-to-list 'python-shell-completion-native-disabled-interpreters
-             "jupyter")
+        python-shell-interpreter-args "console --simple-prompt"
+        python-shell-prompt-detect-failure-warning nil)
 
 
 (use-package eldoc
@@ -1440,7 +1542,7 @@ Cleanup needed
 
 ** Bash
 Shell script settings
-#+begin_src 
+#+begin_src
 
 
 ;; sh
@@ -1450,12 +1552,12 @@ Shell script settings
 			(setq sh-basic-offset 2
 				  sh-indentation 2)))
 
-  
+
 #+end_src
 
 ** HTML PHP
 Html, php, etc
-#+begin_src 
+#+begin_src
 
 
 ;; web-mode
@@ -1473,22 +1575,22 @@ Html, php, etc
  "\\.php$"
  "\\.rhtml$")
 
-  
+
 #+end_src
 
 ** Ansible
-#+begin_src 
+#+begin_src
 
 
 ;; Ansible minor mode
 
 (use-package ansible)
 (add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
-  
+
 #+end_src
 
 ** Json
-#+begin_src 
+#+begin_src
 
 
 ;; Json mode
@@ -1497,7 +1599,7 @@ Html, php, etc
 (setq openapi-yaml-use-yaml-mode-syntax-highlight t)
 ;;(require 'flycheck-swagger-tools)
 
-  
+
 #+end_src
 
 * OrgMode
@@ -1725,89 +1827,6 @@ Mode for writing books
 
 #+end_src
 
-* Custom Functions
-Custom functions that help in OrgMode and other functionality.
-#+begin_src emacs-lisp
-
-
-;; Custom Functions
-
-;; Set up before-save hooks to format buffer and add/delete imports.
-;; Make sure you don't have other gofmt/goimports hooks enabled.
-(defun lsp-go-install-save-hooks ()
-	"Save Hooks."
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-
-(defun hrs/rename-file (new-name)
-	"Rename file to NEW-NAME."
-  (interactive "FNew name: ")
-  (let ((filename (buffer-file-name)))
-    (if filename
-        (progn
-          (when (buffer-modified-p)
-            (save-buffer))
-          (rename-file filename new-name t)
-          (kill-buffer (current-buffer))
-          (find-file new-name)
-          (message "Renamed '%s' -> '%s'" filename new-name))
-      (message "Buffer '%s' isn't backed by a file!" (buffer-name)))))
-
-(defun hrs/generate-scratch-buffer ()
-  "Create and switch to a temporary scratch buffer with a random name."
-  (interactive)
-  (switch-to-buffer (make-temp-name "scratch-")))
-
-(defun hrs/kill-current-buffer ()
-  "Kill the current buffer without prompting."
-  (interactive)
-  (kill-buffer (current-buffer)))
-
-(defun hrs/visit-last-migration ()
-  "Open the most recent Rails migration.  Relies on projectile."
-  (interactive)
-  (let ((migrations
-         (directory-files
-          (expand-file-name "db/migrate" (projectile-project-root)) t)))
-    (find-file (car (last migrations)))))
-
-(defun hrs/add-auto-mode (mode &rest patterns)
-  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
-  (dolist (pattern patterns)
-    (add-to-list 'auto-mode-alist (cons pattern mode))))
-
-(defun hrs/find-file-as-sudo ()
-	"Search as sudo user."
-  (interactive)
-  (let ((file-name (buffer-file-name)))
-    (when file-name
-      (find-alternate-file (concat "/sudo::" file-name)))))
-
-(defun hrs/region-or-word ()
-	"Camel case to separate word."
-  (if mark-active
-      (buffer-substring-no-properties (region-beginning)
-                                      (region-end))
-    (thing-at-point 'word)))
-
-(defun hrs/append-to-path (path)
-  "Add a path both to the PATH variable and to Emacs' `exec-path'."
-  (setenv "PATH" (concat (getenv "PATH") ":" path))
-  (add-to-list 'exec-path path))
-
-(defun hrs/insert-password ()
-	"Insert password."
-  (interactive)
-  (shell-command "pwgen 30 -1" t))
-
-(defun hrs/notify-send (title message)
-  "Display a desktop notification by shelling out to `notify-send' TITLE MESSAGE."
-  (call-process-shell-command
-   (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
-
-
-
-#+end_src
 
 * Navigation
 
@@ -1819,7 +1838,7 @@ Custom functions that help in OrgMode and other functionality.
   :bind ("M-SPC" . ace-jump-mode))
 
 
-;; avy 
+;; avy
 (use-package avy
   :bind*
   ("C-;" . avy-goto-char-2))
@@ -2005,5 +2024,3 @@ I probably don't need these
   ;; (setq jedi:server-command (list "python3" jedi:server-script))
 
 #+end_src
-
-
