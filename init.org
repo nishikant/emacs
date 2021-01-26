@@ -182,7 +182,10 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
 ;;  (setq debug-on-error t)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
-
+;; After split move cursor to the split window automatically. Default keeps the cursor
+;; in current window
+  (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
+  (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
   ;; (scroll-bar-mode -1)
   (set-window-scroll-bars (minibuffer-window) nil nil)
 
@@ -556,7 +559,8 @@ Coding related global settings
 ;; to suppress -Chg in mode line
 (use-package hilit-chg
   :diminish highlight-changes-mode)
-  (global-highlight-changes-mode t)
+
+;;  (global-highlight-changes-mode t)
 
 
 ;; Test tab-width 2
@@ -660,6 +664,7 @@ LSP mode settings. Custom language settings also included here.
   ;; reformat code and add missing (or remove old) imports
   :hook ((before-save . lsp-organize-imports)
          (python-mode . lsp-deferred)
+         (groovy-mode . lsp-deferred)
 		 (lsp-mode . lsp-enable-which-key-integration))
   :bind (("C-c d" . lsp-describe-thing-at-point)
          ("C-c e n" . flymake-goto-next-error)
@@ -1057,6 +1062,7 @@ Golang related configs
 
 
 (add-to-list 'lsp-enabled-clients 'gopls)
+
 (lsp-register-custom-settings
  '(("gopls.completeUnimported" t t)
    ("gopls.staticcheck" t t)))
@@ -1377,22 +1383,23 @@ terminalchanges
 Groovy language settings
 #+begin_src emacs-lisp
 
-;; Jenkins
-(use-package jenkins)
-;; groovy-mode
+  ;; Jenkins
+  (use-package jenkins)
+  ;; groovy-mode
 
-(use-package groovy-mode)
-(setq-default groovy-mode 1)
-(add-hook 'groovy-mode-hook 'git-auto-commit-mode)
-;; (setq lsp-groovy-server-file "~/groovy-language-server/groovy-language-server-all.jar")
-(add-hook 'groovy-mode-hook #'lsp-deferred)
-;; (add-hook 'groovy-mode-hook #'lsp-groovy-enable)
+  (use-package groovy-mode)
+  (setq-default groovy-mode 1)
+  (add-hook 'groovy-mode-hook 'git-auto-commit-mode)
+  (add-to-list 'lsp-enabled-clients 'groovy-ls)
+  (setq lsp-groovy-server-file "~/groovy-language-server/groovy-language-server-all.jar")
+  (add-hook 'groovy-mode-hook #'lsp-deferred)
+  ;; (add-hook 'groovy-mode-hook #'lsp-groovy-enable)
 
-(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
-;; Git autocommit used for groovy
-(use-package git-auto-commit-mode)
+  ;; Git autocommit used for groovy
+  (use-package git-auto-commit-mode)
 
 
 #+end_src
