@@ -179,7 +179,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (setq load-prefer-newer t)
 
   ;; Disable menu and scroll bars
-  (setq debug-on-error t)
+;;  (setq debug-on-error t)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
 
@@ -376,6 +376,8 @@ Themes and other configuration
 (show-paren-mode 1)
 ;; highlight indentation
 (use-package highlight-indent-guides)
+(add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+(setq highlight-indent-guides-method 'character)
 (use-package viewer)
 (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
 (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
@@ -656,7 +658,8 @@ LSP mode settings. Custom language settings also included here.
   :ensure t
   :commands (lsp lsp-deferred)
   ;; reformat code and add missing (or remove old) imports
-  :hook (;;(before-save . lsp-organize-imports)
+  :hook ((before-save . lsp-organize-imports)
+         (python-mode . lsp-deferred)
 		 (lsp-mode . lsp-enable-which-key-integration))
   :bind (("C-c d" . lsp-describe-thing-at-point)
          ("C-c e n" . flymake-goto-next-error)
@@ -674,20 +677,24 @@ LSP mode settings. Custom language settings also included here.
    (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
 
   :config
-  (with-eval-after-load 'lsp-mode
-    ;; :global/:workspace/:file
-    (setq lsp-modeline-diagnostics-scope :workspace))
-  (with-eval-after-load 'lsp-mode
-    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
-  (setq lsp-headerline-breadcrumb-enable t)
-  (setq lsp-enable-snippet t)
-  (setq lsp-file-watch-threshold 4000)
-  (setq lsp-headerline-breadcrumb-mode t)
-  (setq lsp-semantic-highlighting 'immediate)
-  (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+    (setq lsp-modeline-diagnostics-scope :workspace)
+    (setq lsp-headerline-breadcrumb-enable t)
+    (setq lsp-enable-snippet t)
+    (setq lsp-file-watch-threshold 4000)
+    (setq lsp-headerline-breadcrumb-mode t)
+    (setq lsp-semantic-highlighting 'immediate)
+    (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+
   (lsp-register-custom-settings
    '(("gopls.completeUnimported" t t)
      ("gopls.staticcheck" t t)
+     ("pyls.plugins.pyls_mypy.enabled" t t)
+     ("pyls.plugins.pyls_mypy.live_mode" nil t)
+     ("pyls.plugins.pyls_black.enabled" t t)
+     ("pyls.plugins.pyls_isort.enabled" t t)
+     ("pyls.plugins.pycodestyle.enabled" nil t)
+     ("pyls.plugins.mccabe.enabled" nil t)
+     ("pyls.plugins.pyflakes.enabled" nil t)
      )))
 
 
@@ -1508,16 +1515,27 @@ Cleanup needed
 ;; python
 
 (use-package python-mode)
+
+;; Jedi auto complete for python
+(use-package jedi)
+;; (add-hook 'python-mode-hook 'jedi:setup)
+(setq jedi:complete-on-dot t)
+
 (setq python-shell-interpreter "python3")
+
 (use-package py-autopep8)
 (require 'py-autopep8)
-(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
+(add-to-list 'lsp-enabled-clients 'pyls)
 
 (use-package elpy
   :ensure t
   :defer t
   :init
   (advice-add 'python-mode :before 'elpy-enable))
+(add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
+
+(setq lsp-pyls-plugins-flake8-enabled t)
 
 ;; to reformat your python buffer enable blacken-mode in relevant python buffers
 (use-package blacken)
