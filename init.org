@@ -187,7 +187,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
         kept-old-versions 5    ; and how many of the old
         )
   ;; Disable menu and scroll bars
-  ;;  (setq debug-on-error t)
+  ;; (setq debug-on-error t)
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   ;; After split move cursor to the split window automatically. Default keeps the cursor
@@ -435,7 +435,7 @@ Themes and other configuration
   ;; highlight current line
   (global-hl-line-mode)
   (set-face-background hl-line-face "gray13")
-
+  (set-face-attribute 'default nil :height 140)
 
   ;; display column number in mode line
   (column-number-mode 1)
@@ -674,6 +674,7 @@ LSP mode settings. Custom language settings also included here.
            (python-mode . lsp-deferred)
            (groovy-mode . lsp-deferred)
            (go-mode . lsp-deferred)
+           (csharp-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :bind (("C-c d" . lsp-describe-thing-at-point)
            ("C-c e n" . flymake-goto-next-error)
@@ -1037,8 +1038,13 @@ Configuration for CSS and related techs
               '(lambda ()
                  (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
     (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
-    (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
-    )
+    (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode)))
+
+  (use-package k8s-mode
+    :ensure t
+    :config
+    (setq k8s-search-documentation-browser-function 'browse-url-firefox)
+    :hook (k8s-mode . yas-minor-mode))
 
 #+end_src
 
@@ -1533,8 +1539,7 @@ Set Emacs as Java IDE
 
   (use-package java-snippets)
 
-  (setq c-default-style "java"
-        c-basic-offset 4)
+  (setq c-basic-offset 4)
 
 
 #+end_src
@@ -1608,7 +1613,18 @@ Cleanup needed
   (use-package python-mode)
 
   ;; Jedi auto complete for python
-  (use-package jedi)
+  (use-package company-jedi)
+
+  (defun company-jedi-setup ()
+    (add-to-list 'company-backends 'company-jedi))
+  (add-hook 'python-mode-hook 'company-jedi-setup)
+
+  (setq jedi:setup-keys t)
+  (setq jedi:complete-on-dot t)
+  (add-hook 'python-mode-hook 'jedi:setup)
+  (setq jedi:server-args
+        '("--sys-path" "/usr/local/lib/python3.9/site-packages"))
+
   (use-package lsp-jedi
     :ensure t
     :config
@@ -1623,15 +1639,8 @@ Cleanup needed
 
   (use-package py-autopep8)
   (require 'py-autopep8)
-  (add-to-list 'lsp-disabled-clients 'pyls)
-  (add-to-list 'lsp-enabled-clients 'jedi)
+  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
 
-  (use-package elpy
-    :ensure t
-    :defer t
-    :init
-    (advice-add 'python-mode :before 'elpy-enable))
-  (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)
 
   (setq lsp-pyls-plugins-flake8-enabled t)
 
@@ -1645,17 +1654,14 @@ Cleanup needed
   (use-package jupyter)
 
   ;; Use IPython for REPL
-
+  (setq python-shell-completion-native-enable nil)
   (setq python-shell-interpreter "jupyter"
-        python-shell-interpreter-args "console --simple-prompt"
+        python-shell-interpreter-args "-i"
         python-shell-prompt-detect-failure-warning nil)
-
 
   (use-package eldoc
     :config
     (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
-
-
 
 #+end_src
 
@@ -1741,6 +1747,20 @@ Emacs lisp or elisp programming
                 "\r" 'reindent-then-newline-and-indent)))
   (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
   (add-hook 'emacs-lisp-mode-hook 'flyspell-prog-mode) ;; Requires Ispell
+#+end_src
+
+** Csharp
+#+begin_src emacs-lisp
+
+  (use-package tree-sitter :ensure t)
+  (use-package tree-sitter-langs :ensure t)
+
+  (use-package csharp-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
+  (add-to-list 'lsp-enabled-clients 'csharp)
+
 #+end_src
 
 * OrgMode
