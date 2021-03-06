@@ -822,7 +822,8 @@ Use fly check to check syntax
     (add-hook 'js-mode-hook 'flycheck-mode)
     (add-hook 'elpy-mode-hook 'flycheck-mode))
 
-  ;; spell check text
+                                          ;
+                                          ; spell check text
 
   (add-hook 'text-mode-hook 'flyspell-mode)
 
@@ -1231,6 +1232,7 @@ Settings for handling markdown files
     (custom-set-faces
      '(markdown-code-face ((t nil)))))
 
+
   (use-package flymd
     :hook markdown-mode
     :commands flymd-flyit
@@ -1629,8 +1631,8 @@ Cleanup needed
     :ensure t
     :config
     (with-eval-after-load "lsp-mode"
-      (add-to-list 'lsp-disabled-clients 'pyls)
-      (add-to-list 'lsp-enabled-clients 'jedi)))
+      (add-to-list 'lsp-enabled-clients 'pyls)
+      (add-to-list 'lsp-disabled-clients 'jedi)))
 
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq jedi:complete-on-dot t)
