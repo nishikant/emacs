@@ -1613,6 +1613,8 @@ Cleanup needed
   ;; python
 
   (use-package python-mode)
+  (add-hook 'python-mode-hook (lambda () (auto-complete-mode -1)))
+
 
   ;; Jedi auto complete for python
   (use-package company-jedi)
