@@ -1617,7 +1617,7 @@ AWS cloudformation linting and yaml mode
 Cleanup needed
 #+begin_src emacs-lisp
 
-
+  (setq-default py-split-windows-on-execute-function 'split-window-horizontally)
   ;; python
 
   (use-package python-mode)
