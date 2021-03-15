@@ -27,11 +27,12 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (require 'package)
 
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("elpa" . "https://elpa.gnu.org/packages/")
-                           ("org" . "https://orgmode.org/elpa/")
-                           ("melpa-stable" . "https://stable.melpa.org/packages/")))
+			   ("elpa" . "https://elpa.gnu.org/packages/")
+			   ("org" . "https://orgmode.org/elpa/")
+			   ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   (package-initialize)
+
 
   ;; Install use-package if not installed
   (unless (package-installed-p 'use-package)
@@ -48,6 +49,13 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
 
   (use-package auto-compile
     :config (auto-compile-on-load-mode))
+
+  (use-package quelpa)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
+  (require 'quelpa-use-package)
 
 
 #+end_src
@@ -609,7 +617,6 @@ Coding related global settings
     ;; as well
     (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
-
 #+end_src
 *** Completion
 Using Counsel and ivy to code completion
@@ -664,103 +671,104 @@ LSP mode settings. Custom language settings also included here.
 #+begin_src emacs-lisp
 
 
-  ;; GOPLS config LSP mode
+    ;; GOPLS config LSP mode
 
-  (use-package lsp-mode
-    :ensure t
-    :commands (lsp lsp-deferred)
-    ;; reformat code and add missing (or remove old) imports
-    :hook ((before-save . lsp-organize-imports)
-           (python-mode . lsp-deferred)
-           (groovy-mode . lsp-deferred)
-           (go-mode . lsp-deferred)
-           (csharp-mode . lsp-deferred)
-           (lsp-mode . lsp-enable-which-key-integration))
-    :bind (("C-c d" . lsp-describe-thing-at-point)
-           ("C-c e n" . flymake-goto-next-error)
-           ("C-c e p" . flymake-goto-prev-error)
-           ("C-c e r" . lsp-find-references)
-           ("C-c e R" . lsp-rename)
-           ("C-c e i" . lsp-find-implementation)
-           ("C-c e t" . lsp-find-type-definition)
-           )
-    :ensure-system-package
-    ((typescript-language-server . "npm install -g typescript-language-server")
-     (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
-     (yaml-language-server . "npm install -g yaml-language-server")
-     (tsc . "npm install -g typescript")
-     (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
+    (use-package lsp-mode
+      :ensure t
+      :commands (lsp lsp-deferred)
+      ;; reformat code and add missing (or remove old) imports
+      :hook ((before-save . lsp-organize-imports)
+             (python-mode . lsp-deferred)
+             (groovy-mode . lsp-deferred)
+             (go-mode . lsp-deferred)
+             (csharp-mode . lsp-deferred)
+             (lsp-mode . lsp-enable-which-key-integration))
+      :bind (("C-c d" . lsp-describe-thing-at-point)
+             ("C-c e n" . flymake-goto-next-error)
+             ("C-c e p" . flymake-goto-prev-error)
+             ("C-c e r" . lsp-find-references)
+             ("C-c e R" . lsp-rename)
+             ("C-c e i" . lsp-find-implementation)
+             ("C-c e t" . lsp-find-type-definition)
+             )
+      :ensure-system-package
+      ((typescript-language-server . "npm install -g typescript-language-server")
+       (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
+       (yaml-language-server . "npm install -g yaml-language-server")
+       (tsc . "npm install -g typescript")
+       (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
 
-    :config
-    (setq lsp-modeline-diagnostics-scope :workspace)
-    (setq lsp-headerline-breadcrumb-enable t)
-    (setq lsp-enable-snippet t)
-    (setq lsp-file-watch-threshold 4000)
-    (setq lsp-headerline-breadcrumb-mode t)
-    (setq lsp-semantic-highlighting 'immediate)
-    (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+      :config
+      (setq lsp-modeline-diagnostics-scope :workspace)
+      (setq lsp-headerline-breadcrumb-enable t)
+      (setq lsp-enable-snippet t)
+      (setq lsp-file-watch-threshold 4000)
+      (setq lsp-headerline-breadcrumb-mode t)
+      (setq lsp-semantic-highlighting 'immediate)
+      (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
 
-    (lsp-register-custom-settings
-     '(("gopls.completeUnimported" t t)
-       ("gopls.staticcheck" t t)
-       ("pyls.plugins.pyls_mypy.enabled" t t)
-       ("pyls.plugins.pyls_mypy.live_mode" nil t)
-       ("pyls.plugins.pyls_black.enabled" t t)
-       ("pyls.plugins.pyls_isort.enabled" t t)
-       ("pyls.plugins.pycodestyle.enabled" nil t)
-       ("pyls.plugins.mccabe.enabled" nil t)
-       ("pyls.plugins.pyflakes.enabled" nil t)
-       )))
+      (lsp-register-custom-settings
+       '(("gopls.completeUnimported" t t)
+         ("gopls.staticcheck" t t)
+         ("pyls.plugins.pyls_mypy.enabled" t t)
+         ("pyls.plugins.pyls_mypy.live_mode" nil t)
+         ("pyls.plugins.pyls_black.enabled" t t)
+         ("pyls.plugins.pyls_isort.enabled" t t)
+         ("pyls.plugins.pycodestyle.enabled" nil t)
+         ("pyls.plugins.mccabe.enabled" nil t)
+         ("pyls.plugins.pyflakes.enabled" nil t)
+         )))
 
 
-  ;; Optional - provides fancier overlays.
-  (use-package lsp-ui
-    :ensure t
-    :after (lsp-mode)
-    :commands lsp-ui-doc-hide
-    :bind (:map lsp-ui-mode-map
-                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-                ([remap xref-find-references] . lsp-ui-peek-find-references)
-                ("C-c u" . lsp-ui-imenu))
-    :init (setq lsp-ui-doc-enable t
-                lsp-ui-doc-use-webkit nil
-                lsp-ui-doc-header nil
-                lsp-ui-doc-delay 0.2
-                lsp-ui-doc-include-signature t
-                lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-use-childframe nil
-                lsp-ui-doc-border (face-foreground 'default)
-                lsp-ui-peek-enable t
-                lsp-ui-peek-show-directory t
-                lsp-ui-sideline-update-mode 'point
-                lsp-ui-sideline-enable t
-                lsp-ui-sideline-show-code-actions t
-                lsp-ui-sideline-show-hover nil
-                lsp-ui-sideline-ignore-duplicate t)
-    :config
-    (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
+    ;; Optional - provides fancier overlays.
+    (use-package lsp-ui
+      :ensure t
+      :after (lsp-mode)
+      :commands lsp-ui-doc-hide
+      :bind (:map lsp-ui-mode-map
+                  ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+                  ([remap xref-find-references] . lsp-ui-peek-find-references)
+                  ("C-c u" . lsp-ui-imenu))
+      :init (setq lsp-ui-doc-enable t
+                  lsp-ui-doc-use-webkit nil
+                  lsp-ui-doc-header nil
+                  lsp-ui-doc-delay 0.2
+                  lsp-ui-doc-include-signature t
+                  lsp-ui-doc-alignment 'frame
+                  lsp-ui-doc-use-childframe nil
+                  lsp-ui-doc-border (face-foreground 'default)
+                  lsp-ui-peek-enable t
+                  lsp-ui-peek-show-directory t
+                  lsp-ui-sideline-update-mode 'point
+                  lsp-ui-sideline-enable t
+                  lsp-ui-sideline-show-code-actions t
+                  lsp-ui-sideline-show-hover nil
+                  lsp-ui-sideline-ignore-duplicate t)
+      :config
+      (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
 
-    ;; `C-g'to close doc
-    (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
+      ;; `C-g'to close doc
+      (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
 
-    ;; Reset `lsp-ui-doc-background' after loading theme
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (setq lsp-ui-doc-border (face-foreground 'default))
-                (set-face-background 'lsp-ui-doc-background
-                                     (face-background 'tooltip))))
+      ;; Reset `lsp-ui-doc-background' after loading theme
+      (add-hook 'after-load-theme-hook
+                (lambda ()
+                  (setq lsp-ui-doc-border (face-foreground 'default))
+                  (set-face-background 'lsp-ui-doc-background
+                                       (face-background 'tooltip))))
 
-    ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
-    ;; @see https://github.com/emacs-lsp/lsp-ui/issues/243
-    (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-      (setq mode-line-format nil)))
+      ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
+      ;; @see https://github.com/emacs-lsp/lsp-ui/issues/243
+      (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
+        (setq mode-line-format nil)))
 
-  ;; company-lsp integrates company mode completion with lsp-mode.
-  ;; completion-at-point also works out of the box but doesn't support snippets.
-  (use-package company-lsp
-    :ensure t
-    :commands company-lsp)
+    ;; company-lsp integrates company mode completion with lsp-mode.
+    ;; completion-at-point also works out of the box but doesn't support snippets.
+    ;; uses the given recipe
 
+  (use-package company-lsp :quelpa)
+  (require 'company-lsp)
+  (push 'company-lsp company-backends)
 #+end_src
 
 #+RESULTS:
@@ -1742,9 +1750,9 @@ Emacs lisp or elisp programming
               (define-key emacs-lisp-mode-map
                 "\C-x\C-e" 'pp-eval-last-sexp)
               ;; Recompile if .elc exists.
-              (add-hook (make-local-variable 'after-save-hook)
-                        (lambda ()
-                          (byte-force-recompile default-directory)))
+              ;; (add-hook (make-local-variable 'after-save-hook)
+              ;;           (lambda ()
+              ;;             (byte-force-recompile default-directory)))
               (define-key emacs-lisp-mode-map
                 "\r" 'reindent-then-newline-and-indent)))
   (add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
@@ -2010,6 +2018,11 @@ Mode for writing books
 
 * Experimental stuff
 #+begin_src emacs-lisp
+
+
+  ;; Mongodb
+  (add-to-list 'load-path "~/.emacs.d/vendor/inf-mongo")
+  (require 'inf-mongo)
 
   ;; popup a frame at point
   (use-package posframe)
