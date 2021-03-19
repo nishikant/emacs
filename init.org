@@ -1642,8 +1642,6 @@ Cleanup needed
   ;; python
 
   (use-package python-mode)
-  (add-hook 'python-mode-hook (lambda () (auto-complete-mode -1)))
-
 
   ;; Jedi auto complete for python
   (use-package company-jedi)
@@ -2046,6 +2044,12 @@ Mode for writing books
   ;; Mongodb
   (add-to-list 'load-path "~/.emacs.d/vendor/inf-mongo")
   (require 'inf-mongo)
+(defvar inf-mongo-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-x C-e")  'mongo-send-region)
+    (define-key map (kbd "<M-up>")   'comint-previous-input)
+    (define-key map (kbd "<M-down>") 'comint-next-input)
+    map))
 
   ;; popup a frame at point
   (use-package posframe)
