@@ -27,9 +27,9 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (require 'package)
 
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-			   ("elpa" . "https://elpa.gnu.org/packages/")
-			   ("org" . "https://orgmode.org/elpa/")
-			   ("melpa-stable" . "https://stable.melpa.org/packages/")))
+               ("elpa" . "https://elpa.gnu.org/packages/")
+               ("org" . "https://orgmode.org/elpa/")
+               ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   (package-initialize)
 
@@ -51,11 +51,12 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
     :config (auto-compile-on-load-mode))
 
   (use-package quelpa)
+  (require 'quelpa-use-package)
   (quelpa
    '(quelpa-use-package
-     :fetcher git
+     :fetcher github
      :url "https://github.com/quelpa/quelpa-use-package.git"))
-  (require 'quelpa-use-package)
+
 
 
 #+end_src
@@ -348,6 +349,29 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
     (winner-mode 1))
 
 
+  ;; Outline for code folding
+                                          ; Outline-minor-mode key map
+  (define-prefix-command 'cm-map nil "Outline-")
+                                          ; HIDE
+  (define-key cm-map "q" 'outline-hide-sublevels)    ; Hide everything but the top-level headings
+  (define-key cm-map "t" 'outline-hide-body)         ; Hide everything but headings (all body lines)
+  (define-key cm-map "o" 'outline-hide-other)        ; Hide other branches
+  (define-key cm-map "c" 'outline-hide-entry)        ; Hide this entry's body
+  (define-key cm-map "l" 'outline-hide-leaves)       ; Hide body lines in this entry and sub-entries
+  (define-key cm-map "d" 'outline-hide-subtree)      ; Hide everything in this entry and sub-entries
+                                          ; SHOW
+  (define-key cm-map "a" 'outline-show-all)          ; Show (expand) everything
+  (define-key cm-map "e" 'outline-show-entry)        ; Show this heading's body
+  (define-key cm-map "i" 'outline-show-children)     ; Show this heading's immediate child sub-headings
+  (define-key cm-map "k" 'outline-show-branches)     ; Show all sub-headings under this heading
+  (define-key cm-map "s" 'outline-show-subtree)      ; Show (expand) everything in this heading & below
+                                          ; MOVE
+  (define-key cm-map "u" 'outline-up-heading)                ; Up
+  (define-key cm-map "n" 'outline-next-visible-heading)      ; Next
+  (define-key cm-map "p" 'outline-previous-visible-heading)  ; Previous
+  (define-key cm-map "f" 'outline-forward-same-level)        ; Forward - same level
+  (define-key cm-map "b" 'outline-backward-same-level)       ; Backward - same level
+  (global-set-key "\M-o" cm-map)
 #+end_src
 
 
@@ -766,9 +790,6 @@ LSP mode settings. Custom language settings also included here.
     ;; completion-at-point also works out of the box but doesn't support snippets.
     ;; uses the given recipe
 
-  (use-package company-lsp :quelpa)
-  (require 'company-lsp)
-  (push 'company-lsp company-backends)
 #+end_src
 
 #+RESULTS:
