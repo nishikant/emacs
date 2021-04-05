@@ -27,9 +27,9 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (require 'package)
 
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-               ("elpa" . "https://elpa.gnu.org/packages/")
-               ("org" . "https://orgmode.org/elpa/")
-               ("melpa-stable" . "https://stable.melpa.org/packages/")))
+	       ("elpa" . "https://elpa.gnu.org/packages/")
+	       ("org" . "https://orgmode.org/elpa/")
+	       ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   (package-initialize)
 
@@ -50,6 +50,7 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (use-package auto-compile
     :config (auto-compile-on-load-mode))
 
+  (use-package quelpa-use-package)
   (use-package quelpa)
   (require 'quelpa-use-package)
   (quelpa
@@ -176,7 +177,16 @@ Custom functions that help in OrgMode and other functionality.
     (call-process-shell-command
      (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
 
-
+(defun aj-toggle-fold ()
+  "Toggle fold all lines larger than indentation on current line"
+  (interactive)
+  (let ((col 1))
+    (save-excursion
+      (back-to-indentation)
+      (setq col (+ 1 (current-column)))
+      (set-selective-display
+       (if selective-display nil (or col 1))))))
+(global-set-key [(M C i)] 'aj-toggle-fold)
 
 #+end_src
 
@@ -1070,6 +1080,35 @@ Configuration for CSS and related techs
     (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
     (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode)))
 
+  (add-hook 'cfn-yaml-mode-hook
+
+            (outline-minor-mode)
+            (define-key yaml-mode-map (kbd "TAB") 'outline-toggle-children))
+
+  (setq outline-regexp
+        (rx
+         (seq
+          bol
+          (group (zero-or-more "  ")
+                 (or (group
+                      (seq (or (seq "\"" (*? (not (in "\"" "\n"))) "\"")
+                               (seq "'" (*? (not (in "'" "\n"))) "'")
+                               (*? (not (in ":" "\n"))))
+                           ":"
+                           (?? (seq
+                                (*? " ")
+                                (or (seq "&" (one-or-more nonl))
+                                    (seq ">-")
+                                    (seq "|"))
+                                eol))))
+                     (group (seq
+                             "- "
+                             (+ (not (in ":" "\n")))
+                             ":"
+                             (+ nonl)
+                             eol)))))))
+
+
   (use-package k8s-mode
     :ensure t
     :config
@@ -1351,7 +1390,7 @@ Jinja2 mode
 
 #+end_src
 
-** React Nodejs Javascriptn
+** React Nodejs Javascript
 Nodejs & React stuff
 #+begin_src emacs-lisp
 
@@ -1365,7 +1404,7 @@ Nodejs & React stuff
 
   (defun setup-local-standard ()
     "If standard found in node_modules directory - use that for flycheck.
-            Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
+              Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
     (interactive)
     (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
       (setq flycheck-javascript-standard-executable
@@ -1381,14 +1420,14 @@ Nodejs & React stuff
            (defvar tern-command (list local-tern))
            (tern-mode t))))
 
-  ;; js-mode
-  (use-package js
-    :config
-    (setq js-indent-level 2)
-    (add-hook 'projectile-after-switch-project-hook 'setup-local-standard)
-    (add-hook 'projectile-after-switch-project-hook 'setup-local-tern)
-    (add-hook 'js-mode-hook
-              (lambda () (defvar flycheck-enabled-checkers '(javascript-standard)))))
+
+  ;; js2-mode for javascript
+  (use-package js2-mode)
+  (add-hook 'js-mode-hook 'js2-minor-mode)
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
+  (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'"    . rjsx-mode))
 
   ;; TypeScript use tide
   (use-package tide
@@ -1399,6 +1438,7 @@ Nodejs & React stuff
            (before-save . tide-format-before-save)))
   ;; aligns annotation to the right hand side
   (setq company-tooltip-align-annotations t)
+  (setq tide-completion-ignore-case t)
 
   (defun setup-tide-mode ()
     (interactive)
@@ -1412,6 +1452,12 @@ Nodejs & React stuff
     ;; `M-x package-install [ret] company`
     (company-mode +1))
 
+
+  (add-hook 'js2-mode-hook #'setup-tide-mode)
+  (add-hook 'rjsx-mode-hook #'setup-tide-mode)
+
+  (setq tide-format-options
+        '(:indentSize 2 :tabSize 2))
   ;; TSX
 
   (require 'web-mode)
@@ -1437,7 +1483,6 @@ Nodejs & React stuff
 
   ;; formats the buffer before saving
   (add-hook 'before-save-hook 'tide-format-before-save)
-
   (add-hook 'typescript-mode-hook #'setup-tide-mode)
 
   ;; ternjs
@@ -2042,6 +2087,7 @@ Mode for writing books
 
 
   ;; Mongodb
+  (use-package inf-mongo)
   (add-to-list 'load-path "~/.emacs.d/vendor/inf-mongo")
   (require 'inf-mongo)
 (defvar inf-mongo-mode-map
