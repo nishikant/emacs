@@ -3,6 +3,22 @@
 
 This is an ongoing evolution of my original Emacs configuration files, inspired by a bunch of resources I've found online.
 
+* My Cheat Sheet
+**  Map CapsLock key to control
+** Keyboard Macros. General note, start at same position in new line 
+   - C-x ( to start recording
+   - C-x ) to stop recording
+   - C-u 10 C-x e to execute 10 times
+** C-i is tab
+** C-c r search occurances in file
+** C-x M-d to insert todays date
+** C-u C-space to go back to previous position
+** C-c left or C-c right to switch between window placement.
+** C-x r w <key> and C-x r j <key> to store thin
+** C-space C-x r k define a kill rectangle.	 
+** C-t to open a terminal using shell-pop
+** C-x C-m = M-x also C-c C-m just in case accidentally you use.
+** C-x + to balance the split windows
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :ignore this
@@ -101,11 +117,20 @@ For bug-hunter use M-x bug-hunter-file and it will ask you path to tangled setti
 Custom functions that help in OrgMode and other functionality.
 #+begin_src emacs-lisp
 
-
   ;; Custom Functions
 
   ;; Set up before-save hooks to format buffer and add/delete imports.
   ;; Make sure you don't have other gofmt/goimports hooks enabled.
+
+  (defun insdate-insert-current-date (&optional omit-day-of-week-p)
+    "Insert today's date using the current locale.
+  With a prefix argument, the date is inserted without the day of
+  the week."
+    (interactive "P*")
+    (insert (calendar-date-string (calendar-current-date) nil
+                                  omit-day-of-week-p)))
+  (global-set-key "\C-x\M-d" 'insdate-insert-current-date)
+
   (defun lsp-go-install-save-hooks ()
     "Save Hooks."
     (add-hook 'before-save-hook #'lsp-format-buffer t t)
@@ -177,16 +202,17 @@ Custom functions that help in OrgMode and other functionality.
     (call-process-shell-command
      (format "notify-send -t 2000 \"%s\" \"%s\"" title message)))
 
-(defun aj-toggle-fold ()
-  "Toggle fold all lines larger than indentation on current line"
-  (interactive)
-  (let ((col 1))
-    (save-excursion
-      (back-to-indentation)
-      (setq col (+ 1 (current-column)))
-      (set-selective-display
-       (if selective-display nil (or col 1))))))
-(global-set-key [(M C i)] 'aj-toggle-fold)
+  (defun aj-toggle-fold ()
+    "Toggle fold all lines larger than indentation on current line"
+    (interactive)
+    (let ((col 1))
+      (save-excursion
+        (back-to-indentation)
+        (setq col (+ 1 (current-column)))
+        (set-selective-display
+         (if selective-display nil (or col 1))))))
+
+  (global-set-key (kbd "C-c C-f") 'aj-toggle-fold)
 
 #+end_src
 
@@ -197,6 +223,11 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
 #+begin_src emacs-lisp
   (setq load-prefer-newer t)
 
+  (global-set-key "\C-x\C-m" 'execute-extended-command)
+  (global-set-key "\C-c\C-m" 'execute-extended-command)
+
+  ;; stretch the cursor width to character size
+  (setq x-stretch-cursor t)
   ;; Create all backup files in ~/.emacs.d/
   (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
         backup-by-copying t    ; Don't delink hardlinks
@@ -207,13 +238,14 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
         )
   ;; Disable menu and scroll bars
   ;; (setq debug-on-error t)
-  (tool-bar-mode 0)
-  (menu-bar-mode 0)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
   ;; After split move cursor to the split window automatically. Default keeps the cursor
   ;; in current window
   (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
   (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
-  ;; (scroll-bar-mode -1)
+
   (set-window-scroll-bars (minibuffer-window) nil nil)
 
   ;; Set default frame title
@@ -382,6 +414,8 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (define-key cm-map "f" 'outline-forward-same-level)        ; Forward - same level
   (define-key cm-map "b" 'outline-backward-same-level)       ; Backward - same level
   (global-set-key "\M-o" cm-map)
+  (setq ac-ignore-case nil)
+
 #+end_src
 
 
@@ -416,103 +450,105 @@ Themes and other configuration
 #+begin_src emacs-lisp
 
 
-  ;; File beautification
+      ;; File beautification
 
-  (use-package all-the-icons-ivy-rich
-    :ensure t
-    :init (all-the-icons-ivy-rich-mode 1))
+      (use-package all-the-icons-ivy-rich
+        :ensure t
+        :init (all-the-icons-ivy-rich-mode 1))
 
-  (setq-default truncate-lines 1) ;; no wordwrap
+      (setq-default truncate-lines 1) ;; no wordwrap
 
-  ;; electric-pair-mode
-  (electric-pair-mode 1)
-  (show-paren-mode 1)
-  ;; highlight indentation
-  (use-package highlight-indent-guides)
-  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-  (setq highlight-indent-guides-method 'character)
-  (use-package viewer)
-  (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
-  (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
+      ;; electric-pair-mode
+      (electric-pair-mode 1)
+      (show-paren-mode 1)
+      ;; highlight indentation
+      (use-package highlight-indent-guides)
+      (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+      (setq highlight-indent-guides-method 'character)
+      (use-package viewer)
+      (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
+      (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
 
-  ;; Code folding
-  (use-package hideshow
-    :hook ((prog-mode . hs-minor-mode)))
+      ;; Code folding
+      (use-package hideshow
+        :hook ((prog-mode . hs-minor-mode)))
 
-  (defun toggle-fold ()
-    (interactive)
-    (save-excursion
-      (end-of-line)
-      (hs-toggle-hiding)))
+      (defun toggle-fold ()
+        (interactive)
+        (save-excursion
+          (end-of-line)
+          (hs-toggle-hiding)))
 
-  ;; Use fancy lambdas
-  (global-prettify-symbols-mode t)
+      ;; Use fancy lambdas
+      (global-prettify-symbols-mode t)
 
-  ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
-  (require 'uniquify)
-  (setq uniquify-buffer-name-style 'post-forward)
-
-
-  ;; colorize the output of the compilation mode.
-  (require 'ansi-color)
-  (defun colorize-compilation-buffer ()
-    (toggle-read-only)
-    (ansi-color-apply-on-region (point-min) (point-max))
-
-    ;; mocha seems to output some non-standard control characters that
-    ;; aren't recognized by ansi-color-apply-on-region, so we'll
-    ;; manually convert these into the newlines they should be.
-    (goto-char (point-min))
-    (while (re-search-forward "\\[2K\\[0G" nil t)
-      (progn
-        (replace-match "
-  ")))
-    (toggle-read-only))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+      ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
+      (require 'uniquify)
+      (setq uniquify-buffer-name-style 'post-forward)
 
 
-  ;; making tooltips appear in the echo area
-  (tooltip-mode 0)
+      ;; colorize the output of the compilation mode.
+      (require 'ansi-color)
+      (defun colorize-compilation-buffer ()
+        (toggle-read-only)
+        (ansi-color-apply-on-region (point-min) (point-max))
 
-  ;; highlight current line
-  (global-hl-line-mode)
-  (set-face-background hl-line-face "gray13")
-  (set-face-attribute 'default nil :height 140)
-
-  ;; display column number in mode line
-  (column-number-mode 1)
-
-  ;; show buffer file name in title bar
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b"))))
+        ;; mocha seems to output some non-standard control characters that
+        ;; aren't recognized by ansi-color-apply-on-region, so we'll
+        ;; manually convert these into the newlines they should be.
+        (goto-char (point-min))
+        (while (re-search-forward "\\[2K\\[0G" nil t)
+          (progn
+            (replace-match "
+      ")))
+        (toggle-read-only))
+      (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 
-  ;; Sidebar
+      ;; making tooltips appear in the echo area
+      (tooltip-mode 0)
 
-  (use-package dired-toggle
-    :defer t
-    :bind (("<f3>" . #'dired-toggle)
-           :map dired-mode-map
-           ("q" . #'dired-toggle-quit)
-           ([remap dired-find-file] . #'dired-toggle-find-file)
-           ([remap dired-up-directory] . #'dired-toggle-up-directory)
-           ("C-c C-u" . #'dired-toggle-up-directory))
-    :config
-    (setq dired-toggle-window-size 32)
-    (setq dired-toggle-window-side 'left)
+      ;; highlight current line
+      (global-hl-line-mode)
+      (set-face-background hl-line-face "gray13")
+      (set-face-attribute 'default nil :height 140)
 
-    ;; Optional, enable =visual-line-mode= for our narrow dired buffer:
-    (add-hook 'dired-toggle-mode-hook
-              (lambda () (interactive)
-                (visual-line-mode 1)
-                (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
-                (setq-local word-wrap nil))))
+      ;; display column number in mode line
+      (column-number-mode 1)
 
-  ;; paredit you can manipulate text as a tree
-  (use-package paredit)
-  (use-package rainbow-delimiters)
+      ;; show buffer file name in title bar
+      (setq frame-title-format
+            '((:eval (if (buffer-file-name)
+                         (abbreviate-file-name (buffer-file-name))
+                       "%b"))))
+
+
+      ;; Sidebar
+
+      (use-package dired-toggle
+        :defer t
+        :bind (("<f3>" . #'dired-toggle)
+               :map dired-mode-map
+               ("q" . #'dired-toggle-quit)
+               ([remap dired-find-file] . #'dired-toggle-find-file)
+               ([remap dired-up-directory] . #'dired-toggle-up-directory)
+               ("C-c C-u" . #'dired-toggle-up-directory))
+        :config
+        (setq dired-toggle-window-size 32)
+        (setq dired-toggle-window-side 'left)
+
+        ;; Optional, enable =visual-line-mode= for our narrow dired buffer:
+        (add-hook 'dired-toggle-mode-hook
+                  (lambda () (interactive)
+                    (visual-line-mode 1)
+                    (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
+                    (setq-local word-wrap nil))))
+
+      ;; paredit you can manipulate text as a tree
+      (use-package paredit)
+      (use-package rainbow-delimiters
+        :config
+        (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 #+end_src
 
@@ -1068,7 +1104,6 @@ Configuration for CSS and related techs
 
 #+begin_src emacs-lisp
 
-
   ;; yaml-mode
   (use-package yaml-mode
     :ensure t
@@ -1077,37 +1112,24 @@ Configuration for CSS and related techs
               'highlight-indent-guides-mode
               '(lambda ()
                  (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+    (add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
+
     (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
     (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode)))
 
   (add-hook 'cfn-yaml-mode-hook
 
             (outline-minor-mode)
-            (define-key yaml-mode-map (kbd "TAB") 'outline-toggle-children))
+            (define-key yaml-mode-map (kbd "S-TAB") 'outline-toggle-children))
 
-  (setq outline-regexp
-        (rx
-         (seq
-          bol
-          (group (zero-or-more "  ")
-                 (or (group
-                      (seq (or (seq "\"" (*? (not (in "\"" "\n"))) "\"")
-                               (seq "'" (*? (not (in "'" "\n"))) "'")
-                               (*? (not (in ":" "\n"))))
-                           ":"
-                           (?? (seq
-                                (*? " ")
-                                (or (seq "&" (one-or-more nonl))
-                                    (seq ">-")
-                                    (seq "|"))
-                                eol))))
-                     (group (seq
-                             "- "
-                             (+ (not (in ":" "\n")))
-                             ":"
-                             (+ nonl)
-                             eol)))))))
+  (defun yaml-outline-level ()
+    "Return the outline level based on the indentation, hardcoded at 2 spaces."
+    (s-count-matches "[ ]\\{2\\}" (match-string 0)))
 
+  (defun yaml-mode-outline-hook ()
+    (outline-minor-mode)
+    (setq outline-regexp "^\\([ ]\\{2\\}\\)*\\([-] \\)?\\([\"][^\"]*[\"]\\|[a-zA-Z0-9_-]*\\): *\\([>|]\\|&[a-zA-Z0-9_-]*\\)?$")
+    (setq outline-level 'yaml-outline-level))
 
   (use-package k8s-mode
     :ensure t
@@ -1447,9 +1469,6 @@ Nodejs & React stuff
     (setq flycheck-check-syntax-automatically '(save mode-enabled))
     (eldoc-mode +1)
     (tide-hl-identifier-mode +1)
-    ;; company is an optional dependency. You have to
-    ;; install it separately via package-install
-    ;; `M-x package-install [ret] company`
     (company-mode +1))
 
 
@@ -1741,9 +1760,9 @@ Cleanup needed
 
 #+end_src
 
-** Bash
-Shell script settings
-#+begin_src
+** Bash/Shell
+Shell script settings and opening a terminal using shell-pop
+#+begin_src emacs-lisp
 
 
 ;; sh
@@ -1753,12 +1772,21 @@ Shell script settings
 			(setq sh-basic-offset 2
 				  sh-indentation 2)))
 
+(use-package shell-pop
+  :bind ("C-t" . shell-pop)
+  :config
+  (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
+  (setq shell-pop-term-shell "/bin/zsh")
+  (setq shell-pop-universal-key "C-t")
+  ;; need to do this manually or not picked up by `shell-pop'
+  (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
+
 
 #+end_src
 
 ** HTML PHP
 Html, php, etc
-#+begin_src
+#+begin_src emacs-lisp
 
 
 ;; web-mode
@@ -1780,7 +1808,7 @@ Html, php, etc
 #+end_src
 
 ** Ansible
-#+begin_src
+#+begin_src emacs-lisp
 
 
 ;; Ansible minor mode
@@ -1791,7 +1819,7 @@ Html, php, etc
 #+end_src
 
 ** Json
-#+begin_src
+#+begin_src emacs-lisp
 
 
 ;; Json mode
@@ -2236,3 +2264,5 @@ I probably don't need these
   ;; 					("Q" dap-disconnect :color red)))
 
 #+end_src
+
+#+RESULTS:
