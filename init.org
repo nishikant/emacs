@@ -19,6 +19,9 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 ** C-t to open a terminal using shell-pop
 ** C-x C-m = M-x also C-c C-m just in case accidentally you use.
 ** C-x + to balance the split windows
+** C-h backward delete char and remap help to M-h
+** M-z zap-to-char
+** M-/ hippie-expand for autocomplete
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :ignore this
@@ -221,10 +224,17 @@ Custom functions that help in OrgMode and other functionality.
 Some basic settings around how emacs should look and behave. Like no scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
-  (setq load-prefer-newer t)
 
+  (global-set-key (kbd "M-/") 'hippie-expand)
+  (setq load-prefer-newer t)
+  ;; Meta-x also mapped C-x/c C-m 
   (global-set-key "\C-x\C-m" 'execute-extended-command)
   (global-set-key "\C-c\C-m" 'execute-extended-command)
+
+  ;; Use C-h instead of backspace and M-h for help
+  (global-set-key "\C-h" 'delete-backward-char)
+  (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
+  (global-set-key "\M-i" 'help-for-help)
 
   ;; stretch the cursor width to character size
   (setq x-stretch-cursor t)
@@ -877,6 +887,27 @@ Debug seettings
   (dap-ui-controls-mode 1)
 
 #+end_src
+
+
+#+begin_src emacs-lisp
+
+;;Don't use strange separate control-window.
+(customize-set-variable 'ediff-window-setup-function 'ediff-setup-windows-plain)
+
+;;Side by side comparison is easier than vertical split
+;;(tob-bottom-stacked) window
+(customize-set-variable 'ediff-split-window-function 'split-window-horizontally)
+
+;; ;; To ignore white space. Note: not good for Python
+;; (csetq ediff-diff-options "-w")
+
+;; reset the window configuration after ediff is done
+;;(winner-mode)
+;;(add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+
+#+end_src** Ediff
+
+See diff of two files
 
 
 ** FlyCheck
