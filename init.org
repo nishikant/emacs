@@ -91,7 +91,7 @@ For bug-hunter use M-x bug-hunter-file and it will ask you path to tangled setti
 
   ;; Bug hunter to debug errors in init.el.
   (use-package bug-hunter)
-
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
   ;; The default is 800 kilobytes.  Measured in bytes.
   (setq gc-cons-threshold (* 50 1000 1000))
 
@@ -291,7 +291,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (setq desktop-load-locked-desktop "ask")
 
   ;; auto-save buffer state on close for a later time.
-  (desktop-save-mode 1)
+  ;; (desktop-save-mode 1)
 
   ;; Abbrevs expands abbreviations
 
@@ -753,103 +753,103 @@ Using Counsel and ivy to code completion
 *** LSP Mode
 LSP mode settings. Custom language settings also included here.
 #+begin_src emacs-lisp
-
-
-    ;; GOPLS config LSP mode
-
-    (use-package lsp-mode
-      :ensure t
-      :commands (lsp lsp-deferred)
-      ;; reformat code and add missing (or remove old) imports
-      :hook ((before-save . lsp-organize-imports)
-             (python-mode . lsp-deferred)
-             (groovy-mode . lsp-deferred)
-             (go-mode . lsp-deferred)
-             (csharp-mode . lsp-deferred)
-             (lsp-mode . lsp-enable-which-key-integration))
-      :bind (("C-c d" . lsp-describe-thing-at-point)
-             ("C-c e n" . flymake-goto-next-error)
-             ("C-c e p" . flymake-goto-prev-error)
-             ("C-c e r" . lsp-find-references)
-             ("C-c e R" . lsp-rename)
-             ("C-c e i" . lsp-find-implementation)
-             ("C-c e t" . lsp-find-type-definition)
-             )
-      :ensure-system-package
-      ((typescript-language-server . "npm install -g typescript-language-server")
-       (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
-       (yaml-language-server . "npm install -g yaml-language-server")
-       (tsc . "npm install -g typescript")
-       (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
-
-      :config
-      (setq lsp-modeline-diagnostics-scope :workspace)
-      (setq lsp-headerline-breadcrumb-enable t)
-      (setq lsp-enable-snippet t)
-      (setq lsp-file-watch-threshold 4000)
-      (setq lsp-headerline-breadcrumb-mode t)
-      (setq lsp-semantic-highlighting 'immediate)
-      (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
-
-      (lsp-register-custom-settings
-       '(("gopls.completeUnimported" t t)
-         ("gopls.staticcheck" t t)
-         ("pyls.plugins.pyls_mypy.enabled" t t)
-         ("pyls.plugins.pyls_mypy.live_mode" nil t)
-         ("pyls.plugins.pyls_black.enabled" t t)
-         ("pyls.plugins.pyls_isort.enabled" t t)
-         ("pyls.plugins.pycodestyle.enabled" nil t)
-         ("pyls.plugins.mccabe.enabled" nil t)
-         ("pyls.plugins.pyflakes.enabled" nil t)
-         )))
-
-
-    ;; Optional - provides fancier overlays.
-    (use-package lsp-ui
-      :ensure t
-      :after (lsp-mode)
-      :commands lsp-ui-doc-hide
-      :bind (:map lsp-ui-mode-map
-                  ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-                  ([remap xref-find-references] . lsp-ui-peek-find-references)
-                  ("C-c u" . lsp-ui-imenu))
-      :init (setq lsp-ui-doc-enable t
-                  lsp-ui-doc-use-webkit nil
-                  lsp-ui-doc-header nil
-                  lsp-ui-doc-delay 0.2
-                  lsp-ui-doc-include-signature t
-                  lsp-ui-doc-alignment 'frame
-                  lsp-ui-doc-use-childframe nil
-                  lsp-ui-doc-border (face-foreground 'default)
-                  lsp-ui-peek-enable t
-                  lsp-ui-peek-show-directory t
-                  lsp-ui-sideline-update-mode 'point
-                  lsp-ui-sideline-enable t
-                  lsp-ui-sideline-show-code-actions t
-                  lsp-ui-sideline-show-hover nil
-                  lsp-ui-sideline-ignore-duplicate t)
-      :config
-      (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
-
-      ;; `C-g'to close doc
-      (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
-
-      ;; Reset `lsp-ui-doc-background' after loading theme
-      (add-hook 'after-load-theme-hook
-                (lambda ()
-                  (setq lsp-ui-doc-border (face-foreground 'default))
-                  (set-face-background 'lsp-ui-doc-background
-                                       (face-background 'tooltip))))
-
-      ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
-      ;; @see https://github.com/emacs-lsp/lsp-ui/issues/243
-      (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-        (setq mode-line-format nil)))
-
-    ;; company-lsp integrates company mode completion with lsp-mode.
-    ;; completion-at-point also works out of the box but doesn't support snippets.
-    ;; uses the given recipe
-
+  
+  
+  ;; GOPLS config LSP mode
+  
+  (use-package lsp-mode
+    :ensure t
+    :commands (lsp lsp-deferred)
+    ;; reformat code and add missing (or remove old) imports
+    :hook ((before-save . lsp-organize-imports)
+           (python-mode . lsp-deferred)
+           (groovy-mode . lsp-deferred)
+           (go-mode . lsp-deferred)
+           (csharp-mode . lsp-deferred)
+           (lsp-mode . lsp-enable-which-key-integration))
+    :bind (("C-c d" . lsp-describe-thing-at-point)
+           ("C-c e n" . flymake-goto-next-error)
+           ("C-c e p" . flymake-goto-prev-error)
+           ("C-c e r" . lsp-find-references)
+           ("C-c e R" . lsp-rename)
+           ("C-c e i" . lsp-find-implementation)
+           ("C-c e t" . lsp-find-type-definition)
+           )
+    :ensure-system-package
+    ((typescript-language-server . "npm install -g typescript-language-server")
+     (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
+     (yaml-language-server . "npm install -g yaml-language-server")
+     (tsc . "npm install -g typescript")
+     (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
+  
+    :config
+    (setq lsp-modeline-diagnostics-scope :workspace)
+    (setq lsp-headerline-breadcrumb-enable t)
+    (setq lsp-enable-snippet t)
+    (setq lsp-file-watch-threshold 4000)
+    (setq lsp-headerline-breadcrumb-mode t)
+    (setq lsp-semantic-highlighting 'immediate)
+    (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+  
+    (lsp-register-custom-settings
+     '(("gopls.completeUnimported" t t)
+       ("gopls.staticcheck" t t)
+       ("pyls.plugins.pyls_mypy.enabled" t t)
+       ("pyls.plugins.pyls_mypy.live_mode" nil t)
+       ("pyls.plugins.pyls_black.enabled" t t)
+       ("pyls.plugins.pyls_isort.enabled" t t)
+       ("pyls.plugins.pycodestyle.enabled" nil t)
+       ("pyls.plugins.mccabe.enabled" nil t)
+       ("pyls.plugins.pyflakes.enabled" nil t)
+       )))
+  
+  
+  ;; Optional - provides fancier overlays.
+  (use-package lsp-ui
+    :ensure t
+    :after (lsp-mode)
+    :commands lsp-ui-doc-hide
+    :bind (:map lsp-ui-mode-map
+                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+                ([remap xref-find-references] . lsp-ui-peek-find-references)
+                ("C-c u" . lsp-ui-imenu))
+    :init (setq lsp-ui-doc-enable t
+                lsp-ui-doc-use-webkit nil
+                lsp-ui-doc-header nil
+                lsp-ui-doc-delay 0.2
+                lsp-ui-doc-include-signature t
+                lsp-ui-doc-alignment 'frame
+                lsp-ui-doc-use-childframe nil
+                lsp-ui-doc-border (face-foreground 'default)
+                lsp-ui-peek-enable t
+                lsp-ui-peek-show-directory t
+                lsp-ui-sideline-update-mode 'point
+                lsp-ui-sideline-enable t
+                lsp-ui-sideline-show-code-actions t
+                lsp-ui-sideline-show-hover nil
+                lsp-ui-sideline-ignore-duplicate t)
+    :config
+    (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
+  
+    ;; `C-g'to close doc
+    (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
+  
+    ;; Reset `lsp-ui-doc-background' after loading theme
+    (add-hook 'after-load-theme-hook
+              (lambda ()
+                (setq lsp-ui-doc-border (face-foreground 'default))
+                (set-face-background 'lsp-ui-doc-background
+                                     (face-background 'tooltip))))
+  
+    ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
+    ;; @see https://github.com/emacs-lsp/lsp-ui/issues/243
+    (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
+      (setq mode-line-format nil)))
+  
+  ;; company-lsp integrates company mode completion with lsp-mode.
+  ;; completion-at-point also works out of the box but doesn't support snippets.
+  ;; uses the given recipe
+  
 #+end_src
 
 #+RESULTS:
@@ -986,7 +986,6 @@ Use Ivy frame work for code completion interface
 
 #+begin_src emacs-lisp
 
-
   ;; ivy
   (use-package ivy
     :ensure t
@@ -995,7 +994,9 @@ Use Ivy frame work for code completion interface
     (ivy-mode 1)
     (bind-key "C-c C-r" 'ivy-resume))
 
-
+  (use-package smart-tab)
+  (require 'smart-tab)
+  (global-smart-tab-mode 1)
 
 #+end_src
 
@@ -1758,8 +1759,8 @@ Cleanup needed
     :ensure t
     :config
     (with-eval-after-load "lsp-mode"
-      (add-to-list 'lsp-enabled-clients 'pyls)
-      (add-to-list 'lsp-disabled-clients 'jedi)))
+      (add-to-list 'lsp-enabled-clients 'jedi)
+      (add-to-list 'lsp-disabled-clients 'pyls)))
 
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq jedi:complete-on-dot t)
