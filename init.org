@@ -1759,7 +1759,8 @@ Cleanup needed
     :ensure t
     :config
     (with-eval-after-load "lsp-mode"
-      (add-to-list 'lsp-enabled-clients 'jedi)
+      (add-to-list 'lsp-disabled-clients 'jedi)
+      (add-to-list 'lsp-enabled-clients 'pylsp)
       (add-to-list 'lsp-disabled-clients 'pyls)))
 
   ;; (add-hook 'python-mode-hook 'jedi:setup)
