@@ -7,7 +7,7 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 ** C-i is tab
 ** Map CapsLock key to control
 ** C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
-** Keyboard Macros. General note, start at same position in new line 
+** Keyboard Macros. General note, start at same position in new line
    - C-x ( to start recording
    - C-x ) to stop recording
    - C-u 10 C-x e to execute 10 times
@@ -16,7 +16,7 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 ** C-u C-space to go back to previous position
 ** C-c left or C-c right to switch between window placement.
 ** C-x r w <key> and C-x r j <key> to store thin
-** C-space C-x r k define a kill rectangle.	 
+** C-space C-x r k define a kill rectangle.
 ** C-t to open a terminal using shell-pop
 ** C-x C-m = M-x also C-c C-m just in case accidentally you use.
 ** C-x + to balance the split windows
@@ -48,9 +48,9 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (require 'package)
 
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-	       ("elpa" . "https://elpa.gnu.org/packages/")
-	       ("org" . "https://orgmode.org/elpa/")
-	       ("melpa-stable" . "https://stable.melpa.org/packages/")))
+                           ("elpa" . "https://elpa.gnu.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   (package-initialize)
 
@@ -68,16 +68,21 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
   (use-package use-package-ensure-system-package
     :ensure t)
 
-  (use-package auto-compile
-    :config (auto-compile-on-load-mode))
+  (cond
+   ((string-equal system-type "darwin")
+    (setq system-packages-use-sudo nil)
+    (setq system-packages-package-manager 'brew)))
 
-  (use-package quelpa-use-package)
-  (use-package quelpa)
-  (require 'quelpa-use-package)
-  (quelpa
-   '(quelpa-use-package
-     :fetcher github
-     :url "https://github.com/quelpa/quelpa-use-package.git"))
+   (use-package auto-compile
+     :config (auto-compile-on-load-mode))
+
+   (use-package quelpa-use-package)
+   (use-package quelpa)
+   (require 'quelpa-use-package)
+   (quelpa
+    '(quelpa-use-package
+      :fetcher github
+      :url "https://github.com/quelpa/quelpa-use-package.git"))
 
 
 
@@ -226,20 +231,20 @@ Custom functions that help in OrgMode and other functionality.
 Some basic settings around how emacs should look and behave. Like no scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
-
+  
   (global-set-key (kbd "M-/") 'hippie-expand)
   (setq load-prefer-newer t)
-
+  
   ;; (global-set-key (kbd "M-" 'just-one-space))
-  ;; Meta-x also mapped C-x/c C-m 
+  ;; Meta-x also mapped C-x/c C-m
   (global-set-key "\C-x\C-m" 'execute-extended-command)
   (global-set-key "\C-c\C-m" 'execute-extended-command)
-
+  
   ;; Use C-h instead of backspace and M-h for help
   (global-set-key "\C-h" 'delete-backward-char)
   (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
   (global-set-key "\M-i" 'help-for-help)
-
+  
   ;; stretch the cursor width to character size
   (setq x-stretch-cursor t)
   ;; Create all backup files in ~/.emacs.d/
@@ -252,84 +257,85 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
         )
   ;; Disable menu and scroll bars
   ;; (setq debug-on-error t)
-  (tool-bar-mode -1)
+  ;; (tool-bar-mode -1)
   (menu-bar-mode -1)
   (scroll-bar-mode -1)
   ;; After split move cursor to the split window automatically. Default keeps the cursor
   ;; in current window
   (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
   (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
-
+  
   (set-window-scroll-bars (minibuffer-window) nil nil)
-
+  
   ;; Set default frame title
   (setq frame-title-format '((:eval (projectile-project-name))))
   (setq delete-auto-save-files t)
   (setq delete-old-versions t)
   (setq global-semantic-folding-mode t)
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
+  
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
   (defalias 'yes-or-no-p 'y-or-n-p)
-
+  
   (setq inhibit-splash-screen t) ;; no splash screen
   (setq-default indent-tabs-mode nil)      ;; no tabs!
   (setq fill-column 80) ;; M-q should fill at 80 chars, not 75
   (setq initial-buffer-choice "~/Documents/org/work.org") ;; make the eng log the first file that's open.
-
+  
   ;; async enables basic async capabilities for emacs
-
+  
   (use-package async
     :init
     (autoload 'dired-async-mode "dired-async.el" nil t)
     (dired-async-mode 1)
     (async-bytecomp-package-mode 1)
+
     (require 'smtpmail-async)
     (setq send-mail-function 'async-smtpmail-send-it))
-
+    (setq async-shell-command-buffer 'new-buffer)  
   ;; sometimes desktop is locked, ask if we want to load it.
   (setq desktop-load-locked-desktop "ask")
-
+  
   ;; auto-save buffer state on close for a later time.
   ;; (desktop-save-mode 1)
-
+  
   ;; Abbrevs expands abbreviations
-
+  
   (setq abbrev-file-name             ;; tell emacs where to read abbrev
         "~/project/emacs/abbrev_defs")    ;; definitions from...
-
+  
   ;; default directory
   (setq default-directory "~/")
-
+  
   ;; Dont show minor modes in mode line
   (use-package diminish)
-
+  
   ;; disable startup message
   (setq inhibit-startup-message t)
-
+  
   ;; disable beep sound
   (setq ring-bell-function 'ignore)
-
+  
   ;; disable confirmation if a file or buffer does not exist when you
   ;; use C-x C-f or C-x b
   (setq confirm-nonexistent-file-or-buffer nil)
-
+  
   ;; disable confirmation when kill a buffer with a live process
   ;; attached to it
   (setq kill-buffer-query-functions
         (remq 'process-kill-buffer-query-function
               kill-buffer-query-functions))
-
+  
   ;; use trash
   (setq delete-by-moving-to-trash t)
-
+  
   ;; undo-tree (need to explore)
   (use-package undo-tree
     :diminish undo-tree-mode
     :config
     (global-undo-tree-mode 1))
-
-
+  
+  
   ;; whole-line-ore-region use currentline if no region is selected.
   ;; primarily used to cut currentline if no region is defined
   (use-package whole-line-or-region
@@ -337,8 +343,8 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
     :diminish whole-line-or-region-global-mode
     :config
     (whole-line-or-region-global-mode 1))
-
-
+  
+  
   ;; company completion framework for all text
   ;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
   ;; Search through the completions with C-s, C-r and C-o.
@@ -351,60 +357,60 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
     (setq company-minimum-prefix-length 1))
   (add-hook 'after-init-hook 'global-company-mode)
   (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
-
+  
   ;; switch-window gives a visual indicator when switching windows.
   (use-package switch-window
     :ensure t
     :bind ("C-x o" . switch-window))
-
-
+  
+  
   ;; expand-region expand selection of your region
   (use-package expand-region
     :ensure t
     :config
     (bind-key* "C-=" 'er/expand-region))
-
+  
   ;; set line number
   (when (version<= "26.0.50" emacs-version )
     (global-display-line-numbers-mode))
-
-
+  
+  
   (setq ffap-require-prefix nil)
   (ffap-bindings)
   (setq ffap-require-prefix t)
-
+  
   (use-package use-package-hydra)
   (use-package hydra
     :ensure t)
   (use-package which-key :config (which-key-mode))
-
-
+  
+  
   ;; Optional - provides snippet support.
   (use-package yasnippet
     :ensure t
     :commands yas-minor-mode)
-
+  
   (use-package yasnippet-snippets)
   (require 'yasnippet)
   (yas-global-mode 1)
-
-
+  
+  
   ;; fuzzy search
   (use-package fzf)
-
-
+  
+  
   ;; Drag line up/down
   (use-package drag-stuff)
   (require 'drag-stuff)
   (drag-stuff-global-mode 1)
   (drag-stuff-define-keys)
-
-
+  
+  
   ;; winner mode to handle windows config rollback
   (when (fboundp 'winner-mode)
     (winner-mode 1))
-
-
+  
+  
   ;; Outline for code folding
                                           ; Outline-minor-mode key map
   (define-prefix-command 'cm-map nil "Outline-")
@@ -429,7 +435,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (define-key cm-map "b" 'outline-backward-same-level)       ; Backward - same level
   (global-set-key "\M-o" cm-map)
   (setq ac-ignore-case nil)
-
+  
 #+end_src
 
 
@@ -776,11 +782,15 @@ LSP mode settings. Custom language settings also included here.
            ("C-c e t" . lsp-find-type-definition)
            )
     :ensure-system-package
-    ((typescript-language-server . "npm install -g typescript-language-server")
+    ((node)
+     (typescript-language-server . "npm install -g typescript-language-server")
      (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
      (yaml-language-server . "npm install -g yaml-language-server")
+     (python-lsp-server . "pip3 install python-lsp-server[all]")
+     (jedi . "pip3 install jedi")
      (tsc . "npm install -g typescript")
-     (gopls . "GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
+     (golang)
+     (gopls . "GOBIN=/Users/gattu/go/bin GO111MODULE=on go get golang.org/x/tools/gopls@latest"))
   
     :config
     (setq lsp-modeline-diagnostics-scope :workspace)
@@ -794,13 +804,14 @@ LSP mode settings. Custom language settings also included here.
     (lsp-register-custom-settings
      '(("gopls.completeUnimported" t t)
        ("gopls.staticcheck" t t)
-       ("pyls.plugins.pyls_mypy.enabled" t t)
-       ("pyls.plugins.pyls_mypy.live_mode" nil t)
-       ("pyls.plugins.pyls_black.enabled" t t)
-       ("pyls.plugins.pyls_isort.enabled" t t)
-       ("pyls.plugins.pycodestyle.enabled" nil t)
-       ("pyls.plugins.mccabe.enabled" nil t)
-       ("pyls.plugins.pyflakes.enabled" nil t)
+       ;; ("gopls.experimentalWorkspaceModule" t t)
+       ("pylsp.plugins.pyls_mypy.enabled" t t)
+       ("pylsp.plugins.pyls_mypy.live_mode" nil t)
+       ("pylsp.plugins.pyls_black.enabled" t t)
+       ("pylsp.plugins.pyls_isort.enabled" t t)
+       ("pylsp.plugins.pycodestyle.enabled" nil t)
+       ("pylsp.plugins.mccabe.enabled" nil t)
+       ("pylsp.plugins.pyflakes.enabled" nil t)
        )))
   
   
@@ -964,19 +975,24 @@ Using Magit to handle all git related stuff.
 
 #+end_src
 
-** AG Search
+** Search what to use rg/ag/grep?
 Intelligent Search
 
 #+begin_src emacs-lisp
 
 
-  ;; ag.el
-  (use-package ag
-    :ensure t
-    :config
-    (add-hook 'ag-mode-hook 'toggle-truncate-lines)
-    (setq ag-highlight-search t)
-    (setq ag-reuse-buffers 't))
+  ;; ripgrep
+  (use-package rg
+    :ensure-system-package (ripgrep))
+
+  (rg-enable-menu)
+  ;; ;; ag.el
+  ;; (use-package ag
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'ag-mode-hook 'toggle-truncate-lines)
+  ;;   (setq ag-highlight-search t)
+  ;;   (setq ag-reuse-buffers 't))
 
 
 #+end_src
@@ -1004,23 +1020,23 @@ Use Ivy frame work for code completion interface
 Use Projectile to handle interaction with projects
 
 #+begin_src emacs-lisp
-
-
+  
+  
   ;; projectile
   (use-package projectile
     :bind
     ("C-c v" . projectile-ag)
-
+  
     :config
     (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-
+  
     (setq projectile-switch-project-action 'projectile-dired)
     (setq projectile-require-project-root nil)
     (setq projectile-completion-system 'ivy))
   (projectile-mode +1)
-
+  
   ;; treemacs
-
+  
   (use-package treemacs
     :ensure t
     :defer t
@@ -1043,7 +1059,7 @@ Use Projectile to handle interaction with projects
             treemacs-goto-tag-strategy             'refetch-index
             treemacs-indentation                   2
             treemacs-indentation-string            " "
-            treemacs-is-never-other-window         nil
+            treemacs-is-never-other-window         t
             treemacs-max-git-entries               5000
             treemacs-missing-project-action        'ask
             treemacs-move-forward-on-expand        nil
@@ -1069,11 +1085,11 @@ Use Projectile to handle interaction with projects
             treemacs-user-header-line-format       nil
             treemacs-width                         35
             treemacs-workspace-switch-cleanup      nil)
-
+  
       ;; The default width and height of the icons is 22 pixels. If you are
       ;; using a Hi-DPI display, uncomment this to double the icon size.
       ;;(treemacs-resize-icons 44)
-
+  
       (treemacs-follow-mode t)
       (treemacs-filewatch-mode t)
       (treemacs-fringe-indicator-mode t)
@@ -1091,26 +1107,25 @@ Use Projectile to handle interaction with projects
           ("C-x t B"   . treemacs-bookmark)
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag)))
-
+  
   (use-package treemacs-projectile
     :after treemacs projectile
     :ensure t)
-
+  
   (use-package treemacs-icons-dired
     :after treemacs dired
     :ensure t
     :config (treemacs-icons-dired-mode))
-
+  
   (use-package treemacs-magit
     :after treemacs magit
     :ensure t)
-
+  
   (use-package treemacs-persp ;;treemacs-persective if you use perspective.el vs. persp-mode
     :after treemacs persp-mode ;;or perspective vs. persp-mode
     :ensure t
-    :config (treemacs-set-scope-type 'Perspectives))
-
-
+    :config (treemacs-set-scope-type 'Perspectives))  
+  
 #+end_src
 
 ** CSS Sass and Less
@@ -1132,7 +1147,6 @@ Configuration for CSS and related techs
   (require 'css-eldoc)
 
   (use-package less-css-mode)
-
 
 #+end_src
 
@@ -1579,7 +1593,7 @@ terminalchanges
    ((string-equal system-type "ms-dos")
     (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))
    ((string-equal system-type "darwin")
-    (setq multi-term-program "/bin/bash"))
+    (setq multi-term-program "/bin/zsh"))
    ((string-equal system-type "gnu/linux")
     (setq multi-term-program "/bin/bash")));; use bash
 
@@ -1715,6 +1729,7 @@ AWS cloudformation linting and yaml mode
 
   See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
+      :ensure-system-package (cfn-lint)
       :command ("cfn-lint" "-f" "parseable" source)
       :error-patterns ((warning line-start (file-name) ":" line ":" column
                                 ":" (one-or-more digit) ":" (one-or-more digit) ":"
