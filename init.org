@@ -272,7 +272,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (setq delete-auto-save-files t)
   (setq delete-old-versions t)
   (setq global-semantic-folding-mode t)
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (add-hook 'before-save-hook 'whitespace-cleanup)
 
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
   (defalias 'yes-or-no-p 'y-or-n-p)
@@ -711,7 +711,6 @@ Coding related global settings
 *** Completion
 Using Counsel and ivy to code completion
 #+begin_src emacs-lisp
-
 
   ;; Counsel
 
@@ -1819,9 +1818,9 @@ Shell script settings and opening a terminal using shell-pop
 ;; sh
 
 (add-hook 'sh-mode-hook
-		  (lambda ()
-			(setq sh-basic-offset 2
-				  sh-indentation 2)))
+          (lambda ()
+            (setq sh-basic-offset 2
+                  sh-indentation 2)))
 
 (use-package shell-pop
   :bind ("C-t" . shell-pop)
@@ -1843,10 +1842,10 @@ Html, php, etc
 ;; web-mode
 
 (add-hook 'web-mode-hook
-		  (lambda ()
-			(rainbow-mode)
-			(rspec-mode)
-			(setq web-mode-markup-indent-offset 2)))
+          (lambda ()
+            (rainbow-mode)
+            (rspec-mode)
+            (setq web-mode-markup-indent-offset 2)))
 
 (hrs/add-auto-mode
  'web-mode
@@ -1934,29 +1933,6 @@ Settings for OrgMode
   (use-package org-jira)
   ;;(make-directory "~/.org-jira")
   (setq jiralib-url "https://jira.connectwisedev.com")
-  ;; shortcuts for jira
-
-  (define-key org-jira-map (kbd "C-c pg") 'org-jira-get-projects)
-  (define-key org-jira-map (kbd "C-c ib") 'org-jira-browse-issue)
-  (define-key org-jira-map (kbd "C-c ig") 'org-jira-get-issues)
-  (define-key org-jira-map (kbd "C-c ij") 'org-jira-get-issues-from-custom-jql)
-  (define-key org-jira-map (kbd "C-c ih") 'org-jira-get-issues-headonly)
-  (define-key org-jira-map (kbd "C-c iu") 'org-jira-update-issue)
-  (define-key org-jira-map (kbd "C-c iw") 'org-jira-progress-issue)
-  (define-key org-jira-map (kbd "C-c in") 'org-jira-progress-issue-next)
-  (define-key org-jira-map (kbd "C-c ia") 'org-jira-assign-issue)
-  (define-key org-jira-map (kbd "C-c ir") 'org-jira-refresh-issue)
-  (define-key org-jira-map (kbd "C-c iR") 'org-jira-refresh-issues-in-buffer)
-  (define-key org-jira-map (kbd "C-c ic") 'org-jira-create-issue)
-  (define-key org-jira-map (kbd "C-c ik") 'org-jira-copy-current-issue-key)
-  (define-key org-jira-map (kbd "C-c sc") 'org-jira-create-subtask)
-  (define-key org-jira-map (kbd "C-c sg") 'org-jira-get-subtasks)
-  (define-key org-jira-map (kbd "C-c cc") 'org-jira-add-comment)
-  (define-key org-jira-map (kbd "C-c cu") 'org-jira-update-comment)
-  (define-key org-jira-map (kbd "C-c wu") 'org-jira-update-worklogs-from-org-clocks)
-  (define-key org-jira-map (kbd "C-c tj") 'org-jira-todo-to-jira)
-  (define-key org-jira-map (kbd "C-c if") 'org-jira-get-issues-by-fixversion)
-
 
   (setq initial-major-mode 'org-mode)
   (setq org-ellipsis "⤵")
@@ -2323,25 +2299,25 @@ I probably don't need these
   ;;   ;;("M-s" . hydra-go/body)
   ;;   :init
   ;;   (add-hook 'dap-stopped-hook
-  ;; 			(lambda (arg) (call-interactively #'hydra-go/body)))
+  ;;            (lambda (arg) (call-interactively #'hydra-go/body)))
   ;;   :hydra  (hydra-go (:color pink :hint nil :foreign-keys run)
-  ;; 					"
+  ;;                    "
   ;;    _n_: Next       _c_: Continue _g_: goroutines      _i_: break log
   ;;    _s_: Step in    _o_: Step out _k_: break condition _h_: break hit condition
   ;;    _Q_: Disconnect _q_: quit     _l_: locals
   ;;    "
-  ;; 					("n" dap-next)
-  ;; 					("c" dap-continue)
-  ;; 					("s" dap-step-in)
-  ;; 					("o" dap-step-out)
-  ;; 					("g" dap-ui-sessions)
-  ;; 					("l" dap-ui-locals)
-  ;; 					("e" dap-eval-thing-at-point)
-  ;; 					("h" dap-breakpoint-hit-condition)
-  ;; 					("k" dap-breakpoint-condition)
-  ;; 					("i" dap-breakpoint-log-message)
-  ;; 					("q" nil "quit" :color blue)
-  ;; 					("Q" dap-disconnect :color red)))
+  ;;                    ("n" dap-next)
+  ;;                    ("c" dap-continue)
+  ;;                    ("s" dap-step-in)
+  ;;                    ("o" dap-step-out)
+  ;;                    ("g" dap-ui-sessions)
+  ;;                    ("l" dap-ui-locals)
+  ;;                    ("e" dap-eval-thing-at-point)
+  ;;                    ("h" dap-breakpoint-hit-condition)
+  ;;                    ("k" dap-breakpoint-condition)
+  ;;                    ("i" dap-breakpoint-log-message)
+  ;;                    ("q" nil "quit" :color blue)
+  ;;                    ("Q" dap-disconnect :color red)))
 
 #+end_src
 
