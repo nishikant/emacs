@@ -5,12 +5,13 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 
 * My Cheat Sheet
 ** C-i is tab
+** C-M-k delete brackets and everything inside it
 ** Map CapsLock key to control
 ** C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
 ** Keyboard Macros. General note, start at same position in new line
-   - C-x ( to start recording
-   - C-x ) to stop recording
-   - C-u 10 C-x e to execute 10 times
+- C-x ( to start recording
+- C-x ) to stop recording
+- C-u 10 C-x e to execute 10 times
 ** C-c r search occurances in file
 ** C-x M-d to insert todays date
 ** C-u C-space to go back to previous position
@@ -73,16 +74,16 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
     (setq system-packages-use-sudo nil)
     (setq system-packages-package-manager 'brew)))
 
-   (use-package auto-compile
-     :config (auto-compile-on-load-mode))
+  (use-package auto-compile
+    :config (auto-compile-on-load-mode))
 
-   (use-package quelpa-use-package)
-   (use-package quelpa)
-   (require 'quelpa-use-package)
-   (quelpa
-    '(quelpa-use-package
-      :fetcher github
-      :url "https://github.com/quelpa/quelpa-use-package.git"))
+  (use-package quelpa-use-package)
+  (use-package quelpa)
+  (require 'quelpa-use-package)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher github
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
 
 
 
@@ -292,7 +293,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
 
     (require 'smtpmail-async)
     (setq send-mail-function 'async-smtpmail-send-it))
-    (setq async-shell-command-buffer 'new-buffer)
+  (setq async-shell-command-buffer 'new-buffer)
   ;; sometimes desktop is locked, ask if we want to load it.
   (setq desktop-load-locked-desktop "ask")
 
@@ -470,105 +471,105 @@ Themes and other configuration
 #+begin_src emacs-lisp
 
 
-      ;; File beautification
+  ;; File beautification
 
-      (use-package all-the-icons-ivy-rich
-        :ensure t
-        :init (all-the-icons-ivy-rich-mode 1))
+  (use-package all-the-icons-ivy-rich
+    :ensure t
+    :init (all-the-icons-ivy-rich-mode 1))
 
-      (setq-default truncate-lines 1) ;; no wordwrap
+  (setq-default truncate-lines 1) ;; no wordwrap
 
-      ;; electric-pair-mode
-      (electric-pair-mode 1)
-      (show-paren-mode 1)
-      ;; highlight indentation
-      (use-package highlight-indent-guides)
-      (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
-      (setq highlight-indent-guides-method 'character)
-      (use-package viewer)
-      (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
-      (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
+  ;; electric-pair-mode
+  (electric-pair-mode 1)
+  (show-paren-mode 1)
+  ;; highlight indentation
+  (use-package highlight-indent-guides)
+  (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+  (setq highlight-indent-guides-method 'character)
+  (use-package viewer)
+  (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
+  (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
 
-      ;; Code folding
-      (use-package hideshow
-        :hook ((prog-mode . hs-minor-mode)))
+  ;; Code folding
+  (use-package hideshow
+    :hook ((prog-mode . hs-minor-mode)))
 
-      (defun toggle-fold ()
-        (interactive)
-        (save-excursion
-          (end-of-line)
-          (hs-toggle-hiding)))
+  (defun toggle-fold ()
+    (interactive)
+    (save-excursion
+      (end-of-line)
+      (hs-toggle-hiding)))
 
-      ;; Use fancy lambdas
-      (global-prettify-symbols-mode t)
+  ;; Use fancy lambdas
+  (global-prettify-symbols-mode t)
 
-      ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
-      (require 'uniquify)
-      (setq uniquify-buffer-name-style 'post-forward)
-
-
-      ;; colorize the output of the compilation mode.
-      (require 'ansi-color)
-      (defun colorize-compilation-buffer ()
-        (toggle-read-only)
-        (ansi-color-apply-on-region (point-min) (point-max))
-
-        ;; mocha seems to output some non-standard control characters that
-        ;; aren't recognized by ansi-color-apply-on-region, so we'll
-        ;; manually convert these into the newlines they should be.
-        (goto-char (point-min))
-        (while (re-search-forward "\\[2K\\[0G" nil t)
-          (progn
-            (replace-match "
-      ")))
-        (toggle-read-only))
-      (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+  ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'post-forward)
 
 
-      ;; making tooltips appear in the echo area
-      (tooltip-mode 0)
+  ;; colorize the output of the compilation mode.
+  (require 'ansi-color)
+  (defun colorize-compilation-buffer ()
+    (toggle-read-only)
+    (ansi-color-apply-on-region (point-min) (point-max))
 
-      ;; highlight current line
-      (global-hl-line-mode)
-      (set-face-background hl-line-face "gray13")
-      (set-face-attribute 'default nil :height 140)
-
-      ;; display column number in mode line
-      (column-number-mode 1)
-
-      ;; show buffer file name in title bar
-      (setq frame-title-format
-            '((:eval (if (buffer-file-name)
-                         (abbreviate-file-name (buffer-file-name))
-                       "%b"))))
+    ;; mocha seems to output some non-standard control characters that
+    ;; aren't recognized by ansi-color-apply-on-region, so we'll
+    ;; manually convert these into the newlines they should be.
+    (goto-char (point-min))
+    (while (re-search-forward "\\[2K\\[0G" nil t)
+      (progn
+        (replace-match "
+  ")))
+    (toggle-read-only))
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 
-      ;; Sidebar
+  ;; making tooltips appear in the echo area
+  (tooltip-mode 0)
 
-      (use-package dired-toggle
-        :defer t
-        :bind (("<f3>" . #'dired-toggle)
-               :map dired-mode-map
-               ("q" . #'dired-toggle-quit)
-               ([remap dired-find-file] . #'dired-toggle-find-file)
-               ([remap dired-up-directory] . #'dired-toggle-up-directory)
-               ("C-c C-u" . #'dired-toggle-up-directory))
-        :config
-        (setq dired-toggle-window-size 32)
-        (setq dired-toggle-window-side 'left)
+  ;; highlight current line
+  (global-hl-line-mode)
+  (set-face-background hl-line-face "gray13")
+  (set-face-attribute 'default nil :height 140)
 
-        ;; Optional, enable =visual-line-mode= for our narrow dired buffer:
-        (add-hook 'dired-toggle-mode-hook
-                  (lambda () (interactive)
-                    (visual-line-mode 1)
-                    (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
-                    (setq-local word-wrap nil))))
+  ;; display column number in mode line
+  (column-number-mode 1)
 
-      ;; paredit you can manipulate text as a tree
-      (use-package paredit)
-      (use-package rainbow-delimiters
-        :config
-        (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+  ;; show buffer file name in title bar
+  (setq frame-title-format
+        '((:eval (if (buffer-file-name)
+                     (abbreviate-file-name (buffer-file-name))
+                   "%b"))))
+
+
+  ;; Sidebar
+
+  (use-package dired-toggle
+    :defer t
+    :bind (("<f3>" . #'dired-toggle)
+           :map dired-mode-map
+           ("q" . #'dired-toggle-quit)
+           ([remap dired-find-file] . #'dired-toggle-find-file)
+           ([remap dired-up-directory] . #'dired-toggle-up-directory)
+           ("C-c C-u" . #'dired-toggle-up-directory))
+    :config
+    (setq dired-toggle-window-size 32)
+    (setq dired-toggle-window-side 'left)
+
+    ;; Optional, enable =visual-line-mode= for our narrow dired buffer:
+    (add-hook 'dired-toggle-mode-hook
+              (lambda () (interactive)
+                (visual-line-mode 1)
+                (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
+                (setq-local word-wrap nil))))
+
+  ;; paredit you can manipulate text as a tree
+  (use-package paredit)
+  (use-package rainbow-delimiters
+    :config
+    (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 #+end_src
 
@@ -984,7 +985,17 @@ Intelligent Search
   (use-package rg
     :ensure-system-package (ripgrep))
 
-  (rg-enable-menu)
+  (require 'rg)
+  (rg-enable-default-bindings)
+  (setq rg-align-position-numbers t)
+  (setq rg-align-line-number-field-length 3)
+  (setq rg-align-column-number-field-length 3)
+  (setq rg-align-line-column-separator "#")
+  (setq rg-align-position-content-separator "|")
+  (setq rg-command-line-flags '("--hidden"))
+  (setq rg-default-alias-fallback '("everything"))
+  (setq rg-custom-type-aliases '(("everything" . "*")))
+
   ;; ;; ag.el
   ;; (use-package ag
   ;;   :ensure t
@@ -2016,10 +2027,8 @@ Settings for OrgMode
         (delete-file org-inbox-file))))
 
   (setq org-agenda-files (list org-index-file
-                               (org-file-path "events.org")
-                               (org-file-path "goals.org")
-                               (org-file-path "recurring-events.org")
-                               (org-file-path "work.org")))
+                               (org-file-path "/Users/gattu/Library/Mobile Documents/com~apple~CloudDocs/Documents/org/goals.org")
+                               (org-file-path "/Users/gattu/Library/Mobile Documents/com~apple~CloudDocs/Documents/org/work.org")))
 
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
