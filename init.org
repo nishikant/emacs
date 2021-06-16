@@ -2077,9 +2077,9 @@ Settings for OrgMode
   (setq org-html-postamble nil)
 
   (setq browse-url-browser-function 'browse-url-generic
-        browse-url-generic-program "firefox")
+        browse-url-generic-program "safari")
 
-  (setenv "BROWSER" "firefox")
+  (setenv "BROWSER" "safari")
 
   (setq org-latex-pdf-process
         '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
@@ -2178,23 +2178,31 @@ Mode for writing books
 * Experimental stuff
 #+begin_src emacs-lisp
 
-
   ;; Mongodb
   (use-package inf-mongo)
   (add-to-list 'load-path "~/.emacs.d/vendor/inf-mongo")
   (require 'inf-mongo)
-(defvar inf-mongo-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-x C-e")  'mongo-send-region)
-    (define-key map (kbd "<M-up>")   'comint-previous-input)
-    (define-key map (kbd "<M-down>") 'comint-next-input)
-    map))
+  (defvar inf-mongo-mode-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd "C-x C-e")  'mongo-send-region)
+      (define-key map (kbd "<M-up>")   'comint-previous-input)
+      (define-key map (kbd "<M-down>") 'comint-next-input)
+      map))
 
   ;; popup a frame at point
   (use-package posframe)
 
   ;; gnuplot is a command line driven graphing utility for linux
   (use-package gnuplot)
+
+
+  ;; Ledger double entry accounting tools
+
+  (use-package ledger-mode
+    :ensure t
+    :init
+    (setq ledger-clear-whole-transactions 1)
+    :mode "\\.dat\\'")
 
   (use-package emr)
   (autoload 'emr-show-refactor-menu "emr")
