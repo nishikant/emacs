@@ -2026,8 +2026,8 @@ Settings for OrgMode
         (delete-file org-inbox-file))))
 
   (setq org-agenda-files (list org-index-file
-                               (org-file-path "/Users/gattu/Library/Mobile Documents/com~apple~CloudDocs/Documents/org/goals.org")
-                               (org-file-path "/Users/gattu/Library/Mobile Documents/com~apple~CloudDocs/Documents/org/work.org")))
+                               (org-file-path "~/Documents/org/goals.org")
+                               (org-file-path "~/Documents/org/work.org")))
 
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
