@@ -273,6 +273,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (setq delete-auto-save-files t)
   (setq delete-old-versions t)
   (setq global-semantic-folding-mode t)
+
   (add-hook 'before-save-hook 'whitespace-cleanup)
 
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
@@ -360,10 +361,8 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
   (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
 
   ;; switch-window gives a visual indicator when switching windows.
-  (use-package switch-window
-    :ensure t
-    :bind ("C-x o" . switch-window))
-
+  (use-package ace-window)
+  (global-set-key (kbd "C-x o") 'ace-window)
 
   ;; expand-region expand selection of your region
   (use-package expand-region
