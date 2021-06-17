@@ -23,7 +23,7 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 ** C-x + to balance the split windows
 ** C-h backward delete char and remap help to M-h
 ** M-z zap-to-char
-** M-/ hippie-expand for autocomplete
+** M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
 ** M-\ delete horizontal spaces
 * Table of Contents
 :PROPERTIES:
@@ -234,6 +234,8 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
 #+begin_src emacs-lisp
 
   (global-set-key (kbd "M-/") 'hippie-expand)
+
+  (setq company-dabbrev-downcase nil)
   (setq load-prefer-newer t)
 
   ;; (global-set-key (kbd "M-" 'just-one-space))
@@ -256,6 +258,7 @@ Some basic settings around how emacs should look and behave. Like no scroll bar,
         kept-new-versions 20   ; how many of the newest versions to keep
         kept-old-versions 5    ; and how many of the old
         )
+
   ;; Disable menu and scroll bars
   ;; (setq debug-on-error t)
   ;; (tool-bar-mode -1)
