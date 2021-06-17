@@ -1,8 +1,10 @@
 #+TITLE: Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/settings.el
 
-This is an ongoing evolution of my original Emacs configuration files, inspired by a bunch of resources I've found online.
+This is an ongoing evolution of my original Emacs configuration files,
+inspired by a bunch of resources I've found online.
 
+#+OPTIONS: toc: include all
 * My Cheat Sheet
 ** C-i is tab
 ** C-M-k delete brackets and everything inside it
@@ -25,23 +27,11 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 ** M-z zap-to-char
 ** M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
 ** M-\ delete horizontal spaces
-* Table of Contents
-:PROPERTIES:
-:TOC:      :include all :ignore this
-:END:
-:CONTENTS:
-- [[#startup-performance][Startup Performance]]
-- [[#system-settings][System Settings]]
-- [[#package-management][Package Management]]
-  - [[#straightel][straight.el]]
-- [[#keep-emacsd-clean][Keep .emacs.d Clean]]
-- [[#update-load-path][Update Load Path]]
-- [[#server-mode][Server Mode]]
-:END:
-
+** C-x C-o Delete blank lines around the current line
 * Package Management
 
-Setup Melpa, org, gnu and elpa packaage repositories and load use-package to manage package configuration.
+Setup Melpa, org, gnu and elpa packaage repositories and load
+use-package to manage package configuration.
 
 #+begin_src emacs-lisp
 
@@ -90,8 +80,9 @@ Setup Melpa, org, gnu and elpa packaage repositories and load use-package to man
 #+end_src
 
 * Startup Performance
-Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time.
-For bug-hunter use M-x bug-hunter-file and it will ask you path to tangled settings.el.
+Make startup faster by reducing the frequency of garbage collection
+and then use a hook to measure Emacs startup time.  For bug-hunter use
+M-x bug-hunter-file and it will ask you path to tangled settings.el.
 
 #+begin_src emacs-lisp
 
@@ -229,7 +220,8 @@ Custom functions that help in OrgMode and other functionality.
 
 * System Settings
 
-Some basic settings around how emacs should look and behave. Like no scroll bar, async support,etc.
+Some basic settings around how emacs should look and behave. Like no
+scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
 
@@ -713,6 +705,7 @@ Coding related global settings
 #+end_src
 *** Completion
 Using Counsel and ivy to code completion
+
 #+begin_src emacs-lisp
 
   ;; Counsel
@@ -760,6 +753,7 @@ Using Counsel and ivy to code completion
 #+end_src
 *** LSP Mode
 LSP mode settings. Custom language settings also included here.
+
 #+begin_src emacs-lisp
 
 
@@ -870,8 +864,6 @@ LSP mode settings. Custom language settings also included here.
 Debug seettings
 #+begin_src emacs-lisp
 
-
-
   ;; DAP mode
   (use-package dap-mode
     :diminish dap-mode
@@ -904,7 +896,6 @@ Debug seettings
   (dap-ui-controls-mode 1)
 
 #+end_src
-
 
 #+begin_src emacs-lisp
 
@@ -1271,8 +1262,9 @@ Golang related configs
 #+end_src
 
 ** RST (reStructured Text)
-RST is a file format for textual data primarily used by Python programming language community for technical documentation.
-It's sort of lightweight markup language
+RST is a file format for textual data primarily used by Python
+programming language community for technical documentation.  It's sort
+of lightweight markup language
 
 #+begin_src emacs-lisp
 
