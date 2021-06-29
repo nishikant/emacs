@@ -6,28 +6,36 @@ inspired by a bunch of resources I've found online.
 
 #+OPTIONS: toc: include all
 * My Cheat Sheet
-** C-i is tab
-** C-M-k delete brackets and everything inside it
-** Map CapsLock key to control
-** C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
-** Keyboard Macros. General note, start at same position in new line
+- C-i is tab
+- C-M-k delete brackets and everything inside it
+- Map CapsLock key to control
+- C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
+- Keyboard Macros. General note, start at same position in new line
 - C-x ( to start recording
 - C-x ) to stop recording
 - C-u 10 C-x e to execute 10 times
-** C-c r search occurances in file
-** C-x M-d to insert todays date
-** C-u C-space to go back to previous position
-** C-c left or C-c right to switch between window placement.
-** C-x r w <key> and C-x r j <key> to store thin
-** C-space C-x r k define a kill rectangle.
-** C-t to open a terminal using shell-pop
-** C-x C-m = M-x also C-c C-m just in case accidentally you use.
-** C-x + to balance the split windows
-** C-h backward delete char and remap help to M-h
-** M-z zap-to-char
-** M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
-** M-\ delete horizontal spaces
-** C-x C-o Delete blank lines around the current line
+- C-c r search occurances in file
+- C-x M-d to insert todays date
+- C-u C-space to go back to previous position
+- C-c left or C-c right to switch between window placement.
+- C-x r w <key> and C-x r j <key> to store thin
+- C-space C-x r k define a kill rectangle.
+- C-t to open a terminal using shell-pop
+- C-x C-m = M-x also C-c C-m just in case accidentally you use.
+- C-x + to balance the split windows
+- C-h backward delete char and remap help to M-h
+- M-z zap-to-char
+- M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
+- M-\ delete horizontal spaces
+- C-x C-o Delete blank lines around the current line
+- C-c C-j to switch terminal to line mode C-c C-k to move it back to character mod
+- C-S-delete kill-whole-line
+- M-r recenter-positions of cursor in current window
+- C-M-a & C-M-e jump to beginning and end of paragraph/functions
+- Lisp C-M-d & C-M-u move into or out of list
+- C-M-f & C-M-b move back brackets or quotes
+- C-M-S-v scroll-other-window-down
+-
 * Package Management
 
 Setup Melpa, org, gnu and elpa packaage repositories and load
@@ -226,6 +234,8 @@ scroll bar, async support,etc.
 #+begin_src emacs-lisp
 
   (global-set-key (kbd "M-/") 'hippie-expand)
+
+  (global-set-key (kbd "C-M-S-n") 'scroll-other-window)
 
   (setq company-dabbrev-downcase nil)
   (setq load-prefer-newer t)
@@ -1820,21 +1830,21 @@ Shell script settings and opening a terminal using shell-pop
 #+begin_src emacs-lisp
 
 
-;; sh
+  ;; sh
 
-(add-hook 'sh-mode-hook
-          (lambda ()
-            (setq sh-basic-offset 2
-                  sh-indentation 2)))
+  (add-hook 'sh-mode-hook
+            (lambda ()
+              (setq sh-basic-offset 2
+                    sh-indentation 2)))
 
-(use-package shell-pop
-  :bind ("C-t" . shell-pop)
-  :config
-  (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-  (setq shell-pop-term-shell "/bin/zsh")
-  (setq shell-pop-universal-key "C-t")
-  ;; need to do this manually or not picked up by `shell-pop'
-  (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
+  (use-package shell-pop
+    :bind ("C-t" . shell-pop)
+    :config
+    (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
+    (setq shell-pop-term-shell "/bin/zsh")
+    (setq shell-pop-universal-key "C-t")
+    ;; need to do this manually or not picked up by `shell-pop'
+    (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
 
 
 #+end_src
