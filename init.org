@@ -34,7 +34,7 @@ inspired by a bunch of resources I've found online.
 - C-M-a & C-M-e jump to beginning and end of paragraph/functions
 - Lisp C-M-d & C-M-u move into or out of list
 - C-M-f & C-M-b move back brackets or quotes
-- C-M-S-v scroll-other-window-down
+- C-M-S-v scroll-other-window-down C-M-S-n scroll-other-window up
 -
 * Package Management
 
