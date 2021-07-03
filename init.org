@@ -8,6 +8,8 @@ inspired by a bunch of resources I've found online.
 * My Cheat Sheet
 - C-i is tab
 - C-M-k delete brackets and everything inside it
+- C-u C-space move cursor to previous marked position
+- C-x C-x move cursor to other end of selection
 - Map CapsLock key to control
 - C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
 - Keyboard Macros. General note, start at same position in new line
@@ -83,8 +85,6 @@ use-package to manage package configuration.
      :fetcher github
      :url "https://github.com/quelpa/quelpa-use-package.git"))
 
-
-
 #+end_src
 
 * Startup Performance
@@ -121,6 +121,18 @@ M-x bug-hunter-file and it will ask you path to tangled settings.el.
     (setq auto-package-update-delete-old-versions t)
     (auto-package-update-maybe))
 
+
+  ;; So Long mitigates slowness due to extremely long lines.
+  ;; Currently available in Emacs master branch *only*!
+  (when (fboundp 'global-so-long-mode)
+    (global-so-long-mode))
+
+  ;; Better Compilation
+  (setq-default compilation-always-kill t) ; kill compilation process before starting another
+
+  (setq-default compilation-ask-about-save nil) ; save all buffers on `compile'
+
+  (setq-default compilation-scroll-output t)
 
 #+end_src
 * Custom Functions
@@ -361,7 +373,13 @@ scroll bar, async support,etc.
     :config
     ;; Optionally enable completion-as-you-type behavior.
     (setq company-idle-delay 0)
-    (setq company-minimum-prefix-length 1))
+    ;; Don't use company in the following modes
+
+    (setq company-minimum-prefix-length 1)
+    :custom
+
+    (company-global-modes '(not shell-mode eaf-mode))
+    )
   (add-hook 'after-init-hook 'global-company-mode)
   (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
 
@@ -576,6 +594,56 @@ Themes and other configuration
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
 #+end_src
+
+* Editing
+#+begin_src emacs-lisp
+
+
+  ;;Iedit, a minor mode that allows editing multiple regions simultaneousy in a buffer or a region.
+
+  (use-package iedit
+    :bind ("C-x ," . iedit-mode)
+    :diminish)
+
+  ;; Conf Mode, a simple major mode for editing conf/ini/properties files.
+
+  (use-package conf-mode
+  :ensure nil
+  :bind
+  (:map conf-mode-map
+        (("M-D" . awesome-pair-kill)
+         ("SPC" . awesome-pair-space)
+         ("=" . awesome-pair-equal)
+         ("M-F" . awesome-pair-jump-right)
+         ("M-B" . awesome-pair-jump-left))))
+
+  ;; Smartparens, a minor mode for dealing with pairs.
+
+  (use-package smartparens
+  :hook (prog-mode . smartparens-mode)
+  :diminish smartparens-mode
+  :bind
+  (:map smartparens-mode-map
+        ("C-M-f" . sp-forward-sexp)
+        ("C-M-b" . sp-backward-sexp)
+        ("C-M-a" . sp-backward-down-sexp)
+        ("C-M-e" . sp-up-sexp)
+        ("C-M-w" . sp-copy-sexp)
+        ("C-M-k" . sp-change-enclosing)
+        ("M-k" . sp-kill-sexp)
+        ("C-M-<backspace>" . sp-splice-sexp-killing-backward)
+        ("C-S-<backspace>" . sp-splice-sexp-killing-around))
+  :custom
+  (sp-escape-quotes-after-insert nil)
+  :config
+  ;; Stop pairing single quotes in elisp
+  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  (sp-local-pair 'org-mode "[" nil :actions nil))
+
+
+
+#+end_src
+
 
 * Active Theme
 
@@ -1953,6 +2021,7 @@ Settings for OrgMode
   ;; https://github.com/aspiers/orgmode/blob/master/contrib/lisp/ox-confluence.el
   ;; and put it in ~/.emacs.d/
   (require 'ox-confluence)
+  (use-package ox-gfm :defer t)
 
   (use-package org-jira)
   ;;(make-directory "~/.org-jira")
@@ -2190,6 +2259,65 @@ Mode for writing books
 
 * Experimental stuff
 #+begin_src emacs-lisp
+
+
+  (quelpa '(eaf :fetcher github
+                :repo  "manateelazycat/emacs-application-framework"
+                :files ("*")))
+
+  (use-package eaf
+    :load-path "~/.emacs.d/elpa/eaf-20210702.437"
+    :init
+    (use-package epc :defer t)
+    (use-package ctable :defer t)
+    (use-package deferred :defer t)
+    :custom
+    (browse-url-browser-function #'eaf-open-browser) ;; Make EAF Browser my default browser
+    (eaf-browser-continue-where-left-off t)
+    :config
+    (require 'eaf-org)
+    (when (display-graphic-p)
+      (require 'eaf-all-the-icons))
+    (defalias 'browse-web #'eaf-open-browser)
+    (eaf-bind-key nil "M-q" eaf-browser-keybinding)
+    (eaf-bind-key open_link "C-M-s" eaf-browser-keybinding)
+    (eaf-bind-key open_devtools "M-i" eaf-browser-keybinding)
+    (eaf-bind-key insert_or_recover_prev_close_page "X" eaf-browser-keybinding)
+    (eaf-bind-key scroll_up "RET" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key clear_cookies "C-M-q" eaf-browser-keybinding)
+    (eaf-bind-key clear_history "C-M-p" eaf-browser-keybinding)
+    (eaf-bind-key scroll_down_page "DEL" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key scroll_down_page "u" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key scroll_up_page "d" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key scroll_to_end "M->" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key scroll_to_begin "M-<" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key quit-window "q" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key zoom_in "C-=" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key zoom_out "C--" eaf-pdf-viewer-keybinding)
+    (eaf-bind-key take_photo "p" eaf-camera-keybinding)
+    (eaf-bind-key eaf-send-key-sequence "M-]" eaf-terminal-keybinding)
+    (eaf-setq eaf-browser-default-zoom "1.25")
+    (eaf-setq eaf-browser-dark-mode "true")
+    (eaf-setq eaf-browser-enable-adblocker "true")
+    (eaf-setq eaf-pdf-dark-mode "true")
+    (eaf-setq eaf-browser-enable-autofill "true"))
+
+  ;; A game to practice speed typing in emacs
+  (use-package speed-type
+    :commands (speed-type-text))
+
+  ;; hacker news
+  (use-package hackernews
+    :commands (hackernews)
+    :bind
+    (("C-c h" . hackernews)
+     ("C-c m" . hackernews)))
+
+
+  ;; 2048 Game
+
+  (use-package 2048-game
+    :commands (2048-game))
 
   ;; Mongodb
   (use-package inf-mongo)
