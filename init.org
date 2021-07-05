@@ -724,6 +724,7 @@ Coding related global settings
 
   ;; dumb jump
   (use-package dumb-jump
+    :diminish dump-jump-mode
     :bind
     (:map prog-mode-map
           (("C-c C-o" . dumb-jump-go-other-window)
@@ -855,6 +856,7 @@ LSP mode settings. Custom language settings also included here.
            (groovy-mode . lsp-deferred)
            (go-mode . lsp-deferred)
            (csharp-mode . lsp-deferred)
+           (sh-mode . lsp)
            (lsp-mode . lsp-enable-which-key-integration))
     :bind (("C-c d" . lsp-describe-thing-at-point)
            ("C-c e n" . flymake-goto-next-error)
@@ -869,6 +871,7 @@ LSP mode settings. Custom language settings also included here.
      (typescript-language-server . "npm install -g typescript-language-server")
      (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
      (yaml-language-server . "npm install -g yaml-language-server")
+     (bash-language-server . "npm install -g bash-language-server")
      (python-lsp-server . "pip3 install python-lsp-server[all]")
      (jedi . "pip3 install jedi")
      (tsc . "npm install -g typescript")
@@ -1906,9 +1909,15 @@ Cleanup needed
 Shell script settings and opening a terminal using shell-pop
 #+begin_src emacs-lisp
 
-
   ;; sh
 
+  (require 'lsp-mode)
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "bash-language-server")
+                    :major-modes '(sh-mode)
+                    :server-id 'bash-language-server))
+
+  (add-to-list 'lsp-enabled-clients 'bash-ls)
   (add-hook 'sh-mode-hook
             (lambda ()
               (setq sh-basic-offset 2
