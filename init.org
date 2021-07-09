@@ -37,7 +37,7 @@ inspired by a bunch of resources I've found online.
 - Lisp C-M-d & C-M-u move into or out of list
 - C-M-f & C-M-b move back brackets or quotes
 - C-M-S-v scroll-other-window-down C-M-S-n scroll-other-window up
--
+- M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
 * Package Management
 
 Setup Melpa, org, gnu and elpa packaage repositories and load
@@ -856,7 +856,8 @@ LSP mode settings. Custom language settings also included here.
            (groovy-mode . lsp-deferred)
            (go-mode . lsp-deferred)
            (csharp-mode . lsp-deferred)
-           (sh-mode . lsp)
+           (sh-mode . lsp-deferred)
+           (yaml-mode . lsp)
            (lsp-mode . lsp-enable-which-key-integration))
     :bind (("C-c d" . lsp-describe-thing-at-point)
            ("C-c e n" . flymake-goto-next-error)
@@ -870,7 +871,7 @@ LSP mode settings. Custom language settings also included here.
     ((node)
      (typescript-language-server . "npm install -g typescript-language-server")
      (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
-     (yaml-language-server . "npm install -g yaml-language-server")
+     (yaml-language-server . "yarn global add yaml-language-server")
      (bash-language-server . "npm install -g bash-language-server")
      (python-lsp-server . "pip3 install python-lsp-server[all]")
      (jedi . "pip3 install jedi")
@@ -1248,6 +1249,15 @@ Configuration for CSS and related techs
 #+begin_src emacs-lisp
 
   ;; yaml-mode
+
+  (add-to-list 'lsp-enabled-clients 'yamlls)
+
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "yaml-language-server")
+                    :major-modes '(yaml-mode cfn-yaml-mode)
+                    :server-id 'yamlls))
+
+
   (use-package yaml-mode
     :ensure t
     :config
