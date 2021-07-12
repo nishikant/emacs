@@ -286,7 +286,7 @@ scroll bar, async support,etc.
   (set-window-scroll-bars (minibuffer-window) nil nil)
 
   ;; Set default frame title
-  (setq frame-title-format '((:eval (projectile-project-name))))
+;;  (setq frame-title-format '((:eval (projectile-project-name))))
   (setq delete-auto-save-files t)
   (setq delete-old-versions t)
   (setq global-semantic-folding-mode t)
@@ -857,7 +857,7 @@ LSP mode settings. Custom language settings also included here.
            (go-mode . lsp-deferred)
            (csharp-mode . lsp-deferred)
            (sh-mode . lsp-deferred)
-           (yaml-mode . lsp)
+           (yaml-mode . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :bind (("C-c d" . lsp-describe-thing-at-point)
            ("C-c e n" . flymake-goto-next-error)
@@ -1247,16 +1247,6 @@ Configuration for CSS and related techs
 ** Yaml
 
 #+begin_src emacs-lisp
-
-  ;; yaml-mode
-
-  (add-to-list 'lsp-enabled-clients 'yamlls)
-
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-stdio-connection "yaml-language-server")
-                    :major-modes '(yaml-mode cfn-yaml-mode)
-                    :server-id 'yamlls))
-
 
   (use-package yaml-mode
     :ensure t
