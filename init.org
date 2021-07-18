@@ -286,13 +286,12 @@ scroll bar, async support,etc.
   (set-window-scroll-bars (minibuffer-window) nil nil)
 
   ;; Set default frame title
-;;  (setq frame-title-format '((:eval (projectile-project-name))))
+  ;;  (setq frame-title-format '((:eval (projectile-project-name))))
   (setq delete-auto-save-files t)
   (setq delete-old-versions t)
   (setq global-semantic-folding-mode t)
 
   (add-hook 'before-save-hook 'whitespace-cleanup)
-
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
   (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -767,7 +766,7 @@ Coding related global settings
   ;;  (setq compilation-scroll-output 'first-error)
 
 
-  ;; ws-butler
+  ;; ws-butler an unobtrusive way to trim spaces from end of line
   (use-package ws-butler
     :ensure t
     :diminish ws-butler-mode
@@ -871,7 +870,6 @@ LSP mode settings. Custom language settings also included here.
     ((node)
      (typescript-language-server . "npm install -g typescript-language-server")
      (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
-     (yaml-language-server . "yarn global add yaml-language-server")
      (bash-language-server . "npm install -g bash-language-server")
      (python-lsp-server . "pip3 install python-lsp-server[all]")
      (jedi . "pip3 install jedi")
@@ -1246,8 +1244,11 @@ Configuration for CSS and related techs
 
 ** Yaml
 
+All YAML related config including AWS cloudformation, k8, & ansible.
+
 #+begin_src emacs-lisp
 
+  (add-to-list 'lsp-enabled-clients 'yamlls)
   (use-package yaml-mode
     :ensure t
     :config
@@ -1274,6 +1275,52 @@ Configuration for CSS and related techs
     :config
     (setq k8s-search-documentation-browser-function 'browse-url-firefox)
     :hook (k8s-mode . yas-minor-mode))
+
+  ;; AWS Cloudformation linter cfn-linter
+  ;; Set up a mode for YAML based templates if yaml-mode is installed
+  ;; Get yaml-mode here https://github.com/yoshiki/yaml-mode
+  (when (featurep 'yaml-mode)
+
+    (define-derived-mode cfn-yaml-mode yaml-mode
+      "CFN-YAML"
+      "Simple mode to edit CloudFormation template in YAML format.")
+
+    (add-to-list 'magic-mode-alist
+                 '("\\(---\n\\)?AWSTemplateFormatVersion:" . cfn-yaml-mode)))
+
+  ;; Set up cfn-lint integration if flycheck is installed
+  ;; Get flycheck here https://www.flycheck.org/
+  (when (featurep 'flycheck)
+    (flycheck-define-checker cfn-lint
+      "AWS CloudFormation linter using cfn-lint.
+
+      Install cfn-lint first: pip install cfn-lint
+
+      See `https://github.com/aws-cloudformation/cfn-python-lint'."
+
+      :ensure-system-package (cfn-lint)
+      :command ("cfn-lint" "-f" "parseable" source)
+      :error-patterns ((warning line-start (file-name) ":" line ":" column
+                                ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                                (id "W" (one-or-more digit)) ":" (message) line-end)
+                       (error line-start (file-name) ":" line ":" column
+                              ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                              (id "E" (one-or-more digit)) ":" (message) line-end))
+      :modes (cfn-json-mode cfn-yaml-mode))
+
+    (add-to-list 'flycheck-checkers 'cfn-lint)
+    (add-hook 'cfn-json-mode-hook 'flycheck-mode)
+    (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
+
+  (use-package aws-snippets)
+
+  ;; Ansible minor mode
+
+  (use-package ansible)
+  (add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
+
+  (setq openapi-yaml-use-yaml-mode-syntax-highlight t)
+
 
 #+end_src
 
@@ -1784,6 +1831,7 @@ Set Emacs as Java IDE
 
 ** Terraform
 Terraform uses DSL.
+
 #+begin_src emacs-lisp
 
 
@@ -1792,52 +1840,6 @@ Terraform uses DSL.
   (use-package terraform-mode)
   (custom-set-variables
    '(terraform-indent-level 4))
-
-
-#+end_src
-
-** AWS Cloudformation
-AWS cloudformation linting and yaml mode
-#+begin_src emacs-lisp
-
-
-  ;; AWS Cloudformation linter cfn-linter
-  ;; Set up a mode for YAML based templates if yaml-mode is installed
-  ;; Get yaml-mode here https://github.com/yoshiki/yaml-mode
-  (when (featurep 'yaml-mode)
-
-    (define-derived-mode cfn-yaml-mode yaml-mode
-      "CFN-YAML"
-      "Simple mode to edit CloudFormation template in YAML format.")
-
-    (add-to-list 'magic-mode-alist
-                 '("\\(---\n\\)?AWSTemplateFormatVersion:" . cfn-yaml-mode)))
-
-  ;; Set up cfn-lint integration if flycheck is installed
-  ;; Get flycheck here https://www.flycheck.org/
-  (when (featurep 'flycheck)
-    (flycheck-define-checker cfn-lint
-      "AWS CloudFormation linter using cfn-lint.
-
-  Install cfn-lint first: pip install cfn-lint
-
-  See `https://github.com/aws-cloudformation/cfn-python-lint'."
-
-      :ensure-system-package (cfn-lint)
-      :command ("cfn-lint" "-f" "parseable" source)
-      :error-patterns ((warning line-start (file-name) ":" line ":" column
-                                ":" (one-or-more digit) ":" (one-or-more digit) ":"
-                                (id "W" (one-or-more digit)) ":" (message) line-end)
-                       (error line-start (file-name) ":" line ":" column
-                              ":" (one-or-more digit) ":" (one-or-more digit) ":"
-                              (id "E" (one-or-more digit)) ":" (message) line-end))
-      :modes (cfn-json-mode cfn-yaml-mode))
-
-    (add-to-list 'flycheck-checkers 'cfn-lint)
-    (add-hook 'cfn-json-mode-hook 'flycheck-mode)
-    (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
-
-    (use-package aws-snippets)
 
 
 #+end_src
@@ -1958,17 +1960,6 @@ Html, php, etc
 
 #+end_src
 
-** Ansible
-#+begin_src emacs-lisp
-
-
-;; Ansible minor mode
-
-(use-package ansible)
-(add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
-
-#+end_src
-
 ** Json
 #+begin_src emacs-lisp
 
@@ -1976,7 +1967,7 @@ Html, php, etc
 ;; Json mode
 
 (use-package json-mode)
-(setq openapi-yaml-use-yaml-mode-syntax-highlight t)
+
 ;;(require 'flycheck-swagger-tools)
 
 
@@ -2021,6 +2012,23 @@ Emacs lisp or elisp programming
 * OrgMode
 Settings for OrgMode
 #+begin_src emacs-lisp
+
+  ;; knowledge management with org-roam
+  (use-package org-roam
+      :ensure t
+      :custom
+      (org-roam-directory (file-truename "~/Documents/org"))
+      :bind (("C-c n l" . org-roam-buffer-toggle)
+             ("C-c n f" . org-roam-node-find)
+             ("C-c n g" . org-roam-graph)
+             ("C-c n i" . org-roam-node-insert)
+             ("C-c n c" . org-roam-capture)
+             ;; Dailies
+             ("C-c n j" . org-roam-dailies-capture-today))
+      :config
+      (org-roam-setup)
+      ;; If using org-roam-protocol
+      (require 'org-roam-protocol))
 
   (use-package org-bullets
     :init
@@ -2390,7 +2398,6 @@ Mode for writing books
 
   (defalias 'qrr 'query-regexp-replace)
 
-
   (custom-set-variables
    ;; custom-set-variables was added by Custom.
    ;; If you edit it by hand, you could mess it up, so be careful.
@@ -2409,8 +2416,6 @@ Mode for writing books
   (defun goto-last-heading ()
     (interactive)
     (org-end-of-subtree))
-
-
 
   ;; not sure about this
   (use-package let-alist)
