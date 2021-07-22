@@ -2016,20 +2016,39 @@ Settings for OrgMode
 
   ;; knowledge management with org-roam
   (use-package org-roam
-      :ensure t
-      :custom
-      (org-roam-directory (file-truename "~/Documents/org"))
-      :bind (("C-c n l" . org-roam-buffer-toggle)
-             ("C-c n f" . org-roam-node-find)
-             ("C-c n g" . org-roam-graph)
-             ("C-c n i" . org-roam-node-insert)
-             ("C-c n c" . org-roam-capture)
-             ;; Dailies
-             ("C-c n j" . org-roam-dailies-capture-today))
-      :config
-      (org-roam-setup)
-      ;; If using org-roam-protocol
-      (require 'org-roam-protocol))
+    :ensure t
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n g" . org-roam-graph)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n c" . org-roam-capture)
+           ;; Dailies
+           ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    (org-roam-setup)
+    ;; If using org-roam-protocol
+    (require 'org-roam-protocol))
+  (setq org-roam-directory (file-truename "~/Documents/org-roam/"))
+  (setq org-roam-dailies-directory "daily/")
+
+  (setq org-roam-dailies-capture-templates
+        '(("d" "default" entry
+           "* %?"
+           :if-new (file+head "%<%Y-%m-%d>.org"
+                              "#+title: %<%Y-%m-%d>\n"))))
+  (setq org-roam-v2-ack t)
+  (setq org-roam-db-update-method 'immediate)
+
+  ;; (setq org-roam-capture-templates
+
+  ;; '(("d" "default" plain #'org-roam-capture--get-point :file-name "%<%Y-%m-%d>-${slug}" :head "#+title: ${title}\n#+ROAM_TAGS: %^{org-roam-tags}\n#+created: %u\n#+last_modified: %U\n%?" :unnarrowed t :jump-to-captured t)
+
+  ;; ("l" "clipboard" plain #'org-roam-capture--get-point "%i%a" :file-name "%<%Y%m%d%H%M%S>-${slug}" :head "#+title: ${title}\n#+created: %u\n#+last_modified: %U\n#+ROAM_TAGS: %? \n" :unnarrowed t :prepend t :jump-to-captured t)
+
+  ;;         ("s" "sermon" plain #'org-roam-capture--get-point (file "~/org-roam/diary/gattu-template.txt") :file-name "%<%Y-%m-%d>_gattu_${slug}" :head "#+title: ${Title of the Message}\n#+ROAM_TAGS: Sermon\n#+DATE: %T\n#+VENUE: ${Venue}\n#+FORMAT: ${Format}\n#+STARTUP: showall\n#+DESCRIPTION: ${Main concept of service}\n#+OPTIONS: \\n:t\n" :unnarrowed t :immediate-finish t :jump-to-captured t)))
+
+  ;; (setq org-roam-completion-system 'ivy)
+
 
   (use-package org-bullets
     :init
