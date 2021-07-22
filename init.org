@@ -1249,6 +1249,12 @@ All YAML related config including AWS cloudformation, k8, & ansible.
 #+begin_src emacs-lisp
 
   (add-to-list 'lsp-enabled-clients 'yamlls)
+
+  (require 'lsp-mode)
+
+  (add-to-list 'lsp-language-id-configuration '(cfn-yaml-mode . "spring-boot-properties-yaml"))
+  (add-to-list 'lsp-language-id-configuration '(docker-compose-mode . "spring-boot-properties-yaml"))
+
   (use-package yaml-mode
     :ensure t
     :config
@@ -1499,7 +1505,7 @@ Settings for handling markdown files
     (add-hook 'markdown-mode-hook #'variable-pitch-mode)
     (add-hook 'markdown-mode-hook #'flyspell-mode)
     :config
-    (setq flymd-markdown-regex (mapconcat 'identity '("\\.md\\'" "\\.markdown\\'" "markdown") "\\|"))
+
 
     ;; The default command for markdown (~markdown~), doesn't support tables
     ;; (e.g. GitHub flavored markdown). Pandoc does, so let's use that.
@@ -1508,11 +1514,6 @@ Settings for handling markdown files
     (custom-set-faces
      '(markdown-code-face ((t nil)))))
 
-
-  (use-package flymd
-    :hook markdown-mode
-    :commands flymd-flyit
-    :requires markdown-mode)
 
 #+end_src
 
