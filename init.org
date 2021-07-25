@@ -245,6 +245,12 @@ scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
 
+
+  (global-set-key (kbd "C-f") 'forward-word)
+  (global-set-key (kbd "C-b") 'backward-word)
+  (global-set-key (kbd "M-f") 'forward-char)
+  (global-set-key (kbd "M-b") 'backward-char)
+
   (global-set-key (kbd "M-/") 'hippie-expand)
 
   (global-set-key (kbd "C-M-S-n") 'scroll-other-window)
