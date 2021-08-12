@@ -1258,6 +1258,24 @@ All YAML related config including AWS cloudformation, k8, & ansible.
 
   (require 'lsp-mode)
 
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection
+                                     (lambda ()
+                                       `(,(or (executable-find (cl-first lsp-yaml-server-command))
+                                              (lsp-package-path 'yaml-language-server))
+                                         ,@(cl-rest lsp-yaml-server-command))))
+                    :major-modes '(yaml-mode k8s-mode cfn-yaml-mode ansible docker docker-compose)
+                    :priority 0
+                    :server-id 'yamlls
+                    :initialized-fn (lambda (workspace)
+                                      (with-lsp-workspace workspace
+                                        (lsp--set-configuration
+                                         (lsp-configuration-section "yaml"))))
+                    :download-server-fn (lambda (_client callback error-callback _update?)
+                                          (lsp-package-ensure 'yaml-language-server
+                                                              callback error-callback))))
+
+
   (add-to-list 'lsp-language-id-configuration '(cfn-yaml-mode . "spring-boot-properties-yaml"))
   (add-to-list 'lsp-language-id-configuration '(docker-compose-mode . "spring-boot-properties-yaml"))
 
@@ -1306,9 +1324,9 @@ All YAML related config including AWS cloudformation, k8, & ansible.
     (flycheck-define-checker cfn-lint
       "AWS CloudFormation linter using cfn-lint.
 
-      Install cfn-lint first: pip install cfn-lint
+       Install cfn-lint first: pip install cfn-lint
 
-      See `https://github.com/aws-cloudformation/cfn-python-lint'."
+       See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
       :ensure-system-package (cfn-lint)
       :command ("cfn-lint" "-f" "parseable" source)
