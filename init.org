@@ -257,7 +257,7 @@ scroll bar, async support,etc.
 
   (setq company-dabbrev-downcase nil)
   (setq load-prefer-newer t)
-
+ (setq kill-whole-line t)
   ;; (global-set-key (kbd "M-" 'just-one-space))
   ;; Meta-x also mapped C-x/c C-m
   (global-set-key "\C-x\C-m" 'execute-extended-command)
@@ -866,7 +866,7 @@ LSP mode settings. Custom language settings also included here.
            (sh-mode . lsp-deferred)
            (yaml-mode . lsp-deferred)
            (web-mode . lsp-deferred)
-           (js2-mode . lsp-deferred)
+           ((js2-mode rjsx-mode) . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
     :bind (("C-c d" . lsp-describe-thing-at-point)
            ("C-c e n" . flymake-goto-next-error)
@@ -1267,6 +1267,8 @@ All YAML related config including AWS cloudformation, k8, & ansible.
   (add-to-list 'lsp-language-id-configuration '(cfn-yaml-mode . "spring-boot-properties-yaml"))
   (add-to-list 'lsp-language-id-configuration '(docker-compose-mode . "spring-boot-properties-yaml"))
 
+
+
   (use-package yaml-mode
     :ensure t
     :config
@@ -1494,6 +1496,8 @@ Web-mode for working with HTML
   (use-package emmet-mode)
   (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
   (add-hook 'css-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
+
+  (add-hook 'web-mode-hook  'emmet-mode) ;; enable Emmet's css abbreviation.
   (add-hook 'emmet-mode-hook (lambda () (setq emmet-indentation 2))) ;; indent 2 spaces.
   (setq emmet-move-cursor-between-quotes t) ;; default nil
   (setq emmet-self-closing-tag-style " /") ;; default "/"
@@ -1504,6 +1508,7 @@ Web-mode for working with HTML
   (add-hook 'html-mode-hook 'skewer-html-mode)
 
   (add-hook 'web-mode-hook 'emmet-mode)
+  (add-hook 'js2-mode-hook 'emmet-mode)
 
 #+end_src
 
@@ -1620,6 +1625,27 @@ Jinja2 mode
 ** React Nodejs Javascript
 Nodejs & React stuff
 #+begin_src emacs-lisp
+  (add-to-list 'lsp-enabled-clients 'ts-ls)
+    (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
+
+  (use-package js2-refactor)
+  (require 'js2-refactor)
+  (add-hook 'js2-mode-hook #'js2-refactor-mode)
+  (setq js2-skip-preprocessor-directives t)
+  (js2r-add-keybindings-with-prefix "C-c C-m")
+;; eg. extract function with `C-c C-m ef`.
+
+  (use-package add-node-modules-path
+    :defer t
+    :hook (((js2-mode rjsx-mode) . add-node-modules-path)))
+
+
+  (use-package prettier-js
+  :defer t
+  :diminish prettier-js-mode
+  :hook (((js2-mode rjsx-mode) . prettier-js-mode))
+  :init
+  ) ; (f)ormat (p)rettier
 
 
   ;; Javascript and coffeescript
@@ -1631,7 +1657,7 @@ Nodejs & React stuff
 
   (defun setup-local-standard ()
     "If standard found in node_modules directory - use that for flycheck.
-              Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
+                Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
     (interactive)
     (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
       (setq flycheck-javascript-standard-executable
