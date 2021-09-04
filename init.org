@@ -38,6 +38,66 @@ inspired by a bunch of resources I've found online.
 - C-M-f & C-M-b move back brackets or quotes
 - C-M-S-v scroll-other-window-down C-M-S-n scroll-other-window up
 - M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
+- C-= select current region and it expands on multiple repeats
+- C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
+
+* All Shortcuts
+#+begin_src emacs-lisp
+
+
+  ;; (global-set-key (kbd "M-" 'just-one-space))
+  ;; Meta-x also mapped C-x/c C-m
+  (global-set-key "\C-x\C-m" 'execute-extended-command)
+  (global-set-key "\C-c\C-m" 'execute-extended-command)
+
+  ;; Use C-h instead of backspace and M-h for help
+  (global-set-key "\C-h" 'delete-backward-char)
+  (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
+  (global-set-key "\M-i" 'help-for-help)
+
+  (global-set-key (kbd "C-f") 'forward-word)
+  (global-set-key (kbd "C-b") 'backward-word)
+  (global-set-key (kbd "M-f") 'forward-char)
+  (global-set-key (kbd "M-b") 'backward-char)
+  (global-set-key (kbd "M-/") 'hippie-expand)
+
+  (global-set-key (kbd "C-M-S-n") 'scroll-other-window)
+
+  (global-set-key (kbd "C-c C-f") 'aj-toggle-fold)
+  (global-set-key (kbd "C-x M-d") 'insdate-insert-current-date)
+
+  ;; After split move cursor to the split window automatically. Default keeps the cursor
+  ;; in current window
+  (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
+  (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
+  (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
+  (global-set-key (kbd "C-x o") 'ace-window) ;; switch window
+  (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
+  (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
+
+
+
+  ;; multiple cursor & mark multiple
+  (global-set-key (kbd "C-x r t") 'inline-string-rectangle)
+  (global-set-key (kbd "C-<") 'mark-previous-like-this)
+  (global-set-key (kbd "C->") 'mark-next-like-this)
+  (global-set-key (kbd "C-M-m") 'mark-more-like-this) ; like the other two, but takes an argument (negative is previous)
+  (global-set-key (kbd "C-*") 'mark-all-like-this)
+
+  ;; (global-set-key (kbd "C-m C-m") 'mc/mark-all-dwim)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-M->") 'mc/mark-more-like-this-extended)
+
+  (global-set-key (kbd "C-.") 'hippie-expand-no-case-fold)
+  (global-set-key (kbd "C-:") 'hippie-expand-lines)
+  (global-set-key (kbd "C-,") 'completion-at-point)
+
+
+
+
+#+end_src
+
 * Package Management
 
 Setup Melpa, org, gnu and elpa packaage repositories and load
@@ -88,6 +148,7 @@ use-package to manage package configuration.
 #+end_src
 
 * Startup Performance
+
 Make startup faster by reducing the frequency of garbage collection
 and then use a hook to measure Emacs startup time.  For bug-hunter use
 M-x bug-hunter-file and it will ask you path to tangled settings.el.
@@ -108,7 +169,11 @@ M-x bug-hunter-file and it will ask you path to tangled settings.el.
                                (float-time
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
+  ;; Increase garbage collector threshold
+  (setq gc-cons-threshold 100000000) ;; 100 MB
 
+  ;; Increase amount of data read from a process
+  (setq read-process-output-max (* 1024 1024)) ;; 1 MB
 
   ;; change custom file location
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -151,7 +216,6 @@ Custom functions that help in OrgMode and other functionality.
     (interactive "P*")
     (insert (calendar-date-string (calendar-current-date) nil
                                   omit-day-of-week-p)))
-  (global-set-key "\C-x\M-d" 'insdate-insert-current-date)
 
   (defun lsp-go-install-save-hooks ()
     "Save Hooks."
@@ -234,7 +298,6 @@ Custom functions that help in OrgMode and other functionality.
         (set-selective-display
          (if selective-display nil (or col 1))))))
 
-  (global-set-key (kbd "C-c C-f") 'aj-toggle-fold)
 
 #+end_src
 
@@ -246,27 +309,9 @@ scroll bar, async support,etc.
 #+begin_src emacs-lisp
 
 
-  (global-set-key (kbd "C-f") 'forward-word)
-  (global-set-key (kbd "C-b") 'backward-word)
-  (global-set-key (kbd "M-f") 'forward-char)
-  (global-set-key (kbd "M-b") 'backward-char)
-
-  (global-set-key (kbd "M-/") 'hippie-expand)
-
-  (global-set-key (kbd "C-M-S-n") 'scroll-other-window)
-
   (setq company-dabbrev-downcase nil)
   (setq load-prefer-newer t)
- (setq kill-whole-line t)
-  ;; (global-set-key (kbd "M-" 'just-one-space))
-  ;; Meta-x also mapped C-x/c C-m
-  (global-set-key "\C-x\C-m" 'execute-extended-command)
-  (global-set-key "\C-c\C-m" 'execute-extended-command)
-
-  ;; Use C-h instead of backspace and M-h for help
-  (global-set-key "\C-h" 'delete-backward-char)
-  (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
-  (global-set-key "\M-i" 'help-for-help)
+  (setq kill-whole-line t)
 
   ;; stretch the cursor width to character size
   (setq x-stretch-cursor t)
@@ -284,10 +329,6 @@ scroll bar, async support,etc.
   ;; (tool-bar-mode -1)
   (menu-bar-mode -1)
   (scroll-bar-mode -1)
-  ;; After split move cursor to the split window automatically. Default keeps the cursor
-  ;; in current window
-  (global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1)))
-  (global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1)))
 
   (set-window-scroll-bars (minibuffer-window) nil nil)
 
@@ -386,11 +427,9 @@ scroll bar, async support,etc.
     (company-global-modes '(not shell-mode eaf-mode))
     )
   (add-hook 'after-init-hook 'global-company-mode)
-  (global-set-key (kbd "M-/") 'company-complete-common-or-cycle)
 
   ;; switch-window gives a visual indicator when switching windows.
   (use-package ace-window)
-  (global-set-key (kbd "C-x o") 'ace-window)
 
   ;; expand-region expand selection of your region
   (use-package expand-region
@@ -402,7 +441,6 @@ scroll bar, async support,etc.
   (when (version<= "26.0.50" emacs-version )
     (global-display-line-numbers-mode))
 
-
   (setq ffap-require-prefix nil)
   (ffap-bindings)
   (setq ffap-require-prefix t)
@@ -411,7 +449,6 @@ scroll bar, async support,etc.
   (use-package hydra
     :ensure t)
   (use-package which-key :config (which-key-mode))
-
 
   ;; Optional - provides snippet support.
   (use-package yasnippet
@@ -422,40 +459,37 @@ scroll bar, async support,etc.
   (require 'yasnippet)
   (yas-global-mode 1)
 
-
   ;; fuzzy search
   (use-package fzf)
 
-
-  ;; Drag line up/down
+  ;; Drag line up/down M-up, M-down, M-left, M-right comes because of this
   (use-package drag-stuff)
   (require 'drag-stuff)
   (drag-stuff-global-mode 1)
   (drag-stuff-define-keys)
 
-
   ;; winner mode to handle windows config rollback
   (when (fboundp 'winner-mode)
     (winner-mode 1))
 
-
   ;; Outline for code folding
-                                          ; Outline-minor-mode key map
+  ;; Outline-minor-mode key map
   (define-prefix-command 'cm-map nil "Outline-")
-                                          ; HIDE
+
+                                          ; Hide
   (define-key cm-map "q" 'outline-hide-sublevels)    ; Hide everything but the top-level headings
   (define-key cm-map "t" 'outline-hide-body)         ; Hide everything but headings (all body lines)
   (define-key cm-map "o" 'outline-hide-other)        ; Hide other branches
   (define-key cm-map "c" 'outline-hide-entry)        ; Hide this entry's body
   (define-key cm-map "l" 'outline-hide-leaves)       ; Hide body lines in this entry and sub-entries
   (define-key cm-map "d" 'outline-hide-subtree)      ; Hide everything in this entry and sub-entries
-                                          ; SHOW
+  ;; Show
   (define-key cm-map "a" 'outline-show-all)          ; Show (expand) everything
   (define-key cm-map "e" 'outline-show-entry)        ; Show this heading's body
   (define-key cm-map "i" 'outline-show-children)     ; Show this heading's immediate child sub-headings
   (define-key cm-map "k" 'outline-show-branches)     ; Show all sub-headings under this heading
   (define-key cm-map "s" 'outline-show-subtree)      ; Show (expand) everything in this heading & below
-                                          ; MOVE
+
   (define-key cm-map "u" 'outline-up-heading)                ; Up
   (define-key cm-map "n" 'outline-next-visible-heading)      ; Next
   (define-key cm-map "p" 'outline-previous-visible-heading)  ; Previous
@@ -465,7 +499,6 @@ scroll bar, async support,etc.
   (setq ac-ignore-case nil)
 
 #+end_src
-
 
 ** OS Specific
 
@@ -497,7 +530,6 @@ Themes and other configuration
 
 #+begin_src emacs-lisp
 
-
   ;; File beautification
 
   (use-package all-the-icons-ivy-rich
@@ -516,18 +548,10 @@ Themes and other configuration
   (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
   (setq highlight-indent-guides-method 'character)
   (use-package viewer)
-  (global-set-key (kbd "C-M-v") 'View-scroll-half-page-forward)
-  (global-set-key (kbd "C-M-n") 'View-scroll-half-page-backward)
 
   ;; Code folding
   (use-package hideshow
     :hook ((prog-mode . hs-minor-mode)))
-
-  (defun toggle-fold ()
-    (interactive)
-    (save-excursion
-      (end-of-line)
-      (hs-toggle-hiding)))
 
   ;; Use fancy lambdas
   (global-prettify-symbols-mode t)
@@ -535,7 +559,6 @@ Themes and other configuration
   ;; buffernames that are foo<1>, foo<2> are hard to read. This makes them foo|dir  foo|otherdir
   (require 'uniquify)
   (setq uniquify-buffer-name-style 'post-forward)
-
 
   ;; colorize the output of the compilation mode.
   (require 'ansi-color)
@@ -572,7 +595,6 @@ Themes and other configuration
                      (abbreviate-file-name (buffer-file-name))
                    "%b"))))
 
-
   ;; Sidebar
 
   (use-package dired-toggle
@@ -594,8 +616,6 @@ Themes and other configuration
                 (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
                 (setq-local word-wrap nil))))
 
-  ;; paredit you can manipulate text as a tree
-  (use-package paredit)
   (use-package rainbow-delimiters
     :config
     (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
@@ -605,6 +625,19 @@ Themes and other configuration
 * Editing
 #+begin_src emacs-lisp
 
+  (use-package mark-multiple )
+  (require 'inline-string-rectangle)
+  (require 'mark-more-like-this)
+
+  (use-package multiple-cursors
+    :diminish multiple-cursors-mode
+    )
+  (require 'multiple-cursors)
+
+  (add-hook 'sgml-mode-hook
+            (lambda ()
+              (require 'rename-sgml-tag)
+              (define-key sgml-mode-map (kbd "C-c C-r") 'rename-sgml-tag)))
 
   ;;Iedit, a minor mode that allows editing multiple regions simultaneousy in a buffer or a region.
 
@@ -615,39 +648,40 @@ Themes and other configuration
   ;; Conf Mode, a simple major mode for editing conf/ini/properties files.
 
   (use-package conf-mode
-  :ensure nil
-  :bind
-  (:map conf-mode-map
-        (("M-D" . awesome-pair-kill)
-         ("SPC" . awesome-pair-space)
-         ("=" . awesome-pair-equal)
-         ("M-F" . awesome-pair-jump-right)
-         ("M-B" . awesome-pair-jump-left))))
+    :ensure nil
+    :bind
+    (:map conf-mode-map
+          (("M-D" . awesome-pair-kill)
+           ("SPC" . awesome-pair-space)
+           ("=" . awesome-pair-equal)
+           ("M-F" . awesome-pair-jump-right)
+           ("M-B" . awesome-pair-jump-left))))
 
   ;; Smartparens, a minor mode for dealing with pairs.
 
   (use-package smartparens
-  :hook (prog-mode . smartparens-mode)
-  :diminish smartparens-mode
-  :bind
-  (:map smartparens-mode-map
-        ("C-M-f" . sp-forward-sexp)
-        ("C-M-b" . sp-backward-sexp)
-        ("C-M-a" . sp-backward-down-sexp)
-        ("C-M-e" . sp-up-sexp)
-        ("C-M-w" . sp-copy-sexp)
-        ("C-M-k" . sp-change-enclosing)
-        ("M-k" . sp-kill-sexp)
-        ("C-M-<backspace>" . sp-splice-sexp-killing-backward)
-        ("C-S-<backspace>" . sp-splice-sexp-killing-around))
-  :custom
-  (sp-escape-quotes-after-insert nil)
-  :config
-  ;; Stop pairing single quotes in elisp
-  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-  (sp-local-pair 'org-mode "[" nil :actions nil))
+    :hook (prog-mode . smartparens-mode)
+    :diminish smartparens-mode
+    :bind
+    (:map smartparens-mode-map
+          ("C-M-f" . sp-forward-sexp)
+          ("C-M-b" . sp-backward-sexp)
+          ("C-M-a" . sp-backward-down-sexp)
+          ("C-M-e" . sp-up-sexp)
+          ("C-M-w" . sp-copy-sexp)
+          ("C-M-k" . sp-change-enclosing)
+          ("M-k" . sp-kill-sexp)
+          ("C-M-<backspace>" . sp-splice-sexp-killing-backward)
+          ("C-S-<backspace>" . sp-splice-sexp-killing-around))
+    :custom
+    (sp-escape-quotes-after-insert nil)
+    :config
+    ;; Stop pairing single quotes in elisp
+    (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+    (sp-local-pair 'org-mode "[" nil :actions nil))
 
-
+  (require 'smartparens-config)
+  (smartparens-global-mode t)
 
 #+end_src
 
@@ -670,7 +704,7 @@ Configuration for currently used theme
     "Apply the `solarized-light' theme and make frames just slightly transparent."
     (interactive)
     (load-theme 'solarized-dark t)
-    (transparency 90))
+    (transparency 86))
 
   ;; wombat color-theme with misc face definition
   (solarized-create-theme-file-with-palette 'dark 'solarized-wombat-dark
@@ -729,24 +763,13 @@ Coding related global settings
 
 #+begin_src emacs-lisp
 
-  ;; dumb jump
-  (use-package dumb-jump
-    :diminish dump-jump-mode
-    :bind
-    (:map prog-mode-map
-          (("C-c C-o" . dumb-jump-go-other-window)
-           ("C-c C-j" . dumb-jump-go)
-           ("C-c C-i" . dumb-jump-go-prompt)))
-    :custom (dumb-jump-selector 'ivy))
-
-
   ;; Highlight uncommitted changes
 
   (use-package diff-hl
     :config
     (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
     (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode))
-
+  (global-diff-hl-mode)
 
   ;; When saving a file that starts with `#!', make it executable.
   (add-hook 'after-save-hook
@@ -773,7 +796,6 @@ Coding related global settings
   (setq compilation-scroll-output t)
   ;;  (setq compilation-scroll-output 'first-error)
 
-
   ;; ws-butler an unobtrusive way to trim spaces from end of line
   (use-package ws-butler
     :ensure t
@@ -784,6 +806,7 @@ Coding related global settings
     (add-hook 'rst-mode-hook 'ws-butler-mode)
     (add-hook 'yaml-mode-hook 'ws-butler-mode)
     (add-hook 'protobuf-mode-hook 'ws-butler-mode))
+  ( ws-butler-global-mode)
 
   (use-package ivy-xref
     :ensure t
@@ -851,9 +874,7 @@ LSP mode settings. Custom language settings also included here.
 
 #+begin_src emacs-lisp
 
-
-  ;; GOPLS config LSP mode
-
+  ;; LSP mode
   (use-package lsp-mode
     :ensure t
     :commands (lsp lsp-deferred)
@@ -893,9 +914,10 @@ LSP mode settings. Custom language settings also included here.
     (setq lsp-enable-snippet t)
     (setq lsp-file-watch-threshold 4000)
     (setq lsp-headerline-breadcrumb-mode t)
+
     (setq lsp-semantic-highlighting 'immediate)
     (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
-
+    (setq lsp-enable-semantic-highlighting t)
     (lsp-register-custom-settings
      '(("gopls.completeUnimported" t t)
        ("gopls.staticcheck" t t)
@@ -908,9 +930,8 @@ LSP mode settings. Custom language settings also included here.
        ("pylsp.plugins.mccabe.enabled" nil t)
        ("pylsp.plugins.pyflakes.enabled" nil t)
        )))
-
+  (setq lsp-eldoc-render-all t)
   (require 'dap-chrome)
-
 
   ;; Optional - provides fancier overlays.
   (use-package lsp-ui
@@ -1364,26 +1385,12 @@ Golang related configs
   (use-package flycheck-golangci-lint
     :ensure t)
 
-  (cond
-   ((string-equal system-type "gnu/linux")
-    (add-to-list 'exec-path "/home/nishikant/project/go/bin")
-    (setenv "GOPATH" "/home/nishikant/project/go"))
-   ((string-equal system-type "darwin")
-    (add-to-list 'exec-path "/Users/gattu/project/go/bin")
-    (setenv "GOPATH" "/Users/gattu/project/go")))
-
-  ;; (add-hook 'before-save-hook 'gofmt-before-save)
+    ;; (add-hook 'before-save-hook 'gofmt-before-save)
 
   (use-package go-projectile)
   (use-package gotest)
 
-  (setq exec-path (append '("/usr/local/go/bin") exec-path))
-  (setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
-
-  (setenv "GOBIN" "/usr/local/go/bin")
-  (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
-
-  ;; company-go
+    ;; company-go
   (use-package company-go
     :ensure t)
 
@@ -1403,7 +1410,6 @@ Golang related configs
 
   ;; add go yasnippet
   (use-package go-snippets)
-
 
 #+end_src
 
@@ -1512,6 +1518,134 @@ Web-mode for working with HTML
 
 #+end_src
 
+** React Nodejs Javascript
+Nodejs & React stuff
+#+begin_src emacs-lisp
+    (add-to-list 'lsp-enabled-clients 'ts-ls)
+      (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
+
+
+  (use-package js-import)
+  (use-package js2-refactor)
+    (require 'js2-refactor)
+    (add-hook 'js2-mode-hook #'js2-refactor-mode)
+    (setq js2-skip-preprocessor-directives t)
+    (js2r-add-keybindings-with-prefix "C-c C-m")
+  ;; eg. extract function with `C-c C-m ef`.
+
+    (use-package add-node-modules-path
+      :defer t
+      :hook (((js2-mode rjsx-mode) . add-node-modules-path)))
+
+
+    (use-package prettier-js
+    :defer t
+    :diminish prettier-js-mode
+    :hook (((js2-mode rjsx-mode) . prettier-js-mode))
+    :init
+    ) ; (f)ormat (p)rettier
+
+
+    ;; Javascript and coffeescript
+    (use-package coffee-mode)
+    (add-hook 'coffee-mode-hook
+              (lambda ()
+                (yas-minor-mode 1)
+                (setq coffee-tab-width 2)))
+
+    (defun setup-local-standard ()
+      "If standard found in node_modules directory - use that for flycheck.
+                  Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
+      (interactive)
+      (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
+        (setq flycheck-javascript-standard-executable
+              (and (file-exists-p local-standard) local-standard))))
+
+    ;; Tern is a JavaScript analyzer
+    (defun setup-local-tern ()
+      "If tern found in node_modules directory - use that for tern mode."
+      (interactive)
+      (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
+        (message local-tern)
+        (and (file-exists-p local-tern)
+             (defvar tern-command (list local-tern))
+             (tern-mode t))))
+
+
+    ;; js2-mode for javascript
+    (use-package js2-mode)
+    (use-package js2-refactor)
+    (require 'js2-refactor)
+    (add-hook 'js2-mode-hook #'js2-refactor-mode)
+    (add-hook 'js-mode-hook 'js2-minor-mode)
+    (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+    (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
+    (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
+    (add-to-list 'auto-mode-alist '("\\.js\\'"    . js2-mode))
+    (setq js2-indent-level 2)
+
+    ;; TypeScript use tide
+    (use-package tide
+      :ensure t
+      :after (typescript-mode company flycheck)
+      :hook ((typescript-mode . tide-setup)
+             (typescript-mode . tide-hl-identifier-mode)
+             (before-save . tide-format-before-save)))
+    ;; aligns annotation to the right hand side
+    (setq company-tooltip-align-annotations t)
+    (setq tide-completion-ignore-case t)
+
+    (defun setup-tide-mode ()
+      (interactive)
+      (tide-setup)
+      (flycheck-mode +1)
+      (setq flycheck-check-syntax-automatically '(save mode-enabled))
+      (eldoc-mode +1)
+      (tide-hl-identifier-mode +1)
+      (company-mode +1))
+
+
+    (add-hook 'js2-mode-hook #'setup-tide-mode)
+    (add-hook 'rjsx-mode-hook #'setup-tide-mode)
+
+    (setq tide-format-options
+          '(:indentSize 2 :tabSize 2))
+    ;; TSX
+
+    (require 'web-mode)
+    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+    (add-hook 'web-mode-hook
+              (lambda ()
+                (when (string-equal "tsx" (file-name-extension buffer-file-name))
+                  (setup-tide-mode))))
+    ;; enable typescript-tslint checker
+    (flycheck-add-mode 'typescript-tslint 'web-mode)
+    (flycheck-add-mode 'typescript-tslint 'js2-mode)
+    ;; JSX
+    (require 'web-mode)
+
+    (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+    (add-hook 'web-mode-hook
+              (lambda ()
+                (when (string-equal "jsx" (file-name-extension buffer-file-name))
+                  (setup-tide-mode))))
+    ;; configure jsx-tide checker to run after your default jsx checker
+    (flycheck-add-mode 'javascript-eslint 'web-mode)
+    ;;(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+
+    ;; formats the buffer before saving
+    (add-hook 'before-save-hook 'tide-format-before-save)
+    (add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+    ;; ternjs
+    (use-package tern
+      :ensure t)
+
+    (use-package js-react-redux-yasnippets)
+    (use-package react-snippets)
+
+#+end_src
+
 ** Markdown
 Settings for handling markdown files
 
@@ -1593,6 +1727,143 @@ List language
 #+begin_src emacs-lisp
 
 
+
+  ;; paredit you can manipulate text as a tree
+  (use-package paredit)
+  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+  (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+  (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+  (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+  (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+
+  ;; paredit eldoc
+
+  (require 'eldoc) ; if not already loaded
+  (eldoc-add-command
+   'paredit-backward-delete
+   'paredit-close-round)
+
+
+  ;; Paredit SLIME
+  (add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1)))
+  ;; Stop SLIME's REPL from grabbing DEL,
+  ;; which is annoying when backspacing over a '('
+  (defun override-slime-repl-bindings-with-paredit ()
+    (define-key slime-repl-mode-map
+      (read-kbd-macro paredit-backward-delete-key) nil))
+  (add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit)
+  ;; Paredit electric return
+
+  (defvar electrify-return-match
+    "[\]}\)\"]"
+    "If this regexp matches the text after the cursor, do an \"electric\"
+  return.")
+
+  (defun electrify-return-if-match (arg)
+    "If the text after the cursor matches `electrify-return-match' then
+  open and indent an empty line between the cursor and the text.  Move the
+  cursor to the new line."
+    (interactive "P")
+    (let ((case-fold-search nil))
+      (if (looking-at electrify-return-match)
+          (save-excursion (newline-and-indent)))
+      (newline arg)
+      (indent-according-to-mode)))
+  ;; Using local-set-key in a mode-hook is a better idea.
+  (global-set-key (kbd "RET") 'electrify-return-if-match)
+
+  (add-hook 'emacs-lisp-mode-hook
+            (lambda ()
+              (paredit-mode t)
+              (turn-on-eldoc-mode)
+              (eldoc-add-command
+               'paredit-backward-delete
+               'paredit-close-round)
+              (local-set-key (kbd "RET") 'electrify-return-if-match)
+              (eldoc-add-command 'electrify-return-if-match)
+              (show-paren-mode t)))
+
+  (defun paredit-barf-all-the-way-backward ()
+    (interactive)
+    (paredit-split-sexp)
+    (paredit-backward-down)
+    (paredit-splice-sexp))
+
+  (defun paredit-barf-all-the-way-forward ()
+    (interactive)
+    (paredit-split-sexp)
+    (paredit-forward-down)
+    (paredit-splice-sexp)
+    (if (eolp) (delete-horizontal-space)))
+
+  (defun paredit-slurp-all-the-way-backward ()
+    (interactive)
+    (catch 'done
+      (while (not (bobp))
+        (save-excursion
+          (paredit-backward-up)
+          (if (eq (char-before) ?\()
+              (throw 'done t)))
+        (paredit-backward-slurp-sexp))))
+
+  (defun paredit-slurp-all-the-way-forward ()
+    (interactive)
+    (catch 'done
+      (while (not (eobp))
+        (save-excursion
+          (paredit-forward-up)
+          (if (eq (char-after) ?\))
+              (throw 'done t)))
+        (paredit-forward-slurp-sexp))))
+
+  (nconc paredit-commands
+         '("Extreme Barfage & Slurpage"
+           (("C-M-)")
+            paredit-slurp-all-the-way-forward
+            ("(foo (bar |baz) quux zot)"
+             "(foo (bar |baz quux zot))")
+            ("(a b ((c| d)) e f)"
+             "(a b ((c| d)) e f)"))
+           (("C-M-}" "M-F")
+            paredit-barf-all-the-way-forward
+            ("(foo (bar |baz quux) zot)"
+             "(foo (bar|) baz quux zot)"))
+           (("C-M-(")
+            paredit-slurp-all-the-way-backward
+            ("(foo bar (baz| quux) zot)"
+             "((foo bar baz| quux) zot)")
+            ("(a b ((c| d)) e f)"
+             "(a b ((c| d)) e f)"))
+           (("C-M-{" "M-B")
+            paredit-barf-all-the-way-backward
+            ("(foo (bar baz |quux) zot)"
+             "(foo bar baz (|quux) zot)"))))
+
+  (paredit-define-keys)
+  (paredit-annotate-mode-with-examples)
+  (paredit-annotate-functions-with-examples)
+
+  ;; FIXME Mishandles adjoining whole-line comments (reinserts preceding at end)
+  (defun paredit-delete-indentation (&optional arg)
+    "Handle joining lines that end in a comment."
+    (interactive "*P")
+    (let (comt)
+      (save-excursion
+        (move-beginning-of-line (if arg 1 0))
+        ;; FIXME This misidentifies a semicolon inside a string as a comment
+        ;; in lisp
+        (when (skip-syntax-forward "^<" (point-at-eol))
+          (setq comt (delete-and-extract-region (point) (point-at-eol)))))
+      (delete-indentation arg)
+      (when comt
+        (save-excursion
+          (move-end-of-line 1)
+          (insert " ")
+          (insert comt)))))
+  (define-key paredit-mode-map (kbd "M-^") 'paredit-delete-indentation)
+
   (setq lispy-mode-hooks
         '(clojure-mode-hook
           emacs-lisp-mode-hook
@@ -1619,132 +1890,6 @@ Jinja2 mode
   (add-to-list 'auto-mode-alist '("\\.jinja2\\'" . jinja2-mode))
   (add-to-list 'auto-mode-alist '("\\.j2\\'" . jinja2-mode))
 
-
-#+end_src
-
-** React Nodejs Javascript
-Nodejs & React stuff
-#+begin_src emacs-lisp
-  (add-to-list 'lsp-enabled-clients 'ts-ls)
-    (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
-
-  (use-package js2-refactor)
-  (require 'js2-refactor)
-  (add-hook 'js2-mode-hook #'js2-refactor-mode)
-  (setq js2-skip-preprocessor-directives t)
-  (js2r-add-keybindings-with-prefix "C-c C-m")
-;; eg. extract function with `C-c C-m ef`.
-
-  (use-package add-node-modules-path
-    :defer t
-    :hook (((js2-mode rjsx-mode) . add-node-modules-path)))
-
-
-  (use-package prettier-js
-  :defer t
-  :diminish prettier-js-mode
-  :hook (((js2-mode rjsx-mode) . prettier-js-mode))
-  :init
-  ) ; (f)ormat (p)rettier
-
-
-  ;; Javascript and coffeescript
-  (use-package coffee-mode)
-  (add-hook 'coffee-mode-hook
-            (lambda ()
-              (yas-minor-mode 1)
-              (setq coffee-tab-width 2)))
-
-  (defun setup-local-standard ()
-    "If standard found in node_modules directory - use that for flycheck.
-                Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
-    (interactive)
-    (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
-      (setq flycheck-javascript-standard-executable
-            (and (file-exists-p local-standard) local-standard))))
-
-  ;; Tern is a JavaScript analyzer
-  (defun setup-local-tern ()
-    "If tern found in node_modules directory - use that for tern mode."
-    (interactive)
-    (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
-      (message local-tern)
-      (and (file-exists-p local-tern)
-           (defvar tern-command (list local-tern))
-           (tern-mode t))))
-
-
-  ;; js2-mode for javascript
-  (use-package js2-mode)
-  (use-package js2-refactor)
-  (require 'js2-refactor)
-  (add-hook 'js2-mode-hook #'js2-refactor-mode)
-  (add-hook 'js-mode-hook 'js2-minor-mode)
-  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
-  (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
-  (add-to-list 'auto-mode-alist '("\\.js\\'"    . js2-mode))
-  (setq js2-indent-level 2)
-
-  ;; TypeScript use tide
-  (use-package tide
-    :ensure t
-    :after (typescript-mode company flycheck)
-    :hook ((typescript-mode . tide-setup)
-           (typescript-mode . tide-hl-identifier-mode)
-           (before-save . tide-format-before-save)))
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
-  (setq tide-completion-ignore-case t)
-
-  (defun setup-tide-mode ()
-    (interactive)
-    (tide-setup)
-    (flycheck-mode +1)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled))
-    (eldoc-mode +1)
-    (tide-hl-identifier-mode +1)
-    (company-mode +1))
-
-
-  (add-hook 'js2-mode-hook #'setup-tide-mode)
-  (add-hook 'rjsx-mode-hook #'setup-tide-mode)
-
-  (setq tide-format-options
-        '(:indentSize 2 :tabSize 2))
-  ;; TSX
-
-  (require 'web-mode)
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-  (add-hook 'web-mode-hook
-            (lambda ()
-              (when (string-equal "tsx" (file-name-extension buffer-file-name))
-                (setup-tide-mode))))
-  ;; enable typescript-tslint checker
-  (flycheck-add-mode 'typescript-tslint 'web-mode)
-  (flycheck-add-mode 'typescript-tslint 'js2-mode)
-  ;; JSX
-  (require 'web-mode)
-
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
-  (add-hook 'web-mode-hook
-            (lambda ()
-              (when (string-equal "jsx" (file-name-extension buffer-file-name))
-                (setup-tide-mode))))
-  ;; configure jsx-tide checker to run after your default jsx checker
-  (flycheck-add-mode 'javascript-eslint 'web-mode)
-  ;;(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-
-  ;; formats the buffer before saving
-  (add-hook 'before-save-hook 'tide-format-before-save)
-  (add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-  ;; ternjs
-  (use-package tern
-    :ensure t)
-
-  (use-package js-react-redux-yasnippets)
-  (use-package react-snippets)
 
 #+end_src
 
@@ -1779,7 +1924,7 @@ terminalchanges
    ((string-equal system-type "ms-dos")
     (setq multi-term-program "c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"))
    ((string-equal system-type "darwin")
-    (setq multi-term-program "/bin/zsh"))
+    (setq multi-term-program "/bin/bash"))
    ((string-equal system-type "gnu/linux")
     (setq multi-term-program "/bin/bash")));; use bash
 
@@ -1974,7 +2119,7 @@ Shell script settings and opening a terminal using shell-pop
     :bind ("C-t" . shell-pop)
     :config
     (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-    (setq shell-pop-term-shell "/bin/zsh")
+    (setq shell-pop-term-shell "/bin/bash")
     (setq shell-pop-universal-key "C-t")
     ;; need to do this manually or not picked up by `shell-pop'
     (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type))
