@@ -40,7 +40,8 @@ inspired by a bunch of resources I've found online.
 - M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
 - C-= select current region and it expands on multiple repeats
 - C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
-
+- OrgMode: C-c C-q add tag
+- OrgMode: C-c C-x p add a property
 * All Shortcuts
 #+begin_src emacs-lisp
 
@@ -93,6 +94,7 @@ inspired by a bunch of resources I've found online.
   (global-set-key (kbd "C-:") 'hippie-expand-lines)
   (global-set-key (kbd "C-,") 'completion-at-point)
 
+  (global-set-key (kbd "C-x g") 'magit-status)
 
 
 
@@ -108,19 +110,17 @@ use-package to manage package configuration.
   ;; Initialize package sources
   (require 'package)
 
+
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                            ("elpa" . "https://elpa.gnu.org/packages/")
                            ("org" . "https://orgmode.org/elpa/")
                            ("melpa-stable" . "https://stable.melpa.org/packages/")))
-
   (package-initialize)
-
 
   ;; Install use-package if not installed
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package))
-
 
   ;; Compile the latest versions
   (require 'use-package)
@@ -159,7 +159,6 @@ M-x bug-hunter-file and it will ask you path to tangled settings.el.
   (use-package bug-hunter)
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
   ;; The default is 800 kilobytes.  Measured in bytes.
-  (setq gc-cons-threshold (* 50 1000 1000))
 
   ;; Profile emacs startup
   (add-hook 'emacs-startup-hook
@@ -170,10 +169,10 @@ M-x bug-hunter-file and it will ask you path to tangled settings.el.
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
   ;; Increase garbage collector threshold
-  (setq gc-cons-threshold 100000000) ;; 100 MB
+  (setq gc-cons-threshold (* 100 1000 1000))
 
   ;; Increase amount of data read from a process
-  (setq read-process-output-max (* 1024 1024)) ;; 1 MB
+  (setq read-process-output-max (* 2 1024 1024)) ;; 2 MB
 
   ;; change custom file location
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -704,7 +703,7 @@ Configuration for currently used theme
     "Apply the `solarized-light' theme and make frames just slightly transparent."
     (interactive)
     (load-theme 'solarized-dark t)
-    (transparency 86))
+    (transparency 89))
 
   ;; wombat color-theme with misc face definition
   (solarized-create-theme-file-with-palette 'dark 'solarized-wombat-dark
@@ -883,9 +882,11 @@ LSP mode settings. Custom language settings also included here.
            (python-mode . lsp-deferred)
            (groovy-mode . lsp-deferred)
            (go-mode . lsp-deferred)
+           (java-mode . lsp-deferred)
            (csharp-mode . lsp-deferred)
            (sh-mode . lsp-deferred)
            (yaml-mode . lsp-deferred)
+           (cfn-yaml-mode . lsp-deferred)
            (web-mode . lsp-deferred)
            ((js2-mode rjsx-mode) . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
@@ -945,7 +946,9 @@ LSP mode settings. Custom language settings also included here.
     :init (setq lsp-ui-doc-enable t
                 lsp-ui-doc-use-webkit nil
                 lsp-ui-doc-header nil
-                lsp-ui-doc-delay 0.2
+                lsp-ui-doc-delay 0.1
+                lsp-ui-doc-frame t
+                lsp-ui-doc-show-with-cursor t
                 lsp-ui-doc-include-signature t
                 lsp-ui-doc-alignment 'frame
                 lsp-ui-doc-use-childframe nil
@@ -955,7 +958,8 @@ LSP mode settings. Custom language settings also included here.
                 lsp-ui-sideline-update-mode 'point
                 lsp-ui-sideline-enable t
                 lsp-ui-sideline-show-code-actions t
-                lsp-ui-sideline-show-hover nil
+                lsp-ui-sideline-show-diagnostics t
+                lsp-ui-sideline-show-hover t
                 lsp-ui-sideline-ignore-duplicate t)
     :config
     (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
@@ -983,7 +987,9 @@ LSP mode settings. Custom language settings also included here.
 
 #+RESULTS:
 *** DAP Mode
-Debug seettings
+
+Debug settings for various languages
+
 #+begin_src emacs-lisp
 
   ;; DAP mode
@@ -996,6 +1002,13 @@ Debug seettings
     (dap-auto-configure-mode)
     (setq dap-print-io t)
     (require 'dap-hydra)
+    (require 'dap-java)
+    (require 'dap-python)
+    (require 'dap-lldb)
+    (require 'dap-firefox)
+    (require 'dap-chrome)
+    (require 'dap-node)
+    (require 'dap-gdb-lldb)
     (require 'dap-go)   ;  (require 'dap-go)		; download and expand vscode-go-extenstion to the =~/.extensions/go=
     (dap-go-setup)
     (use-package dap-ui
@@ -1004,6 +1017,36 @@ Debug seettings
       (dap-ui-mode 1)))
 
 
+  ;; Rust template
+
+  (dap-register-debug-template "Rust::GDB Run Configuration"
+                               (list :type "gdb"
+                                     :request "launch"
+                                     :name "GDB::Run"
+                                     :gdbpath "rust-gdb"
+                                     :target nil
+                                     :cwd nil))
+
+  ;; JavaRunner
+  (dap-register-debug-template "JavaRunner"
+                               (list :type "java"
+                                     :request "launch"
+                                     :args ""
+                                     :vmArgs "-ea -Dmyapp.instance.name=myapp_1"
+                                     :projectName "myapp"
+                                     :mainClass "com.domain.AppRunner"
+                                     :env '(("DEV" . "1"))))
+
+  ;; Python template
+
+  (dap-register-debug-template "My App"
+                               (list :type "python"
+                                     :args "-i"
+                                     :cwd nil
+                                     :env '(("DEBUG" . "1"))
+                                     :target-module (expand-file-name "~/src/myapp/.env/bin/myapp")
+                                     :request "launch"
+                                     :name "My App"))
 
   (setq dap-auto-configure-features '(sessions locals controls tooltip))
   ;; The modes above are optional
@@ -1055,11 +1098,9 @@ Use fly check to check syntax
     (add-hook 'go-mode-hook 'flycheck-mode)
     (add-hook 'sh-mode-hook 'flycheck-mode)
     (add-hook 'rst-mode-hook 'flycheck-mode)
-    (add-hook 'js-mode-hook 'flycheck-mode)
+    (add-hook 'js2-mode-hook 'flycheck-mode)
+    (add-hook 'web-mode-hook 'flycheck-mode)
     (add-hook 'elpy-mode-hook 'flycheck-mode))
-
-                                          ;
-                                          ; spell check text
 
   (add-hook 'text-mode-hook 'flyspell-mode)
 
@@ -1078,7 +1119,6 @@ Using Magit to handle all git related stuff.
     :config
     (setq magit-completing-read-function 'ivy-completing-read)
     :diminish auto-revert-mode)
-  (global-set-key (kbd "C-x g") 'magit-status)
 
   ;; gitignore-mode
   (use-package gitignore-mode
@@ -1091,6 +1131,7 @@ Using Magit to handle all git related stuff.
 #+end_src
 
 ** Search what to use rg/ag/grep?
+
 Intelligent Search
 
 #+begin_src emacs-lisp
@@ -1111,18 +1152,11 @@ Intelligent Search
   (setq rg-default-alias-fallback '("everything"))
   (setq rg-custom-type-aliases '(("everything" . "*")))
 
-  ;; ;; ag.el
-  ;; (use-package ag
-  ;;   :ensure t
-  ;;   :config
-  ;;   (add-hook 'ag-mode-hook 'toggle-truncate-lines)
-  ;;   (setq ag-highlight-search t)
-  ;;   (setq ag-reuse-buffers 't))
-
 
 #+end_src
 
 ** Code completion
+
 Use Ivy frame work for code completion interface
 
 #+begin_src emacs-lisp
@@ -1142,6 +1176,7 @@ Use Ivy frame work for code completion interface
 #+end_src
 
 ** Project management
+
 Use Projectile to handle interaction with projects
 
 #+begin_src emacs-lisp
@@ -1254,9 +1289,71 @@ Use Projectile to handle interaction with projects
 #+end_src
 
 ** CSS Sass and Less
-Configuration for CSS and related techs
+
+Configuration for CSS and related techs. Most of the stuff borrowed from https://readingworldmagazine.com/emacs/2021-01-29-emacs-css-and-scss/
 
 #+begin_src emacs-lisp
+
+  ;; css sort
+  (use-package com-css-sort
+    :commands (com-css-sort com-css-sort-attributes-block com-css-sort-attributes-document)
+    :config
+    (setq com-css-sort-sort-type 'alphabetic-sort)
+    );end com-css-sort
+
+  ;; css-eldoc
+  (use-package css-eldoc
+    :commands turn-on-css-eldoc
+    ;;add a hook if you want always to see the selector options in the minibuffer
+    :config
+    (add-hook 'css-mode-hook 'turn-on-css-eldoc)
+    (add-hook 'scss-mode-hook 'turn-on-css-eldoc)
+    )                                     ;end css-eldoc
+
+  (use-package origami
+    :commands (origami-toggle-node origami-mode)
+    :config
+    (add-to-list 'origami-parser-alist '(scss-markers   . ,(origami-markers-parser "/*/" "/*/")))
+    (add-hook 'scss-mode-hook
+              (lambda () (setq-local origami-fold-style 'scss-markers)))
+    :bind
+    ("C-c i" . origami-toggle-node)
+    );end origami mode
+  (add-hook 'css-mode-hook
+            (lambda ()
+              (set (make-local-variable 'company-backends) '(company-capf company-css  company-dabbrev-code company-dabbrev company-etags company-yasnippet))))
+  (add-hook 'css-mode-hook 'emmet-mode)
+  ;;sass
+
+  (use-package scss-mode
+                                          ;:after(web-mode css-mode scss-mode)
+    :commands (scss-mode scss-compile css-mode web-mode)
+    :mode ("\\.scss" . scss-mode)
+    :init
+    (defun company-scss-mode-hook ()
+      (set (make-local-variable 'company-backends) '(company-capf company-css  company-dabbrev-code company-dabbrev company-etags company-yasnippet)))
+    :config
+    (require 'scss-mode)
+    (setq scss-compile-at-save 'nil)
+    ;;(autoload 'scss-mode "scss-mode")
+    ;;require company-css
+    (require 'company-css)
+    ;;hook
+
+    (use-package flymake-sass)
+    (require 'flymake-sass)
+    :hook
+    (scss-mode . (lambda ()
+                   (progn
+                     (highlight-indent-guides-mode -1)
+                     (emmet-mode 1)
+                     (company-mode 1)
+                     (company-scss-mode-hook)
+                     (setq emmet-preview-default -1)
+                     (flymake-sass-load)
+                     )));end hook
+    );end scss-mode
+  ;;use scss-mode
 
   ;; CSS Sass and Less
   (use-package css-mode
@@ -1267,10 +1364,6 @@ Configuration for CSS and related techs
     :config
     (setq scss-compile-at-save nil))
 
-  ;; (require 'flymake-less)
-  (use-package css-eldoc)
-  (require 'css-eldoc)
-
   (use-package less-css-mode)
 
 #+end_src
@@ -1280,15 +1373,28 @@ Configuration for CSS and related techs
 All YAML related config including AWS cloudformation, k8, & ansible.
 
 #+begin_src emacs-lisp
+  (require 'lsp-mode)
 
   (add-to-list 'lsp-enabled-clients 'yamlls)
 
-  (require 'lsp-mode)
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection
+                                     (lambda ()
+                                       `(,(or (executable-find (cl-first lsp-yaml-server-command))
+                                              (lsp-package-path 'yaml-language-server))
+                                         ,@(cl-rest lsp-yaml-server-command))))
+                    :major-modes '(cfn-yaml-mode docker-compose-mode dockerfile-mode )
+                    :priority 1
+                    :server-id 'yamlls))
+
+
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "erlang_ls -t stdio")
+                    :major-modes '(erlang-mode)
+                    :server-id 'erlang-ls))
 
   (add-to-list 'lsp-language-id-configuration '(cfn-yaml-mode . "spring-boot-properties-yaml"))
   (add-to-list 'lsp-language-id-configuration '(docker-compose-mode . "spring-boot-properties-yaml"))
-
-
 
   (use-package yaml-mode
     :ensure t
@@ -1301,15 +1407,6 @@ All YAML related config including AWS cloudformation, k8, & ansible.
 
     (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
     (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode)))
-
-  (defun yaml-outline-level ()
-    "Return the outline level based on the indentation, hardcoded at 2 spaces."
-    (s-count-matches "[ ]\\{2\\}" (match-string 0)))
-
-  (defun yaml-mode-outline-hook ()
-    (outline-minor-mode)
-    (setq outline-regexp "^\\([ ]\\{2\\}\\)*\\([-] \\)?\\([\"][^\"]*[\"]\\|[a-zA-Z0-9_-]*\\): *\\([>|]\\|&[a-zA-Z0-9_-]*\\)?$")
-    (setq outline-level 'yaml-outline-level))
 
   (use-package k8s-mode
     :ensure t
@@ -1335,9 +1432,9 @@ All YAML related config including AWS cloudformation, k8, & ansible.
     (flycheck-define-checker cfn-lint
       "AWS CloudFormation linter using cfn-lint.
 
-       Install cfn-lint first: pip install cfn-lint
+               Install cfn-lint first: pip install cfn-lint
 
-       See `https://github.com/aws-cloudformation/cfn-python-lint'."
+               See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
       :ensure-system-package (cfn-lint)
       :command ("cfn-lint" "-f" "parseable" source)
@@ -1362,7 +1459,6 @@ All YAML related config including AWS cloudformation, k8, & ansible.
 
   (setq openapi-yaml-use-yaml-mode-syntax-highlight t)
 
-
 #+end_src
 
 ** Golang
@@ -1385,12 +1481,12 @@ Golang related configs
   (use-package flycheck-golangci-lint
     :ensure t)
 
-    ;; (add-hook 'before-save-hook 'gofmt-before-save)
+  ;; (add-hook 'before-save-hook 'gofmt-before-save)
 
   (use-package go-projectile)
   (use-package gotest)
 
-    ;; company-go
+  ;; company-go
   (use-package company-go
     :ensure t)
 
@@ -1521,24 +1617,24 @@ Web-mode for working with HTML
 ** React Nodejs Javascript
 Nodejs & React stuff
 #+begin_src emacs-lisp
-    (add-to-list 'lsp-enabled-clients 'ts-ls)
-      (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
+  (add-to-list 'lsp-enabled-clients 'ts-ls)
+  (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
 
 
   (use-package js-import)
   (use-package js2-refactor)
-    (require 'js2-refactor)
-    (add-hook 'js2-mode-hook #'js2-refactor-mode)
-    (setq js2-skip-preprocessor-directives t)
-    (js2r-add-keybindings-with-prefix "C-c C-m")
+  (require 'js2-refactor)
+  (add-hook 'js2-mode-hook #'js2-refactor-mode)
+  (setq js2-skip-preprocessor-directives t)
+  (js2r-add-keybindings-with-prefix "C-c C-m")
   ;; eg. extract function with `C-c C-m ef`.
 
-    (use-package add-node-modules-path
-      :defer t
-      :hook (((js2-mode rjsx-mode) . add-node-modules-path)))
+  (use-package add-node-modules-path
+    :defer t
+    :hook (((js2-mode rjsx-mode) . add-node-modules-path)))
 
 
-    (use-package prettier-js
+  (use-package prettier-js
     :defer t
     :diminish prettier-js-mode
     :hook (((js2-mode rjsx-mode) . prettier-js-mode))
@@ -1546,103 +1642,103 @@ Nodejs & React stuff
     ) ; (f)ormat (p)rettier
 
 
-    ;; Javascript and coffeescript
-    (use-package coffee-mode)
-    (add-hook 'coffee-mode-hook
-              (lambda ()
-                (yas-minor-mode 1)
-                (setq coffee-tab-width 2)))
+  ;; Javascript and coffeescript
+  (use-package coffee-mode)
+  (add-hook 'coffee-mode-hook
+            (lambda ()
+              (yas-minor-mode 1)
+              (setq coffee-tab-width 2)))
 
-    (defun setup-local-standard ()
-      "If standard found in node_modules directory - use that for flycheck.
+  (defun setup-local-standard ()
+    "If standard found in node_modules directory - use that for flycheck.
                   Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
-      (interactive)
-      (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
-        (setq flycheck-javascript-standard-executable
-              (and (file-exists-p local-standard) local-standard))))
+    (interactive)
+    (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
+      (setq flycheck-javascript-standard-executable
+            (and (file-exists-p local-standard) local-standard))))
 
-    ;; Tern is a JavaScript analyzer
-    (defun setup-local-tern ()
-      "If tern found in node_modules directory - use that for tern mode."
-      (interactive)
-      (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
-        (message local-tern)
-        (and (file-exists-p local-tern)
-             (defvar tern-command (list local-tern))
-             (tern-mode t))))
-
-
-    ;; js2-mode for javascript
-    (use-package js2-mode)
-    (use-package js2-refactor)
-    (require 'js2-refactor)
-    (add-hook 'js2-mode-hook #'js2-refactor-mode)
-    (add-hook 'js-mode-hook 'js2-minor-mode)
-    (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
-    (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
-    (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
-    (add-to-list 'auto-mode-alist '("\\.js\\'"    . js2-mode))
-    (setq js2-indent-level 2)
-
-    ;; TypeScript use tide
-    (use-package tide
-      :ensure t
-      :after (typescript-mode company flycheck)
-      :hook ((typescript-mode . tide-setup)
-             (typescript-mode . tide-hl-identifier-mode)
-             (before-save . tide-format-before-save)))
-    ;; aligns annotation to the right hand side
-    (setq company-tooltip-align-annotations t)
-    (setq tide-completion-ignore-case t)
-
-    (defun setup-tide-mode ()
-      (interactive)
-      (tide-setup)
-      (flycheck-mode +1)
-      (setq flycheck-check-syntax-automatically '(save mode-enabled))
-      (eldoc-mode +1)
-      (tide-hl-identifier-mode +1)
-      (company-mode +1))
+  ;; Tern is a JavaScript analyzer
+  (defun setup-local-tern ()
+    "If tern found in node_modules directory - use that for tern mode."
+    (interactive)
+    (let ((local-tern (expand-file-name "./node_modules/.bin/tern")))
+      (message local-tern)
+      (and (file-exists-p local-tern)
+           (defvar tern-command (list local-tern))
+           (tern-mode t))))
 
 
-    (add-hook 'js2-mode-hook #'setup-tide-mode)
-    (add-hook 'rjsx-mode-hook #'setup-tide-mode)
+  ;; js2-mode for javascript
+  (use-package js2-mode)
+  (use-package js2-refactor)
+  (require 'js2-refactor)
+  (add-hook 'js2-mode-hook #'js2-refactor-mode)
+  (add-hook 'js-mode-hook 'js2-minor-mode)
+  (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
+  (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'"    . js2-mode))
+  (setq js2-indent-level 2)
 
-    (setq tide-format-options
-          '(:indentSize 2 :tabSize 2))
-    ;; TSX
+  ;; TypeScript use tide
+  (use-package tide
+    :ensure t
+    :after (typescript-mode company flycheck)
+    :hook ((typescript-mode . tide-setup)
+           (typescript-mode . tide-hl-identifier-mode)
+           (before-save . tide-format-before-save)))
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+  (setq tide-completion-ignore-case t)
 
-    (require 'web-mode)
-    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-    (add-hook 'web-mode-hook
-              (lambda ()
-                (when (string-equal "tsx" (file-name-extension buffer-file-name))
-                  (setup-tide-mode))))
-    ;; enable typescript-tslint checker
-    (flycheck-add-mode 'typescript-tslint 'web-mode)
-    (flycheck-add-mode 'typescript-tslint 'js2-mode)
-    ;; JSX
-    (require 'web-mode)
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1)
+    (company-mode +1))
 
-    (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
-    (add-hook 'web-mode-hook
-              (lambda ()
-                (when (string-equal "jsx" (file-name-extension buffer-file-name))
-                  (setup-tide-mode))))
-    ;; configure jsx-tide checker to run after your default jsx checker
-    (flycheck-add-mode 'javascript-eslint 'web-mode)
-    ;;(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
-    ;; formats the buffer before saving
-    (add-hook 'before-save-hook 'tide-format-before-save)
-    (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  (add-hook 'js2-mode-hook #'setup-tide-mode)
+  (add-hook 'rjsx-mode-hook #'setup-tide-mode)
 
-    ;; ternjs
-    (use-package tern
-      :ensure t)
+  (setq tide-format-options
+        '(:indentSize 2 :tabSize 2))
+  ;; TSX
 
-    (use-package js-react-redux-yasnippets)
-    (use-package react-snippets)
+  (require 'web-mode)
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+  (add-hook 'web-mode-hook
+            (lambda ()
+              (when (string-equal "tsx" (file-name-extension buffer-file-name))
+                (setup-tide-mode))))
+  ;; enable typescript-tslint checker
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
+  (flycheck-add-mode 'typescript-tslint 'js2-mode)
+  ;; JSX
+  (require 'web-mode)
+
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+  (add-hook 'web-mode-hook
+            (lambda ()
+              (when (string-equal "jsx" (file-name-extension buffer-file-name))
+                (setup-tide-mode))))
+  ;; configure jsx-tide checker to run after your default jsx checker
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  ;;(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+  ;; ternjs
+  (use-package tern
+    :ensure t)
+
+  (use-package js-react-redux-yasnippets)
+  (use-package react-snippets)
 
 #+end_src
 
@@ -1971,46 +2067,12 @@ Groovy language settings
 Set Emacs as Java IDE
 #+begin_src emacs-lisp
 
-  ;; For java
-;;  (use-package jdee)
-;;  (setq jdee-server-dir "~/project/jdee-server/target")
-  (use-package meghanada)
-  (add-hook 'java-mode-hook
-            (lambda ()
-              ;; meghanada-mode on
-              (meghanada-mode t)
-              (flycheck-mode +1)
-              (setq c-basic-offset 4)
-              ;; use code format
-              ;;(add-hook 'before-save-hook 'meghanada-code-beautify-before-save)
-              ))
-  (cond
-   ((eq system-type 'windows-nt)
-    (setq meghanada-java-path (expand-file-name "bin/java.exe" (getenv "JAVA_HOME")))
-    (setq meghanada-maven-path "mvn.cmd"))
-   (t
-    (setq meghanada-java-path "java")
-    (setq meghanada-maven-path "mvn")))
-
-
-
-
-  (custom-set-variables
-   ;; custom-set-variables was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   '(package-selected-packages (quote (## adoc-mode meghanada))))
-  (custom-set-faces
-   ;; custom-set-faces was added by Custom.
-   ;; If you edit it by hand, you could mess it up, so be careful.
-   ;; Your init file should contain only one such instance.
-   ;; If there is more than one, they won't work right.
-   )
+  (add-to-list 'lsp-enabled-clients 'jdtls)
 
   (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
 
   (use-package dap-java :ensure nil)
+
 
   (use-package java-snippets)
 
@@ -2132,23 +2194,23 @@ Html, php, etc
 #+begin_src emacs-lisp
 
 
-;; web-mode
+  ;; web-mode
   (add-to-list 'lsp-enabled-clients 'html-ls)
-(add-hook 'web-mode-hook
-          (lambda ()
-            (rainbow-mode)
-            (setq web-mode-markup-indent-offset 2)))
+  (add-hook 'web-mode-hook
+            (lambda ()
+              (rainbow-mode)
+              (setq web-mode-markup-indent-offset 2)))
   (lsp-register-client
    (make-lsp-client :new-connection (lsp-stdio-connection "html-languageserver")
                     :major-modes '(web-mode)
                     :server-id 'html-ls))
 
-(hrs/add-auto-mode
- 'web-mode
- "\\.erb$"
- "\\.html$"
- "\\.php$"
- "\\.rhtml$")
+  (hrs/add-auto-mode
+   'web-mode
+   "\\.erb$"
+   "\\.html$"
+   "\\.php$"
+   "\\.rhtml$")
 
 
 #+end_src
@@ -2157,11 +2219,11 @@ Html, php, etc
 #+begin_src emacs-lisp
 
 
-;; Json mode
+  ;; Json mode
 
-(use-package json-mode)
+  (use-package json-mode)
 
-;;(require 'flycheck-swagger-tools)
+  ;;(require 'flycheck-swagger-tools)
 
 
 #+end_src
@@ -2231,16 +2293,7 @@ Settings for OrgMode
   (setq org-roam-v2-ack t)
   (setq org-roam-db-update-method 'immediate)
 
-  ;; (setq org-roam-capture-templates
-
-  ;; '(("d" "default" plain #'org-roam-capture--get-point :file-name "%<%Y-%m-%d>-${slug}" :head "#+title: ${title}\n#+ROAM_TAGS: %^{org-roam-tags}\n#+created: %u\n#+last_modified: %U\n%?" :unnarrowed t :jump-to-captured t)
-
-  ;; ("l" "clipboard" plain #'org-roam-capture--get-point "%i%a" :file-name "%<%Y%m%d%H%M%S>-${slug}" :head "#+title: ${title}\n#+created: %u\n#+last_modified: %U\n#+ROAM_TAGS: %? \n" :unnarrowed t :prepend t :jump-to-captured t)
-
-  ;;         ("s" "sermon" plain #'org-roam-capture--get-point (file "~/org-roam/diary/gattu-template.txt") :file-name "%<%Y-%m-%d>_gattu_${slug}" :head "#+title: ${Title of the Message}\n#+ROAM_TAGS: Sermon\n#+DATE: %T\n#+VENUE: ${Venue}\n#+FORMAT: ${Format}\n#+STARTUP: showall\n#+DESCRIPTION: ${Main concept of service}\n#+OPTIONS: \\n:t\n" :unnarrowed t :immediate-finish t :jump-to-captured t)))
-
-  ;; (setq org-roam-completion-system 'ivy)
-
+  (setq org-roam-completion-system 'ivy)
 
   (use-package org-bullets
     :init
@@ -2265,7 +2318,7 @@ Settings for OrgMode
                '("el" . "src emacs-lisp"))
   (setq org-adapt-indentation nil)
 
-  (setq org-directory "~/documents/org")
+  (setq org-directory "~/Documents/org-roam")
 
   (define-key org-mode-map (kbd "C-c C-x C-s") 'hrs/mark-done-and-archive)
 
@@ -2298,26 +2351,10 @@ Settings for OrgMode
   (require 'ox-md)
   (require 'ox-beamer)
 
-  ;; Open work.org
-  (defun hrs/open-work-file ()
-    "Open the work TODO list."
-    (interactive)
-    (find-file (org-file-path "work.org"))
-    (flycheck-mode -1)
-    (end-of-buffer))
-
-  (global-set-key (kbd "C-c w") 'hrs/open-work-file)
-
-
   (setq org-enforce-todo-dependencies t)
   (setq org-enforce-todo-checkbox-dependencies t)
 
   (defvar org-agenda-start-on-weekday nil)
-
-  (defvar org-agenda-prefix-format '((agenda . " %i %?-12t% s")
-                                     (todo . " %i ")
-                                     (tags . " %i ")
-                                     (search . " %i ")))
 
   (defun org-file-path (filename)
     "Return the absolute address of an org FILENAME, given its relative name."
@@ -2328,25 +2365,60 @@ Settings for OrgMode
   (setq org-archive-location
         (concat (org-file-path "archive.org") "::* From %s"))
 
-  (defun hrs/copy-tasks-from-inbox ()
-    "Copy task from inbox."
-    (when (file-exists-p org-inbox-file)
-      (save-excursion
-        (find-file org-index-file)
-        (goto-char (point-max))
-        (insert-file-contents org-inbox-file)
-        (delete-file org-inbox-file))))
+  (setq org-agenda-files
+        (seq-filter (lambda(x) (not (string-match "/org/"(file-name-directory x))))
+                    (directory-files-recursively "~/Documents/org-roam" "\\.org$")
+                    ))
+  (use-package vulpea)
 
-  (setq org-agenda-files (list org-index-file
-                               (org-file-path "~/Documents/org/goals.org")
-                               (org-file-path "~/Documents/org/work.org")))
+
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %(vulpea-agenda-category 12)%?-12t% s")
+          (todo . " %i %(vulpea-agenda-category 12) ")
+          (tags . " %i %(vulpea-agenda-category 12) ")
+          (search . " %i %(vaulpea-agenda-category 12) ")))
+
+  (defun vulpea-agenda-category (&optional len)
+    "Get category of item at point for agenda.
+
+  Category is defined by one of the following items:
+
+  - CATEGORY property
+  - TITLE keyword
+  - TITLE property
+  - filename without directory and extension
+
+  When LEN is a number, resulting string is padded right with
+  spaces and then truncated with ... on the right if result is
+  longer than LEN.
+
+  Usage example:
+
+    (setq org-agenda-prefix-format
+          '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+
+  Refer to `org-agenda-prefix-format' for more information."
+    (let* ((file-name (when buffer-file-name
+                        (file-name-sans-extension
+                         (file-name-nondirectory buffer-file-name))))
+           (title (vulpea-buffer-prop-get "title"))
+           (category (org-get-category))
+           (result
+            (or (if (and
+                     title
+                     (string-equal category file-name))
+                    title
+                  category)
+                "")))
+      (if (numberp len)
+          (s-truncate len (s-pad-right len " " result))
+        result)))
 
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
     (org-todo 'done)
     (org-archive-subtree))
-
 
   (require 'org-habit)
 
@@ -2492,6 +2564,11 @@ Mode for writing books
 
   (quelpa '(eaf :fetcher github
                 :repo  "manateelazycat/emacs-application-framework"
+                :files ("*")))
+
+
+  (quelpa '(s :fetcher github
+                :repo  "magnars/s.el"
                 :files ("*")))
 
   (use-package eaf
