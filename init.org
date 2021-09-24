@@ -2,7 +2,7 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/settings.el
 
 This is an ongoing evolution of my original Emacs configuration files,
-inspired by a bunch of resources I've found online.
+inspired by a bunch of resources I've found online. Lot of it taken from https://github.com/MatthewZMD/.emacs.d
 
 #+OPTIONS: toc: include all
 * My Cheat Sheet
@@ -40,10 +40,31 @@ inspired by a bunch of resources I've found online.
 - M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
 - C-= select current region and it expands on multiple repeats
 - C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
+- C-x C-n set-goal-column https://irreal.org/blog/?p=266
 - OrgMode: C-c C-q add tag
 - OrgMode: C-c C-x p add a property
-* All Shortcuts
+- OrgMode: org-id-get-create
+- OrgMode: C-ca to list all todos
+- OrgMode:
+
+* Shortcuts
 #+begin_src emacs-lisp
+
+  ;; Unbind unneeded keys
+  (global-set-key (kbd "C-z") nil)
+  (global-set-key (kbd "M-z") nil)
+  (global-set-key (kbd "M-m") nil)
+  (global-set-key (kbd "C-x C-z") nil)
+  (global-set-key (kbd "M-/") nil)
+  ;; Truncate lines
+  (global-set-key (kbd "C-x C-l") #'toggle-truncate-lines)
+  ;; Adjust font size like web browsers
+  (global-set-key (kbd "C-=") #'text-scale-increase)
+  (global-set-key (kbd "C-+") #'text-scale-increase)
+  (global-set-key (kbd "C--") #'text-scale-decrease)
+  ;; Move up/down paragraph
+  (global-set-key (kbd "M-n") #'forward-paragraph)
+  (global-set-key (kbd "M-p") #'backward-paragraph)
 
 
   ;; (global-set-key (kbd "M-" 'just-one-space))
@@ -204,14 +225,17 @@ Custom functions that help in OrgMode and other functionality.
 #+begin_src emacs-lisp
 
   ;; Custom Functions
-
+  (defconst clangd-p
+    (or (executable-find "clangd")  ;; usually
+        (executable-find "/usr/local/opt/llvm/bin/clangd"))  ;; macOS
+    "Do we have clangd?")
   ;; Set up before-save hooks to format buffer and add/delete imports.
   ;; Make sure you don't have other gofmt/goimports hooks enabled.
 
   (defun insdate-insert-current-date (&optional omit-day-of-week-p)
     "Insert today's date using the current locale.
-  With a prefix argument, the date is inserted without the day of
-  the week."
+    With a prefix argument, the date is inserted without the day of
+    the week."
     (interactive "P*")
     (insert (calendar-date-string (calendar-current-date) nil
                                   omit-day-of-week-p)))
@@ -306,8 +330,19 @@ Some basic settings around how emacs should look and behave. Like no
 scroll bar, async support,etc.
 
 #+begin_src emacs-lisp
+  (use-package discover-my-major)
 
-
+  (use-package crux
+    :bind
+    (("C-a" . crux-move-beginning-of-line)
+     ("C-x 4 t" . crux-transpose-windows)
+     ("C-x K" . crux-kill-other-buffers)
+     ("C-k" . crux-smart-kill-line))
+    :config
+    (crux-with-region-or-buffer indent-region)
+    (crux-with-region-or-buffer untabify)
+    (crux-with-region-or-point-to-eol kill-ring-save)
+    (defalias 'rename-file-and-buffer #'crux-rename-file-and-buffer))
   (setq company-dabbrev-downcase nil)
   (setq load-prefer-newer t)
   (setq kill-whole-line t)
@@ -338,6 +373,13 @@ scroll bar, async support,etc.
   (setq global-semantic-folding-mode t)
 
   (add-hook 'before-save-hook 'whitespace-cleanup)
+
+  ;; Replace selection on insert
+  (delete-selection-mode 1)
+
+  ;; Map Alt key to Meta
+  (setq x-alt-keysym 'meta)
+
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
   (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -409,24 +451,6 @@ scroll bar, async support,etc.
     (whole-line-or-region-global-mode 1))
 
 
-  ;; company completion framework for all text
-  ;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
-  ;; Search through the completions with C-s, C-r and C-o.
-  ;; Press M-(digit) to quickly complete with one of the first 10 candidates.
-  (use-package company
-    :ensure t
-    :config
-    ;; Optionally enable completion-as-you-type behavior.
-    (setq company-idle-delay 0)
-    ;; Don't use company in the following modes
-
-    (setq company-minimum-prefix-length 1)
-    :custom
-
-    (company-global-modes '(not shell-mode eaf-mode))
-    )
-  (add-hook 'after-init-hook 'global-company-mode)
-
   ;; switch-window gives a visual indicator when switching windows.
   (use-package ace-window)
 
@@ -450,12 +474,29 @@ scroll bar, async support,etc.
   (use-package which-key :config (which-key-mode))
 
   ;; Optional - provides snippet support.
-  (use-package yasnippet
-    :ensure t
-    :commands yas-minor-mode)
 
-  (use-package yasnippet-snippets)
-  (require 'yasnippet)
+  (use-package yasnippet
+    :diminish yas-minor-mode
+    :init
+    (use-package yasnippet-snippets :after yasnippet)
+    :hook ((prog-mode LaTeX-mode org-mode) . yas-minor-mode)
+    :bind
+    (:map yas-minor-mode-map ("C-c C-n" . yas-expand-from-trigger-key))
+    (:map yas-keymap
+          (("TAB" . smarter-yas-expand-next-field)
+           ([(tab)] . smarter-yas-expand-next-field)))
+    :config
+    (yas-reload-all)
+    (defun smarter-yas-expand-next-field ()
+      "Try to `yas-expand' then `yas-next-field' at current cursor position."
+      (interactive)
+      (let ((old-point (point))
+            (old-tick (buffer-chars-modified-tick)))
+        (yas-expand)
+        (when (and (eq old-point (point))
+                   (eq old-tick (buffer-chars-modified-tick)))
+          (ignore-errors (yas-next-field))))))
+
   (yas-global-mode 1)
 
   ;; fuzzy search
@@ -468,8 +509,24 @@ scroll bar, async support,etc.
   (drag-stuff-define-keys)
 
   ;; winner mode to handle windows config rollback
-  (when (fboundp 'winner-mode)
+
+  (use-package winner
+    :ensure nil
+    :custom
+    (winner-boring-buffers
+     '("*Completions*"
+       "*Compile-Log*"
+       "*inferior-lisp*"
+       "*Fuzzy Completions*"
+       "*Apropos*"
+       "*Help*"
+       "*cvs*"
+       "*Buffer List*"
+       "*Ibuffer*"
+       "*esh command on file*"))
+    :config
     (winner-mode 1))
+
 
   ;; Outline for code folding
   ;; Outline-minor-mode key map
@@ -529,6 +586,10 @@ Themes and other configuration
 
 #+begin_src emacs-lisp
 
+
+  (display-time-mode 1)
+  (display-battery-mode 1)
+
   ;; File beautification
 
   (use-package all-the-icons-ivy-rich
@@ -571,8 +632,7 @@ Themes and other configuration
     (goto-char (point-min))
     (while (re-search-forward "\\[2K\\[0G" nil t)
       (progn
-        (replace-match "
-  ")))
+        (replace-match "")))
     (toggle-read-only))
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
@@ -1083,26 +1143,102 @@ Debug settings for various languages
 See diff of two files
 
 
+** Graphics
+
+Epaint
+#+begin_src emacs-lisp
+  (use-package epaint
+    :if (display-graphic-p)
+    :load-path (lambda () (expand-file-name "site-elisp/epaint" user-emacs-directory))
+    :commands (epaint)
+    :init
+    (with-eval-after-load (quote epaint-context)
+      (unless (boundp (quote cl-struct-epaint-drawable))
+        (defvar cl-struct-epaint-drawable (quote epaint-drawable)))
+      (unless (boundp (quote cl-struct-epaint-gc))
+        (defvar cl-struct-epaint-gc (quote epaint-gc)))))
+
+
+
+  (use-package leetcode
+    :load-path (lambda () (expand-file-name "site-elisp/leetcode.el" user-emacs-directory))
+    :commands (leetcode)
+    :init
+    (use-package graphql :defer t)
+    (use-package aio :defer t)
+    :custom
+    (url-debug t)
+    (leetcode-prefer-language "python3"))
+
+
+#+end_src
+
 ** FlyCheck
 Use fly check to check syntax
 #+begin_src emacs-lisp
 
 
   ;; flycheck
-  (use-package flycheck
-    :ensure t
-    :config
-    (setq flycheck-check-syntax-automatically '(mode-enabled save))
-    (setq compilation-auto-jump-to-first-error t)
-    (add-hook 'python-mode-hook 'flycheck-mode)
-    (add-hook 'go-mode-hook 'flycheck-mode)
-    (add-hook 'sh-mode-hook 'flycheck-mode)
-    (add-hook 'rst-mode-hook 'flycheck-mode)
-    (add-hook 'js2-mode-hook 'flycheck-mode)
-    (add-hook 'web-mode-hook 'flycheck-mode)
-    (add-hook 'elpy-mode-hook 'flycheck-mode))
 
-  (add-hook 'text-mode-hook 'flyspell-mode)
+  (use-package flycheck
+    :defer t
+    :diminish
+    :hook (after-init . global-flycheck-mode)
+    :commands (flycheck-add-mode)
+    :custom
+    (flycheck-global-modes
+     '(not outline-mode diff-mode shell-mode eshell-mode term-mode))
+    (flycheck-emacs-lisp-load-path 'inherit)
+    (flycheck-indication-mode (if (display-graphic-p) 'right-fringe 'right-margin))
+    :init
+    (if (display-graphic-p)
+        (use-package flycheck-posframe
+          :custom-face
+          (flycheck-posframe-face ((t (:foreground ,(face-foreground 'success)))))
+          (flycheck-posframe-info-face ((t (:foreground ,(face-foreground 'success)))))
+          :hook (flycheck-mode . flycheck-posframe-mode)
+          :custom
+          (flycheck-posframe-position 'window-bottom-left-corner)
+          (flycheck-posframe-border-width 3)
+          (flycheck-posframe-inhibit-functions
+           '((lambda (&rest _) (bound-and-true-p company-backend)))))
+      (use-package flycheck-pos-tip
+        :defines flycheck-pos-tip-timeout
+        :hook (flycheck-mode . flycheck-pos-tip-mode)
+        :custom (flycheck-pos-tip-timeout 30)))
+    :config
+    (use-package flycheck-popup-tip
+      :hook (flycheck-mode . flycheck-popup-tip-mode))
+    (when (fboundp 'define-fringe-bitmap)
+      (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
+        [16 48 112 240 112 48 16] nil nil 'center))
+    (when (executable-find "vale")
+      (use-package flycheck-vale
+        :config
+        (flycheck-vale-setup)
+        (flycheck-add-mode 'vale 'latex-mode))))
+
+  (use-package flyspell
+    :ensure nil
+    :diminish
+    :if (executable-find "aspell")
+    :hook (((text-mode outline-mode latex-mode org-mode markdown-mode) . flyspell-mode))
+    :custom
+    (flyspell-issue-message-flag nil)
+    (ispell-program-name "aspell")
+    (ispell-extra-args
+     '("--sug-mode=ultra" "--lang=en_US" "--camel-case"))
+    :config
+    (use-package flyspell-correct-ivy
+      :after ivy
+      :bind
+      (:map flyspell-mode-map
+            ([remap flyspell-correct-word-before-point] . flyspell-correct-wrapper)
+            ("C-." . flyspell-correct-wrapper))
+      :custom (flyspell-correct-interface #'flyspell-correct-ivy)))
+
+
+
 
 
 #+end_src
@@ -1162,12 +1298,342 @@ Use Ivy frame work for code completion interface
 #+begin_src emacs-lisp
 
   ;; ivy
+
   (use-package ivy
-    :ensure t
-    :diminish ivy-mode
-    :config
+    :diminish
+    :init
+    (use-package amx :defer t)
+    (use-package counsel :diminish :config (counsel-mode 1))
+    (use-package swiper :defer t)
     (ivy-mode 1)
-    (bind-key "C-c C-r" 'ivy-resume))
+    :bind
+    (("C-s" . swiper)
+     ("C-z s" . counsel-rg)
+     ("C-z b" . counsel-buffer-or-recentf)
+     ("C-z C-b" . counsel-ibuffer)
+     (:map ivy-minibuffer-map
+           ("C-r" . ivy-previous-line-or-history)
+           ("M-RET" . ivy-immediate-done))
+     (:map counsel-find-file-map
+           ("C-~" . counsel-goto-local-home)))
+    :custom
+    (ivy-use-virtual-buffers t)
+    (ivy-height 10)
+    (ivy-on-del-error-function nil)
+    (ivy-magic-slash-non-match-action 'ivy-magic-slash-non-match-create)
+    (ivy-count-format "【%d/%d】")
+    (ivy-wrap t)
+    :config
+    (defun counsel-goto-local-home ()
+      "Go to the $HOME of the local machine."
+      (interactive)
+      (ivy--cd "~/")))
+
+
+  ;; company completion framework for all text
+  ;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
+  ;; Search through the completions with C-s, C-r and C-o.
+  ;; Press M-(digit) to quickly complete with one of the first 10 candidates.
+
+  (use-package company
+    :diminish company-mode
+    :hook ((prog-mode LaTeX-mode latex-mode ess-r-mode) . company-mode)
+    :bind
+    (:map company-active-map
+          ([tab] . smarter-tab-to-complete)
+          ("TAB" . smarter-tab-to-complete))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-tooltip-align-annotations t)
+    (company-require-match 'never)
+    ;; Don't use company in the following modes
+    (company-global-modes '(not shell-mode eaf-mode))
+    ;; Trigger completion immediately.
+    (company-idle-delay 0.1)
+    ;; Number the candidates (use M-1, M-2 etc to select completions).
+    (company-show-numbers t)
+    :config
+    (unless clangd-p (delete 'company-clang company-backends))
+    (global-company-mode 1)
+    (defun smarter-tab-to-complete ()
+      "Try to `org-cycle', `yas-expand', and `yas-next-field' at current cursor position.
+
+  If all failed, try to complete the common part with `company-complete-common'"
+      (interactive)
+      (when yas-minor-mode
+        (let ((old-point (point))
+              (old-tick (buffer-chars-modified-tick))
+              (func-list
+               (if (equal major-mode 'org-mode) '(org-cycle yas-expand yas-next-field)
+                 '(yas-expand yas-next-field))))
+          (catch 'func-suceed
+            (dolist (func func-list)
+              (ignore-errors (call-interactively func))
+              (unless (and (eq old-point (point))
+                           (eq old-tick (buffer-chars-modified-tick)))
+                (throw 'func-suceed t)))
+            (company-complete-common))))))
+
+  (add-hook 'after-init-hook 'global-company-mode)
+
+
+  (use-package company-tabnine
+    :defer 1
+    :custom
+    (company-tabnine-max-num-results 9)
+    :bind
+    (("M-q" . company-other-backend)
+     ("C-z t" . company-tabnine))
+    :init
+    (defun company//sort-by-tabnine (candidates)
+      "Integrate company-tabnine with lsp-mode"
+      (if (or (functionp company-backend)
+              (not (and (listp company-backend) (memq 'company-tabnine company-backends))))
+          candidates
+        (let ((candidates-table (make-hash-table :test #'equal))
+              candidates-lsp
+              candidates-tabnine)
+          (dolist (candidate candidates)
+            (if (eq (get-text-property 0 'company-backend candidate)
+                    'company-tabnine)
+                (unless (gethash candidate candidates-table)
+                  (push candidate candidates-tabnine))
+              (push candidate candidates-lsp)
+              (puthash candidate t candidates-table)))
+          (setq candidates-lsp (nreverse candidates-lsp))
+          (setq candidates-tabnine (nreverse candidates-tabnine))
+          (nconc (seq-take candidates-tabnine 3)
+                 (seq-take candidates-lsp 6)))))
+    (defun lsp-after-open-tabnine ()
+      "Hook to attach to `lsp-after-open'."
+      (setq-local company-tabnine-max-num-results 3)
+      (add-to-list 'company-transformers 'company//sort-by-tabnine t)
+      (add-to-list 'company-backends '(company-capf :with company-tabnine :separate)))
+    (defun company-tabnine-toggle (&optional enable)
+      "Enable/Disable TabNine. If ENABLE is non-nil, definitely enable it."
+      (interactive)
+      (if (or enable (not (memq 'company-tabnine company-backends)))
+          (progn
+            (add-hook 'lsp-after-open-hook #'lsp-after-open-tabnine)
+            (add-to-list 'company-backends #'company-tabnine)
+            (when (bound-and-true-p lsp-mode) (lsp-after-open-tabnine))
+            (message "TabNine enabled."))
+        (setq company-backends (delete 'company-tabnine company-backends))
+        (setq company-backends (delete '(company-capf :with company-tabnine :separate) company-backends))
+        (remove-hook 'lsp-after-open-hook #'lsp-after-open-tabnine)
+        (company-tabnine-kill-process)
+        (message "TabNine disabled.")))
+    :hook
+    (kill-emacs . company-tabnine-kill-process)
+    :config
+    (company-tabnine-toggle t))
+
+  (use-package company-box
+    :diminish
+    :if (display-graphic-p)
+    :defines company-box-icons-all-the-icons
+    :hook (company-mode . company-box-mode)
+    :custom
+    (company-box-backends-colors nil)
+    (company-box-doc-delay 0.1)
+    (company-box-doc-frame-parameters '((internal-border-width . 1)
+                                        (left-fringe . 3)
+                                        (right-fringe . 3)))
+    :config
+    (with-no-warnings
+      ;; Prettify icons
+      (defun my-company-box-icons--elisp (candidate)
+        (when (or (derived-mode-p 'emacs-lisp-mode) (derived-mode-p 'lisp-mode))
+          (let ((sym (intern candidate)))
+            (cond ((fboundp sym) 'Function)
+                  ((featurep sym) 'Module)
+                  ((facep sym) 'Color)
+                  ((boundp sym) 'Variable)
+                  ((symbolp sym) 'Text)
+                  (t . nil)))))
+      (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp)
+
+      ;; Credits to Centaur for these configurations
+      ;; Display borders and optimize performance
+      (defun my-company-box--display (string on-update)
+        "Display the completions."
+        (company-box--render-buffer string on-update)
+
+        (let ((frame (company-box--get-frame))
+              (border-color (face-foreground 'font-lock-comment-face nil t)))
+          (unless frame
+            (setq frame (company-box--make-frame))
+            (company-box--set-frame frame))
+          (company-box--compute-frame-position frame)
+          (company-box--move-selection t)
+          (company-box--update-frame-position frame)
+          (unless (frame-visible-p frame)
+            (make-frame-visible frame))
+          (company-box--update-scrollbar frame t)
+          (set-face-background 'internal-border border-color frame)
+          (when (facep 'child-frame-border)
+            (set-face-background 'child-frame-border border-color frame)))
+        (with-current-buffer (company-box--get-buffer)
+          (company-box--maybe-move-number (or company-box--last-start 1))))
+      (advice-add #'company-box--display :override #'my-company-box--display)
+
+      (defun my-company-box-doc--make-buffer (object)
+        (let* ((buffer-list-update-hook nil)
+               (inhibit-modification-hooks t)
+               (string (cond ((stringp object) object)
+                             ((bufferp object) (with-current-buffer object (buffer-string))))))
+          (when (and string (> (length (string-trim string)) 0))
+            (with-current-buffer (company-box--get-buffer "doc")
+              (erase-buffer)
+              (insert (propertize "\n" 'face '(:height 0.5)))
+              (insert string)
+              (insert (propertize "\n\n" 'face '(:height 0.5)))
+
+              ;; Handle hr lines of markdown
+              ;; @see `lsp-ui-doc--handle-hr-lines'
+              (with-current-buffer (company-box--get-buffer "doc")
+                (let (bolp next before after)
+                  (goto-char 1)
+                  (while (setq next (next-single-property-change (or next 1) 'markdown-hr))
+                    (when (get-text-property next 'markdown-hr)
+                      (goto-char next)
+                      (setq bolp (bolp)
+                            before (char-before))
+                      (delete-region (point) (save-excursion (forward-visible-line 1) (point)))
+                      (setq after (char-after (1+ (point))))
+                      (insert
+                       (concat
+                        (and bolp (not (equal before ?\n)) (propertize "\n" 'face '(:height 0.5)))
+                        (propertize "\n" 'face '(:height 0.5))
+                        (propertize " "
+                                    'display '(space :height (1))
+                                    'company-box-doc--replace-hr t
+                                    'face `(:background ,(face-foreground 'font-lock-comment-face)))
+                        (propertize " " 'display '(space :height (1)))
+                        (and (not (equal after ?\n)) (propertize " \n" 'face '(:height 0.5)))))))))
+
+              (setq mode-line-format nil
+                    display-line-numbers nil
+                    header-line-format nil
+                    show-trailing-whitespace nil
+                    cursor-in-non-selected-windows nil)
+              (current-buffer)))))
+      (advice-add #'company-box-doc--make-buffer :override #'my-company-box-doc--make-buffer)
+
+      ;; Display the border and fix the markdown header properties
+      (defun my-company-box-doc--show (selection frame)
+        (cl-letf (((symbol-function 'completing-read) #'company-box-completing-read)
+                  (window-configuration-change-hook nil)
+                  (inhibit-redisplay t)
+                  (display-buffer-alist nil)
+                  (buffer-list-update-hook nil))
+          (-when-let* ((valid-state (and (eq (selected-frame) frame)
+                                         company-box--bottom
+                                         company-selection
+                                         (company-box--get-frame)
+                                         (frame-visible-p (company-box--get-frame))))
+                       (candidate (nth selection company-candidates))
+                       (doc (or (company-call-backend 'quickhelp-string candidate)
+                                (company-box-doc--fetch-doc-buffer candidate)))
+                       (doc (company-box-doc--make-buffer doc)))
+            (let ((frame (frame-local-getq company-box-doc-frame))
+                  (border-color (face-foreground 'font-lock-comment-face nil t)))
+              (unless (frame-live-p frame)
+                (setq frame (company-box-doc--make-frame doc))
+                (frame-local-setq company-box-doc-frame frame))
+              (set-face-background 'internal-border border-color frame)
+              (when (facep 'child-frame-border)
+                (set-face-background 'child-frame-border border-color frame))
+              (company-box-doc--set-frame-position frame)
+
+              ;; Fix hr props. @see `lsp-ui-doc--fix-hr-props'
+              (with-current-buffer (company-box--get-buffer "doc")
+                (let (next)
+                  (while (setq next (next-single-property-change (or next 1) 'company-box-doc--replace-hr))
+                    (when (get-text-property next 'company-box-doc--replace-hr)
+                      (put-text-property next (1+ next) 'display
+                                         '(space :align-to (- right-fringe 1) :height (1)))
+                      (put-text-property (1+ next) (+ next 2) 'display
+                                         '(space :align-to right-fringe :height (1)))))))
+
+              (unless (frame-visible-p frame)
+                (make-frame-visible frame))))))
+      (advice-add #'company-box-doc--show :override #'my-company-box-doc--show)
+
+      (defun my-company-box-doc--set-frame-position (frame)
+        (-let* ((frame-resize-pixelwise t)
+
+                (box-frame (company-box--get-frame))
+                (box-position (frame-position box-frame))
+                (box-width (frame-pixel-width box-frame))
+                (box-height (frame-pixel-height box-frame))
+                (box-border-width (frame-border-width box-frame))
+
+                (window (frame-root-window frame))
+                ((text-width . text-height) (window-text-pixel-size window nil nil
+                                                                    (/ (frame-pixel-width) 2)
+                                                                    (/ (frame-pixel-height) 2)))
+                (border-width (or (alist-get 'internal-border-width company-box-doc-frame-parameters) 0))
+
+                (x (- (+ (car box-position) box-width) border-width))
+                (space-right (- (frame-pixel-width) x))
+                (space-left (car box-position))
+                (fringe-left (or (alist-get 'left-fringe company-box-doc-frame-parameters) 0))
+                (fringe-right (or (alist-get 'right-fringe company-box-doc-frame-parameters) 0))
+                (width (+ text-width border-width fringe-left fringe-right))
+                (x (if (> width space-right)
+                       (if (> space-left width)
+                           (- space-left width)
+                         space-left)
+                     x))
+                (y (cdr box-position))
+                (bottom (+ company-box--bottom (frame-border-width)))
+                (height (+ text-height (* 2 border-width)))
+                (y (cond ((= x space-left)
+                          (if (> (+ y box-height height) bottom)
+                              (+ (- y height) border-width)
+                            (- (+ y box-height) border-width)))
+                         ((> (+ y height) bottom)
+                          (- (+ y box-height) height))
+                         (t y))))
+          (set-frame-position frame (max x 0) (max y 0))
+          (set-frame-size frame text-width text-height t)))
+      (advice-add #'company-box-doc--set-frame-position :override #'my-company-box-doc--set-frame-position))
+
+    (when (require 'all-the-icons nil t)
+      (declare-function all-the-icons-faicon 'all-the-icons)
+      (declare-function all-the-icons-material 'all-the-icons)
+      (declare-function all-the-icons-octicon 'all-the-icons)
+      (setq company-box-icons-all-the-icons
+            `((Unknown . ,(all-the-icons-material "find_in_page" :height 1.0 :v-adjust -0.2))
+              (Text . ,(all-the-icons-faicon "text-width" :height 1.0 :v-adjust -0.02))
+              (Method . ,(all-the-icons-faicon "cube" :height 1.0 :v-adjust -0.02 :face 'all-the-icons-purple))
+              (Function . ,(all-the-icons-faicon "cube" :height 1.0 :v-adjust -0.02 :face 'all-the-icons-purple))
+              (Constructor . ,(all-the-icons-faicon "cube" :height 1.0 :v-adjust -0.02 :face 'all-the-icons-purple))
+              (Field . ,(all-the-icons-octicon "tag" :height 1.1 :v-adjust 0 :face 'all-the-icons-lblue))
+              (Variable . ,(all-the-icons-octicon "tag" :height 1.1 :v-adjust 0 :face 'all-the-icons-lblue))
+              (Class . ,(all-the-icons-material "settings_input_component" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-orange))
+              (Interface . ,(all-the-icons-material "share" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue))
+              (Module . ,(all-the-icons-material "view_module" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue))
+              (Property . ,(all-the-icons-faicon "wrench" :height 1.0 :v-adjust -0.02))
+              (Unit . ,(all-the-icons-material "settings_system_daydream" :height 1.0 :v-adjust -0.2))
+              (Value . ,(all-the-icons-material "format_align_right" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-lblue))
+              (Enum . ,(all-the-icons-material "storage" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-orange))
+              (Keyword . ,(all-the-icons-material "filter_center_focus" :height 1.0 :v-adjust -0.2))
+              (Snippet . ,(all-the-icons-material "format_align_center" :height 1.0 :v-adjust -0.2))
+              (Color . ,(all-the-icons-material "palette" :height 1.0 :v-adjust -0.2))
+              (File . ,(all-the-icons-faicon "file-o" :height 1.0 :v-adjust -0.02))
+              (Reference . ,(all-the-icons-material "collections_bookmark" :height 1.0 :v-adjust -0.2))
+              (Folder . ,(all-the-icons-faicon "folder-open" :height 1.0 :v-adjust -0.02))
+              (EnumMember . ,(all-the-icons-material "format_align_right" :height 1.0 :v-adjust -0.2))
+              (Constant . ,(all-the-icons-faicon "square-o" :height 1.0 :v-adjust -0.1))
+              (Struct . ,(all-the-icons-material "settings_input_component" :height 1.0 :v-adjust -0.2 :face 'all-the-icons-orange))
+              (Event . ,(all-the-icons-octicon "zap" :height 1.0 :v-adjust 0 :face 'all-the-icons-orange))
+              (Operator . ,(all-the-icons-material "control_point" :height 1.0 :v-adjust -0.2))
+              (TypeParameter . ,(all-the-icons-faicon "arrows" :height 1.0 :v-adjust -0.02))
+              (Template . ,(all-the-icons-material "format_align_left" :height 1.0 :v-adjust -0.2)))
+            company-box-icons-alist 'company-box-icons-all-the-icons)))
+
 
   (use-package smart-tab)
   (require 'smart-tab)
@@ -1620,7 +2086,9 @@ Nodejs & React stuff
   (add-to-list 'lsp-enabled-clients 'ts-ls)
   (add-to-list 'lsp-language-id-configuration '(js2-mode . "javascript"))
 
-
+  (use-package instant-rename-tag
+    :load-path (lambda () (expand-file-name "site-elisp/instant-rename-tag" user-emacs-directory))
+    :bind ("C-x <" . instant-rename-tag))
   (use-package js-import)
   (use-package js2-refactor)
   (require 'js2-refactor)
@@ -1651,7 +2119,7 @@ Nodejs & React stuff
 
   (defun setup-local-standard ()
     "If standard found in node_modules directory - use that for flycheck.
-                  Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
+                    Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
     (interactive)
     (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
       (setq flycheck-javascript-standard-executable
@@ -2369,8 +2837,8 @@ Settings for OrgMode
         (seq-filter (lambda(x) (not (string-match "/org/"(file-name-directory x))))
                     (directory-files-recursively "~/Documents/org-roam" "\\.org$")
                     ))
-  (use-package vulpea)
 
+  (use-package vulpea)
 
   (setq org-agenda-prefix-format
         '((agenda . " %i %(vulpea-agenda-category 12)%?-12t% s")
@@ -2381,23 +2849,23 @@ Settings for OrgMode
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-  Category is defined by one of the following items:
+          Category is defined by one of the following items:
 
-  - CATEGORY property
-  - TITLE keyword
-  - TITLE property
-  - filename without directory and extension
+          - CATEGORY property
+          - TITLE keyword
+          - TITLE property
+          - filename without directory and extension
 
-  When LEN is a number, resulting string is padded right with
-  spaces and then truncated with ... on the right if result is
-  longer than LEN.
+          When LEN is a number, resulting string is padded right with
+          spaces and then truncated with ... on the right if result is
+          longer than LEN.
 
-  Usage example:
+          Usage example:
 
-    (setq org-agenda-prefix-format
-          '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+            (setq org-agenda-prefix-format
+                  '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-  Refer to `org-agenda-prefix-format' for more information."
+          Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2414,6 +2882,53 @@ Settings for OrgMode
           (s-truncate len (s-pad-right len " " result))
         result)))
 
+  (defun vulpea-ensure-filetag ()
+    "Add respective file tag if it's missing in the current note."
+    (interactive)
+    (let ((tags (vulpea-buffer-tags-get))
+          (tag (vulpea--title-as-tag)))
+      (when (and (seq-contains-p tags "people")
+                 (not (seq-contains-p tags tag)))
+        (vulpea-buffer-tags-add tag))))
+
+  (defun vulpea--title-as-tag ()
+    "Return title of the current note as tag."
+    (vulpea--title-to-tag (vulpea-buffer-title-get)))
+
+  (defun vulpea--title-to-tag (title)
+    "Convert TITLE to tag."
+    (concat "@" (s-replace " " "" title)))
+
+  (defun vulpea-tags-add ()
+    "Add a tag to current note."
+    (interactive)
+    ;; since https://github.com/org-roam/org-roam/pull/1515
+    ;; `org-roam-tag-add' returns added tag, we could avoid reading tags
+    ;; in `vulpea-ensure-filetag', but this way it can be used in
+    ;; different contexts while having simple implementation.
+    (when (call-interactively #'org-roam-tag-add)
+      (vulpea-ensure-filetag)))
+
+
+  (defun vulpea-insert ()
+    "Insert a link to the note."
+    (interactive)
+    (when-let*
+        ((node (org-roam-node-insert))
+         (title (org-roam-node-title node))
+         (tags (org-roam-node-tags node)))
+      (when (seq-contains-p tags "people")
+        (save-excursion
+          (ignore-errors
+            (org-back-to-heading)
+            (org-set-tags
+             (seq-uniq
+              (cons
+               (vulpea--title-to-tag title)
+               (org-get-tags nil t)))))))))
+
+
+      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
@@ -2491,6 +3006,23 @@ Settings for OrgMode
     (add-hook 'markdown-mode-hook 'orgalist-mode)
     (add-hook 'message-mode-hook 'orgalist-mode))
 
+  ;; Plantuml a major mode for generating sequence and UML diagram using
+  ;; text. https://plantuml.com
+
+
+  (use-package plantuml-mode
+    :defer t
+    :custom
+    (org-plantuml-jar-path (expand-file-name "/usr/local/Cellar/plantuml/1.2021.10/libexec/plantuml.jar"))
+    :config
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '(;; other Babel languages
+       (plantuml . t))))
+
+
+  ;; Enable plantuml-mode for PlantUML files
+  (add-to-list 'auto-mode-alist '("\\.plantuml\\'" . plantuml-mode))
 
   ;; org mode end
 
@@ -2561,15 +3093,34 @@ Mode for writing books
 * Experimental stuff
 #+begin_src emacs-lisp
 
-
+  (use-package ibuffer
+    :ensure nil
+    :bind ("C-x C-b" . ibuffer)
+    :init
+    (use-package ibuffer-vc
+      :commands (ibuffer-vc-set-filter-groups-by-vc-root)
+      :custom
+      (ibuffer-vc-skip-if-remote 'nil))
+    :custom
+    (ibuffer-formats
+     '((mark modified read-only locked " "
+             (name 35 35 :left :elide)
+             " "
+             (size 9 -1 :right)
+             " "
+             (mode 16 16 :left :elide)
+             " " filename-and-process)
+       (mark " "
+             (name 16 -1)
+             " " filename))))
   (quelpa '(eaf :fetcher github
                 :repo  "manateelazycat/emacs-application-framework"
                 :files ("*")))
 
 
   (quelpa '(s :fetcher github
-                :repo  "magnars/s.el"
-                :files ("*")))
+              :repo  "magnars/s.el"
+              :files ("*")))
 
   (use-package eaf
     :load-path "~/.emacs.d/elpa/eaf-20210702.437"
