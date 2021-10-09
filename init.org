@@ -6,6 +6,9 @@ inspired by a bunch of resources I've found online. Lot of it taken from https:/
 
 #+OPTIONS: toc: include all
 * My Cheat Sheet
+- Installation command:
+  brew tap daviderestivo/emacs-head
+  brew reinstall emacs-head@28 --with-dbus --with-multicolor-fonts --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
 - C-i is tab
 - C-M-k delete brackets and everything inside it
 - C-u C-space move cursor to previous marked position
@@ -166,6 +169,8 @@ use-package to manage package configuration.
      :fetcher github
      :url "https://github.com/quelpa/quelpa-use-package.git"))
 
+
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/")
 #+end_src
 
 * Startup Performance
@@ -234,8 +239,8 @@ Custom functions that help in OrgMode and other functionality.
 
   (defun insdate-insert-current-date (&optional omit-day-of-week-p)
     "Insert today's date using the current locale.
-    With a prefix argument, the date is inserted without the day of
-    the week."
+      With a prefix argument, the date is inserted without the day of
+      the week."
     (interactive "P*")
     (insert (calendar-date-string (calendar-current-date) nil
                                   omit-day-of-week-p)))
@@ -992,8 +997,6 @@ LSP mode settings. Custom language settings also included here.
        ("pylsp.plugins.pyflakes.enabled" nil t)
        )))
   (setq lsp-eldoc-render-all t)
-  (require 'dap-chrome)
-
   ;; Optional - provides fancier overlays.
   (use-package lsp-ui
     :ensure t
@@ -1053,6 +1056,8 @@ Debug settings for various languages
 #+begin_src emacs-lisp
 
   ;; DAP mode
+  (use-package dap-java :ensure nil)
+  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
   (use-package dap-mode
     :diminish dap-mode
     :ensure t
@@ -1071,6 +1076,7 @@ Debug settings for various languages
     (require 'dap-gdb-lldb)
     (require 'dap-go)   ;  (require 'dap-go)		; download and expand vscode-go-extenstion to the =~/.extensions/go=
     (dap-go-setup)
+    (dap-chrome-setup)
     (use-package dap-ui
       :ensure nil
       :config
@@ -1078,7 +1084,7 @@ Debug settings for various languages
 
 
   ;; Rust template
-
+  (require 'dap-mode)
   (dap-register-debug-template "Rust::GDB Run Configuration"
                                (list :type "gdb"
                                      :request "launch"
@@ -2408,8 +2414,7 @@ Jinja2 mode
 
 
   ;; jinja2 mode, https://github.com/paradoxxxzero/jinja2-mode
-  (use-package jinja2-mode
-    :load-path "vendor")
+  (use-package jinja2-mode)
   (add-to-list 'auto-mode-alist '("\\.jinja2\\'" . jinja2-mode))
   (add-to-list 'auto-mode-alist '("\\.j2\\'" . jinja2-mode))
 
@@ -2496,9 +2501,8 @@ Set Emacs as Java IDE
 
   (add-to-list 'lsp-enabled-clients 'jdtls)
 
-  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
 
-  (use-package dap-java :ensure nil)
+
 
 
   (use-package java-snippets)
@@ -2731,8 +2735,36 @@ Settings for OrgMode
   ;; and put it in ~/.emacs.d/
   (require 'ox-confluence)
   (use-package ox-gfm :defer t)
+  (setq org-jira-custom-jqls
+        '(
+          ;; (:jql "Assignee = anuj.kulkarni AND status not in (Resolved, Closed) ORDER BY created DESC"
+          ;;       :limit 100
+          ;;       :filename "anuj")
+
+          ;; (:jql "Assignee = tamanna.gupta AND status not in (Resolved, Closed) ORDER BY created DESC"
+          ;;       :limit 100
+          ;;       :filename "tamanna")
+
+          ;; (:jql "Assignee = vivek.saini AND status not in (Resolved, Closed) ORDER BY created DESC"
+          ;;       :limit 100
+          ;;       :filename "vivek")
+
+          ;; (:jql "Assignee = vaibhav.kamble AND status not in (Resolved, Closed) ORDER BY created DESC"
+          ;;       :limit 100
+          ;;       :filename "vaibhav")
+
+          ;; (:jql "Assignee = jitendra.panchal AND status not in (Resolved, Closed) ORDER BY created DESC"
+          ;;       :limit 100
+          ;;       :filename "jitendra")
+
+          (:jql "project=\"ConnectWise DevOps\" AND status not in (Resolved, Closed) ORDER BY created DESC"
+                :startIndex
+                :limit 10
+                :filename "cw_cd")
+          ))
 
   (use-package org-jira)
+
   ;;(make-directory "~/.org-jira")
   (setq jiralib-url "https://jira.connectwisedev.com")
 
@@ -2792,6 +2824,8 @@ Settings for OrgMode
   (setq org-archive-location
         (concat (org-file-path "archive.org") "::* From %s"))
 
+
+  (setq org-agenda-sorting-strategy '(habit-down category-up))
   (setq org-agenda-files
         (seq-filter (lambda(x) (not (string-match "/org/"(file-name-directory x))))
                     (directory-files-recursively "~/Documents/org-roam" "\\.org$")
@@ -3072,51 +3106,60 @@ Mode for writing books
        (mark " "
              (name 16 -1)
              " " filename))))
-  (quelpa '(eaf :fetcher github
-                :repo  "manateelazycat/emacs-application-framework"
-                :files ("*")))
 
+
+  (quelpa '(eaf :fetcher github
+                :repo  "emacs-eaf/emacs-application-framework"
+                :files ("*")))
 
   (quelpa '(s :fetcher github
               :repo  "magnars/s.el"
               :files ("*")))
 
+  (add-to-list 'load-path "/Users/gattu/.emacs.d/site-lisp/")
+
   (use-package eaf
-    :load-path "~/.emacs.d/elpa/eaf-20210702.437"
-    :init
-    (use-package epc :defer t)
-    (use-package ctable :defer t)
-    (use-package deferred :defer t)
+    :load-path (lambda () (expand-file-name "site-lisp/emacs-application-framework" user-emacs-directory))
     :custom
     (browse-url-browser-function #'eaf-open-browser) ;; Make EAF Browser my default browser
-    (eaf-browser-continue-where-left-off t)
+    (eaf-browser-continue-where-left-off nil)
+    (eaf-browse-blank-page-url "https://duckduckgo.com")
+    (eaf-browser-enable-adblocker t)
+    (eaf-start-python-process-when-require t)
+    (eaf-browser-default-zoom 1)
+    (eaf-browser-dark-mode t)
+    (eaf-browser-enable-adblocker t)
+    (eaf-pdf-dark-mode t)
+    (eaf-browser-enable-autofill t)
+    (eaf-file-manager-show-preview nil)
+    :demand
+    :bind
+    (("C-x j" . eaf-open-in-file-manager))
     :config
+    (require 'eaf-file-manager nil t)
+    (require 'eaf-music-player nil t)
+    (require 'eaf-image-viewer nil t)
+    (require 'eaf-camera nil t)
+    (require 'eaf-demo nil t)
+    (require 'eaf-airshare nil t)
+    (require 'eaf-terminal nil t)
+    (require 'eaf-markdown-previewer nil t)
+    (require 'eaf-video-player nil t)
+    (require 'eaf-vue-demo nil t)
+    (require 'eaf-file-sender nil t)
+    (require 'eaf-pdf-viewer nil t)
+    (require 'eaf-mindmap nil t)
+    (require 'eaf-netease-cloud-music nil t)
+    (require 'eaf-jupyter nil t)
+    (require 'eaf-org-previewer nil t)
+    (require 'eaf-system-monitor nil t)
+    (require 'eaf-file-browser nil t)
+    (require 'eaf-browser nil t)
     (require 'eaf-org)
-    (when (display-graphic-p)
-      (require 'eaf-all-the-icons))
-    (defalias 'browse-web #'eaf-open-browser)
-    (eaf-bind-key nil "M-q" eaf-browser-keybinding)
-    (eaf-bind-key open_link "C-M-s" eaf-browser-keybinding)
-    (eaf-bind-key open_devtools "M-i" eaf-browser-keybinding)
-    (eaf-bind-key insert_or_recover_prev_close_page "X" eaf-browser-keybinding)
-    (eaf-bind-key scroll_up "RET" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key clear_cookies "C-M-q" eaf-browser-keybinding)
-    (eaf-bind-key clear_history "C-M-p" eaf-browser-keybinding)
-    (eaf-bind-key scroll_down_page "DEL" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key scroll_down_page "u" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key scroll_up_page "d" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key scroll_to_end "M->" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key scroll_to_begin "M-<" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key quit-window "q" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key zoom_in "C-=" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key zoom_out "C--" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-    (eaf-bind-key eaf-send-key-sequence "M-]" eaf-terminal-keybinding)
-    (eaf-setq eaf-browser-default-zoom "1.25")
-    (eaf-setq eaf-browser-dark-mode "true")
-    (eaf-setq eaf-browser-enable-adblocker "true")
-    (eaf-setq eaf-pdf-dark-mode "true")
-    (eaf-setq eaf-browser-enable-autofill "true"))
+    (require 'eaf-mail)
+    (require 'eaf-all-the-icons)
+    (defalias 'browse-web #'eaf-open-browser))
+
 
   ;; A game to practice speed typing in emacs
   (use-package speed-type
@@ -3162,9 +3205,6 @@ Mode for writing books
     :mode "\\.dat\\'")
 
   (use-package emr)
-  (autoload 'emr-show-refactor-menu "emr")
-  (define-key prog-mode-map (kbd "M-RET") 'emr-show-refactor-menu)
-  (eval-after-load "emr" '(emr-initialize))
 
   ;; sml-mode Standard ML a functional language
   (use-package sml-mode
