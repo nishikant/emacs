@@ -148,7 +148,7 @@ use-package to manage package configuration.
 
   ;; Compile the latest versions
   (require 'use-package)
-  (setq use-package-always-ensure t)
+  ;; (setq use-package-always-ensure t)
 
   (use-package use-package-ensure-system-package
     :ensure t)
@@ -183,6 +183,14 @@ M-x bug-hunter-file and it will ask you path to tangled settings.el.
 
   ;; Bug hunter to debug errors in init.el.
   (use-package bug-hunter)
+
+  (setq native-comp-speed 2
+        comp-speed 2)
+  (setq native-comp-async-report-warnings-errors nil
+        comp-async-report-warnings-errors nil)
+  (setq native-comp-async-query-on-exit t
+        comp-async-query-on-exit t)
+
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
   ;; The default is 800 kilobytes.  Measured in bytes.
 
@@ -567,21 +575,28 @@ OS specific settings to make things work
 
 #+begin_src emacs-lisp
 
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (exec-path-from-shell-initialize)
+    (if (and (fboundp 'native-comp-available-p)
+             (native-comp-available-p))
+        (progn
+          (message "Native comp is available")
+          ;; Using Emacs.app/Contents/MacOS/bin since it was compiled with
+          ;; ./configure --prefix="$PWD/nextstep/Emacs.app/Contents/MacOS"
+          (add-to-list 'exec-path (concat invocation-directory "bin") t)
+          (setenv "LIBRARY_PATH" (concat (getenv "LIBRARY_PATH")
+                                         (when (getenv "LIBRARY_PATH")
+                                           ":")
+                                         ;; This is where Homebrew puts gcc libraries.
+                                         (car (file-expand-wildcards
+                                               (expand-file-name "~/homebrew/opt/gcc/lib/gcc/*")))))
+          ;; Only set after LIBRARY_PATH can find gcc libraries.
+          (setq comp-deferred-compilation t))
+      (message "Native comp is *not* available")))
   ;; Mac OSX specific settings
-  (if (eq system-type 'darwin)
-      (progn
-        (use-package exec-path-from-shell
-          :ensure t
-          :config
-          (exec-path-from-shell-initialize))
-        ;; use bash installed from macports
-        (defvar explicit-shell-file-name "/bin/bash")
-        ;;(set-frame-font
-        (setq mac-command-modifier 'meta)
-        (setq mac-right-option-modifier 'control)
-        ;;(mac-auto-operator-composition-mode)
-        ;; macOS ls doesn't support --dired
-        (defvar dired-use-ls-dired nil)))
+
 
 #+end_src
 
@@ -1863,9 +1878,9 @@ All YAML related config including AWS cloudformation, k8, & ansible.
     (flycheck-define-checker cfn-lint
       "AWS CloudFormation linter using cfn-lint.
 
-               Install cfn-lint first: pip install cfn-lint
+           Install cfn-lint first: pip install cfn-lint
 
-               See `https://github.com/aws-cloudformation/cfn-python-lint'."
+           See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
       :ensure-system-package (cfn-lint)
       :command ("cfn-lint" "-f" "parseable" source)
@@ -2084,7 +2099,7 @@ Nodejs & React stuff
 
   (defun setup-local-standard ()
     "If standard found in node_modules directory - use that for flycheck.
-                    Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
+            Copied from: http://www.cyrusinnovation.com/initial-emacs-setup-for-reactreactnative/"
     (interactive)
     (let ((local-standard (expand-file-name "./node_modules/.bin/standard")))
       (setq flycheck-javascript-standard-executable
@@ -2842,23 +2857,23 @@ Settings for OrgMode
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-          Category is defined by one of the following items:
+      Category is defined by one of the following items:
 
-          - CATEGORY property
-          - TITLE keyword
-          - TITLE property
-          - filename without directory and extension
+      - CATEGORY property
+      - TITLE keyword
+      - TITLE property
+      - filename without directory and extension
 
-          When LEN is a number, resulting string is padded right with
-          spaces and then truncated with ... on the right if result is
-          longer than LEN.
+      When LEN is a number, resulting string is padded right with
+      spaces and then truncated with ... on the right if result is
+      longer than LEN.
 
-          Usage example:
+      Usage example:
 
-            (setq org-agenda-prefix-format
-                  '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+        (setq org-agenda-prefix-format
+          '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-          Refer to `org-agenda-prefix-format' for more information."
+      Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
