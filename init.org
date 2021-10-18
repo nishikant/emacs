@@ -5,6 +5,52 @@ This is an ongoing evolution of my original Emacs configuration files,
 inspired by a bunch of resources I've found online. Lot of it taken from https://github.com/MatthewZMD/.emacs.d
 
 #+OPTIONS: toc: include all
+
+* My Cheat Sheet
+- Installation command:
+  brew tap daviderestivo/emacs-head
+  brew reinstall emacs-head@29 --with-dbus --with-multicolor-fonts --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
+- C-i is tab
+- C-M-k delete brackets and everything inside it
+- C-u C-space move cursor to previous marked position
+- C-x C-x move cursor to other end of selection
+- Map CapsLock key to control
+- C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
+- Keyboard Macros. General note, start at same position in new line
+- C-x ( to start recording
+- C-x ) to stop recording
+- C-u 10 C-x e to execute 10 times
+- C-c r search occurances in file
+- C-x M-d to insert todays date
+- C-u C-space to go back to previous position
+- C-c left or C-c right to switch between window placement.
+- C-x r w <key> and C-x r j <key> to store thin
+- C-space C-x r k define a kill rectangle.
+- C-t to open a terminal using shell-pop
+- C-x C-m = M-x also C-c C-m just in case accidentally you use.
+- C-x + to balance the split windows
+- C-h backward delete char and remap help to M-h
+- M-z zap-to-char
+- M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
+- M-\ delete horizontal spaces
+- C-x C-o Delete blank lines around the current line
+- C-c C-j to switch terminal to line mode C-c C-k to move it back to character mod
+- C-S-delete kill-whole-line
+- M-r recenter-positions of cursor in current window
+- C-M-a & C-M-e jump to beginning and end of paragraph/functions
+- Lisp C-M-d & C-M-u move into or out of list
+- C-M-f & C-M-b move back brackets or quotes
+- C-M-S-v scroll-other-window-down C-M-S-n scroll-other-window up
+- M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
+- C-= select current region and it expands on multiple repeats
+- C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
+- C-x C-n set-goal-column https://irreal.org/blog/?p=266
+- OrgMode: C-c C-q add tag
+- OrgMode: C-c C-x p add a property
+- OrgMode: org-id-get-create
+- OrgMode: C-ca to list all todos
+- OrgMode:
+
 * Package Management
 
 Setup Melpa, org, gnu and elpa packaage repositories and load
@@ -58,51 +104,6 @@ use-package to manage package configuration.
 
 
 #+end_src
-
-* My Cheat Sheet
-- Installation command:
-  brew tap daviderestivo/emacs-head
-  brew reinstall emacs-head@28 --with-dbus --with-multicolor-fonts --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
-- C-i is tab
-- C-M-k delete brackets and everything inside it
-- C-u C-space move cursor to previous marked position
-- C-x C-x move cursor to other end of selection
-- Map CapsLock key to control
-- C-x C-o delete blank lines delete-trailing-whitespace, tabify and untabify, indent-region, and so on.
-- Keyboard Macros. General note, start at same position in new line
-- C-x ( to start recording
-- C-x ) to stop recording
-- C-u 10 C-x e to execute 10 times
-- C-c r search occurances in file
-- C-x M-d to insert todays date
-- C-u C-space to go back to previous position
-- C-c left or C-c right to switch between window placement.
-- C-x r w <key> and C-x r j <key> to store thin
-- C-space C-x r k define a kill rectangle.
-- C-t to open a terminal using shell-pop
-- C-x C-m = M-x also C-c C-m just in case accidentally you use.
-- C-x + to balance the split windows
-- C-h backward delete char and remap help to M-h
-- M-z zap-to-char
-- M-/ hippie-expand for autocomplete, need (setq company-dabbrev-downcase nil) to work
-- M-\ delete horizontal spaces
-- C-x C-o Delete blank lines around the current line
-- C-c C-j to switch terminal to line mode C-c C-k to move it back to character mod
-- C-S-delete kill-whole-line
-- M-r recenter-positions of cursor in current window
-- C-M-a & C-M-e jump to beginning and end of paragraph/functions
-- Lisp C-M-d & C-M-u move into or out of list
-- C-M-f & C-M-b move back brackets or quotes
-- C-M-S-v scroll-other-window-down C-M-S-n scroll-other-window up
-- M-S-f/b <char> to select and <char> to insert around the selection, Add quotes around a word
-- C-= select current region and it expands on multiple repeats
-- C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
-- C-x C-n set-goal-column https://irreal.org/blog/?p=266
-- OrgMode: C-c C-q add tag
-- OrgMode: C-c C-x p add a property
-- OrgMode: org-id-get-create
-- OrgMode: C-ca to list all todos
-- OrgMode:
 
 * Shortcuts
 #+begin_src emacs-lisp
