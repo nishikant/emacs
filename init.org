@@ -5,6 +5,60 @@ This is an ongoing evolution of my original Emacs configuration files,
 inspired by a bunch of resources I've found online. Lot of it taken from https://github.com/MatthewZMD/.emacs.d
 
 #+OPTIONS: toc: include all
+* Package Management
+
+Setup Melpa, org, gnu and elpa packaage repositories and load
+use-package to manage package configuration.
+
+#+begin_src emacs-lisp
+
+  (setenv "LIBRARY_PATH"
+          (let ((current (getenv "LD_LIBRARY_PATH"))
+                (new "/usr/local/lib:/usr/local/Cellar/gcc/11.2.0/lib/gcc/11:/Library/Developer/CommandLineTools/usr/lib/llvm-gcc/4.2.1/"))
+            (if current (concat new ":" current) new)))
+
+  ;; Initialize package sources
+  (require 'package)
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("melpa-stable" . "https://stable.melpa.org/packages/")))
+  (package-initialize)
+
+  ;; Install use-package if not installed
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+
+  ;; Compile the latest versions
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+
+  (use-package use-package-ensure-system-package
+    :ensure t)
+
+  (cond
+   ((string-equal system-type "darwin")
+    (setq system-packages-use-sudo nil)
+    (setq system-packages-package-manager 'brew)))
+
+  (use-package auto-compile
+    :config (auto-compile-on-load-mode))
+
+  (use-package quelpa-use-package)
+  (use-package quelpa)
+  (require 'quelpa-use-package)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher github
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
+
+
+  (add-to-list 'load-path "~/.emacs.d/site-lisp/")
+
+
+#+end_src
+
 * My Cheat Sheet
 - Installation command:
   brew tap daviderestivo/emacs-head
@@ -122,55 +176,6 @@ inspired by a bunch of resources I've found online. Lot of it taken from https:/
 
 
 
-#+end_src
-
-* Package Management
-
-Setup Melpa, org, gnu and elpa packaage repositories and load
-use-package to manage package configuration.
-
-#+begin_src emacs-lisp
-
-  ;; Initialize package sources
-  (require 'package)
-
-
-  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("elpa" . "https://elpa.gnu.org/packages/")
-                           ("org" . "https://orgmode.org/elpa/")
-                           ("melpa-stable" . "https://stable.melpa.org/packages/")))
-  (package-initialize)
-
-  ;; Install use-package if not installed
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-
-  ;; Compile the latest versions
-  (require 'use-package)
-  ;; (setq use-package-always-ensure t)
-
-  (use-package use-package-ensure-system-package
-    :ensure t)
-
-  (cond
-   ((string-equal system-type "darwin")
-    (setq system-packages-use-sudo nil)
-    (setq system-packages-package-manager 'brew)))
-
-  (use-package auto-compile
-    :config (auto-compile-on-load-mode))
-
-  (use-package quelpa-use-package)
-  (use-package quelpa)
-  (require 'quelpa-use-package)
-  (quelpa
-   '(quelpa-use-package
-     :fetcher github
-     :url "https://github.com/quelpa/quelpa-use-package.git"))
-
-
-  (add-to-list 'load-path "~/.emacs.d/site-lisp/")
 #+end_src
 
 * Startup Performance
@@ -392,6 +397,7 @@ scroll bar, async support,etc.
 
   ;; Map Alt key to Meta
   (setq x-alt-keysym 'meta)
+  (setq mac-command-modifier 'meta)
 
   ;; getting rid of the "yes or no" prompt and replace it with "y or n"
   (defalias 'yes-or-no-p 'y-or-n-p)
