@@ -3122,6 +3122,7 @@ Mode for writing books
 
   (use-package eaf
     :load-path (lambda () (expand-file-name "site-lisp/emacs-application-framework" user-emacs-directory))
+    :defer t
     :custom
     (browse-url-browser-function #'eaf-open-browser) ;; Make EAF Browser my default browser
     (eaf-browser-continue-where-left-off nil)
