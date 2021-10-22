@@ -1010,13 +1010,6 @@ LSP mode settings. Custom language settings also included here.
      '(("gopls.completeUnimported" t t)
        ("gopls.staticcheck" t t)
        ;; ("gopls.experimentalWorkspaceModule" t t)
-       ("pylsp.plugins.pyls_mypy.enabled" t t)
-       ("pylsp.plugins.pyls_mypy.live_mode" nil t)
-       ("pylsp.plugins.pyls_black.enabled" t t)
-       ("pylsp.plugins.pyls_isort.enabled" t t)
-       ("pylsp.plugins.pycodestyle.enabled" nil t)
-       ("pylsp.plugins.mccabe.enabled" nil t)
-       ("pylsp.plugins.pyflakes.enabled" nil t)
        )))
   (setq lsp-eldoc-render-all t)
   ;; Optional - provides fancier overlays.
@@ -2556,40 +2549,27 @@ Cleanup needed
   (setq-default py-split-windows-on-execute-function 'split-window-horizontally)
   ;; python
 
-  (use-package python-mode)
+  (use-package python-mode
+  :ensure nil
+  :after flycheck
+  :mode "\\.py\\'"
+  :custom
+  (python-indent-offset 4)
+  (flycheck-python-pycompile-executable "python3")
+  (python-shell-interpreter "python3"))
 
-  ;; Jedi auto complete for python
-  (use-package company-jedi)
 
-  (defun company-jedi-setup ()
-    (add-to-list 'company-backends 'company-jedi))
-  (add-hook 'python-mode-hook 'company-jedi-setup)
-
-  (setq jedi:setup-keys t)
-  (setq jedi:complete-on-dot t)
-  (add-hook 'python-mode-hook 'jedi:setup)
-  (setq jedi:server-args
-        '("--sys-path" "/usr/local/lib/python3.9/site-packages"))
-
-  (use-package lsp-jedi
-    :ensure t
-    :config
-    (with-eval-after-load "lsp-mode"
-      (add-to-list 'lsp-disabled-clients 'jedi)
-      (add-to-list 'lsp-enabled-clients 'pylsp)
-      (add-to-list 'lsp-disabled-clients 'pyls)))
-
-  ;; (add-hook 'python-mode-hook 'jedi:setup)
-  (setq jedi:complete-on-dot t)
+  (use-package lsp-pyright
+    :hook (python-mode . (lambda () (require 'lsp-pyright)))
+    :custom
+    (lsp-pyright-multi-root nil))
+  (add-to-list 'lsp-enabled-clients 'pyright)
 
   (setq python-shell-interpreter "python3")
 
   (use-package py-autopep8)
   (require 'py-autopep8)
   (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
-
-
-  (setq lsp-pyls-plugins-flake8-enabled t)
 
   ;; to reformat your python buffer enable blacken-mode in relevant python buffers
   (use-package blacken)
