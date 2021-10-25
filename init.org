@@ -101,7 +101,7 @@ use-package to manage package configuration.
 
 
   (add-to-list 'load-path "~/.emacs.d/site-lisp/")
-
+  (add-to-list 'load-path "~/.emacs.d/quelpa/build/")
 
 #+end_src
 
@@ -516,8 +516,11 @@ scroll bar, async support,etc.
         (when (and (eq old-point (point))
                    (eq old-tick (buffer-chars-modified-tick)))
           (ignore-errors (yas-next-field))))))
-
   (yas-global-mode 1)
+  (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  (define-key yas-minor-mode-map (kbd "TAB") nil)
+  (define-key yas-minor-mode-map (kbd "<C-tab>") 'yas-expand)
+
 
   ;; fuzzy search
   (use-package fzf)
@@ -616,6 +619,15 @@ Themes and other configuration
 
   (display-time-mode 1)
   (display-battery-mode 1)
+
+
+
+  (use-package aggressive-indent
+    :disabled
+    :diminish aggressive-indent-mode
+    :hook
+    (prog-mode . aggressive-indent-mode)
+    (python-mode . (lambda () (aggressive-indent-mode -1))))
 
   ;; File beautification
 
@@ -1288,7 +1300,7 @@ Using Magit to handle all git related stuff.
     :diminish auto-revert-mode)
 
   ;; gitignore-mode
-  (use-package gitignore-mode
+  (use-package git-modes
     :ensure t
     :config
     (add-hook 'gitignore-mode-hook (lambda ()
@@ -2550,13 +2562,13 @@ Cleanup needed
   ;; python
 
   (use-package python-mode
-  :ensure nil
-  :after flycheck
-  :mode "\\.py\\'"
-  :custom
-  (python-indent-offset 4)
-  (flycheck-python-pycompile-executable "python3")
-  (python-shell-interpreter "python3"))
+    :ensure nil
+    :after flycheck
+    :mode "\\.py\\'"
+    :custom
+    (python-indent-offset 4)
+    (flycheck-python-pycompile-executable "python3")
+    (python-shell-interpreter "python3"))
 
 
   (use-package lsp-pyright
@@ -2732,10 +2744,24 @@ Settings for OrgMode
     :init
     (add-hook 'org-mode-hook 'org-bullets-mode))
 
+
+  ;; org-bars
+  (quelpa '(org-bars :fetcher github
+                     :repo  "tonyaldon/org-bars"
+                     :files ("*")))
+
+  (require 'org-bars)
+  (add-hook 'org-mode-hook #'org-bars-mode)
+
   ;; Confluence exporter download from
   ;; https://github.com/aspiers/orgmode/blob/master/contrib/lisp/ox-confluence.el
   ;; and put it in ~/.emacs.d/
-  (require 'ox-confluence)
+
+  (use-package ox-confluence
+    :defer 3
+    :ensure nil
+    :after org)
+
   (use-package ox-gfm :defer t)
   (setq org-jira-custom-jqls
         '(
@@ -2809,9 +2835,16 @@ Settings for OrgMode
   (define-key global-map "\C-cc" 'org-capture)
 
   ;; exporters for markdown and beamer format
-  (require 'ox-md)
-  (require 'ox-beamer)
 
+  (use-package ox-md
+    :ensure nil
+    :defer 3
+    :after org)
+
+  (use-package ox-beamer
+    :ensure nil
+    :defer 3
+    :after org)
   (setq org-enforce-todo-dependencies t)
   (setq org-enforce-todo-checkbox-dependencies t)
 
@@ -2844,23 +2877,23 @@ Settings for OrgMode
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-      Category is defined by one of the following items:
+          Category is defined by one of the following items:
 
-      - CATEGORY property
-      - TITLE keyword
-      - TITLE property
-      - filename without directory and extension
+          - CATEGORY property
+          - TITLE keyword
+          - TITLE property
+          - filename without directory and extension
 
-      When LEN is a number, resulting string is padded right with
-      spaces and then truncated with ... on the right if result is
-      longer than LEN.
+          When LEN is a number, resulting string is padded right with
+          spaces and then truncated with ... on the right if result is
+          longer than LEN.
 
-      Usage example:
+          Usage example:
 
-        (setq org-agenda-prefix-format
-          '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+            (setq org-agenda-prefix-format
+              '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-      Refer to `org-agenda-prefix-format' for more information."
+          Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2923,7 +2956,7 @@ Settings for OrgMode
                (org-get-tags nil t)))))))))
 
 
-      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+          ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
