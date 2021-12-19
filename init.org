@@ -2590,15 +2590,17 @@ Cleanup needed
   (use-package ein)
 
   (require 'ein)
+  (setq ein:output-area-inlined-images t)
+  (setq ein:slice-image t)
 
   ;; Try ein and decide if this is needed
   (use-package jupyter)
 
   ;; Use IPython for REPL
   (setq python-shell-completion-native-enable nil)
-  (setq python-shell-interpreter "jupyter"
-        python-shell-interpreter-args "-i"
-        python-shell-prompt-detect-failure-warning nil)
+  ;; (setq python-shell-interpreter "jupyter-notebook"
+  ;;      python-shell-interpreter-args "console"
+  ;;      python-shell-prompt-detect-failure-warning nil)
 
   (use-package eldoc
     :config
