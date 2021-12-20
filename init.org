@@ -1006,6 +1006,7 @@ LSP mode settings. Custom language settings also included here.
      (jedi . "pip3 install jedi")
      (tsc . "npm install -g typescript")
      (golang)
+     (pylib . "pip3 install pandas matplotlib sklearn torch ipykernel tensorflow torchvision --upgrade")
      (gopls . "GOBIN=/Users/gattu/go/bin GO111MODULE=on go install golang.org/x/tools/gopls@latest"))
 
     :config
