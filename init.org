@@ -406,7 +406,7 @@ scroll bar, async support,etc.
   (setq inhibit-splash-screen t) ;; no splash screen
   (setq-default indent-tabs-mode nil)      ;; no tabs!
   (setq fill-column 80) ;; M-q should fill at 80 chars, not 75
-  (setq initial-buffer-choice "~/Documents/org/work.org") ;; make the eng log the first file that's open.
+  (setq initial-buffer-choice "~/Documents/org-roam/work.org") ;; make the eng log the first file that's open.
 
   ;; async enables basic async capabilities for emacs
 
