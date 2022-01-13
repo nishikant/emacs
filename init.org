@@ -104,6 +104,10 @@ use-package to manage package configuration.
   (add-to-list 'load-path "~/.emacs.d/site-lisp/")
   (add-to-list 'load-path "~/.emacs.d/quelpa/build/")
 
+
+  ;; Use it to debug a warning
+  ;; (setq debug-on-message "quoted with ' rather than with #'")
+
 #+end_src
 
 * Shortcuts
@@ -1924,7 +1928,7 @@ All YAML related config including AWS cloudformation, k8, & ansible.
   ;; Ansible minor mode
 
   (use-package ansible)
-  (add-hook 'yaml-mode-hook '(lambda () (ansible 1)))
+  (add-hook 'yaml-mode-hook #'(lambda () (ansible 1)))
 
   (setq openapi-yaml-use-yaml-mode-syntax-highlight t)
 
@@ -2837,7 +2841,7 @@ Settings for OrgMode
     :config
     (require 'org-tempo)
     (add-hook 'org-mode-hook
-              '(lambda ()
+              #'(lambda ()
                  (setq mailcap-mime-data '())
                  (mailcap-parse-mailcap "~/.mailcap")
                  (setq org-file-apps
