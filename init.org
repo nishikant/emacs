@@ -951,6 +951,8 @@ Using Counsel and ivy to code completion
     (add-to-list 'ivy-ignore-buffers "\\*weechat-relay")
     (add-to-list 'ivy-ignore-buffers "\\*Messages\\*")
     (add-to-list 'ivy-ignore-buffers "\\*system-packages\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*quelpa-build-checkout\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*Async Shell Command\\*")
     (add-to-list 'ivy-ignore-buffers "\\*scratch\\*")
 
     (ivy-mode 1)
