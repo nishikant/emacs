@@ -945,7 +945,14 @@ Using Counsel and ivy to code completion
             (swiper-all . ivy--regex-plus)
             (t . ivy--regex-fuzzy)))
     :config
+
+    ;; do not show below files in C-x b
     (add-to-list 'ivy-ignore-buffers "\\`\\*remind-bindings\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*weechat-relay")
+    (add-to-list 'ivy-ignore-buffers "\\*Messages\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*system-packages\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*scratch\\*")
+
     (ivy-mode 1)
     (counsel-mode 1)
     :bind
