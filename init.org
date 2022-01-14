@@ -100,10 +100,11 @@ use-package to manage package configuration.
      :fetcher github
      :url "https://github.com/quelpa/quelpa-use-package.git"))
 
-
   (add-to-list 'load-path "~/.emacs.d/site-lisp/")
   (add-to-list 'load-path "~/.emacs.d/quelpa/build/")
-
+  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/core")
+  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/lisp")
+  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/langs")
 
   ;; Use it to debug a warning
   ;; (setq debug-on-message "quoted with ' rather than with #'")
@@ -957,6 +958,7 @@ Using Counsel and ivy to code completion
     (add-to-list 'ivy-ignore-buffers "\\*system-packages\\*")
     (add-to-list 'ivy-ignore-buffers "\\*quelpa-build-checkout\\*")
     (add-to-list 'ivy-ignore-buffers "\\*Async Shell Command\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*Async-native-compile-log\\*")
     (add-to-list 'ivy-ignore-buffers "\\*scratch\\*")
 
     (ivy-mode 1)
@@ -2717,8 +2719,15 @@ Emacs lisp or elisp programming
 ** Csharp
 #+begin_src emacs-lisp
 
-  (use-package tree-sitter :ensure t)
-  (use-package tree-sitter-langs :ensure t)
+
+  (quelpa '(elisp-tree-sitter :fetcher github
+                              :repo  "emacs-tree-sitter/elisp-tree-sitter"
+                              :files ("*")))
+  (require 'tree-sitter)
+  (require 'tree-sitter-hl)
+  (require 'tree-sitter-langs)
+  (require 'tree-sitter-debug)
+  (require 'tree-sitter-query)
 
   (use-package csharp-mode
     :ensure t
@@ -2727,6 +2736,17 @@ Emacs lisp or elisp programming
   (add-to-list 'lsp-enabled-clients 'csharp)
 
 #+end_src
+
+** Rust
+#+begin_src emacs-lisp
+
+  (use-package rust-mode)
+  (tree-sitter-require 'rust)
+  (global-tree-sitter-mode)
+  (add-hook 'rust-mode-hook #'tree-sitter-hl-mode)
+
+#+end_src
+_
 
 * OrgMode
 Settings for OrgMode
@@ -2842,14 +2862,14 @@ Settings for OrgMode
     (require 'org-tempo)
     (add-hook 'org-mode-hook
               #'(lambda ()
-                 (setq mailcap-mime-data '())
-                 (mailcap-parse-mailcap "~/.mailcap")
-                 (setq org-file-apps
-                       '((remote . emacs)
-                         ("mobi" . "fbreader %s")
-                         (system . mailcap)
-                         ("org" . emacs)
-                         (t . mailcap))))))
+                  (setq mailcap-mime-data '())
+                  (mailcap-parse-mailcap "~/.mailcap")
+                  (setq org-file-apps
+                        '((remote . emacs)
+                          ("mobi" . "fbreader %s")
+                          (system . mailcap)
+                          ("org" . emacs)
+                          (t . mailcap))))))
 
   (setq org-refile-use-outline-path t)
   (setq org-outline-path-complete-in-steps nil)
