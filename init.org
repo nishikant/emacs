@@ -1002,6 +1002,7 @@ LSP mode settings. Custom language settings also included here.
            (sh-mode . lsp-deferred)
            (yaml-mode . lsp-deferred)
            (cfn-yaml-mode . lsp-deferred)
+           (kotlin-mode . lsp-deferred)
            (web-mode . lsp-deferred)
            ((js2-mode rjsx-mode) . lsp-deferred)
            (lsp-mode . lsp-enable-which-key-integration))
@@ -1995,6 +1996,14 @@ Golang related configs
 
 #+end_src
 
+** Kotlin
+#+begin_src emacs-lisp
+  (use-package kotlin-mode)
+
+  (add-to-list 'lsp-enabled-clients 'kotlin-ls)
+#+end_src
+
+
 ** RST (reStructured Text)
 RST is a file format for textual data primarily used by Python
 programming language community for technical documentation.  It's sort
@@ -2817,9 +2826,9 @@ Settings for OrgMode
           ;;       :limit 100
           ;;       :filename "tamanna")
 
-          ;; (:jql "Assignee = vivek.saini AND status not in (Resolved, Closed) ORDER BY created DESC"
-          ;;       :limit 100
-          ;;       :filename "vivek")
+          (:jql "Assignee = vivek.saini AND status not in (Resolved, Closed) ORDER BY created DESC"
+                :limit 100
+                :filename "vivek")
 
           ;; (:jql "Assignee = vaibhav.kamble AND status not in (Resolved, Closed) ORDER BY created DESC"
           ;;       :limit 100
@@ -2829,11 +2838,12 @@ Settings for OrgMode
           ;;       :limit 100
           ;;       :filename "jitendra")
 
-          (:jql "project=\"ConnectWise DevOps\" AND status not in (Resolved, Closed) ORDER BY created DESC"
-                :startIndex
-                :limit 10
-                :filename "cw_cd")
+          ;; (:jql "project=\"ConnectWise DevOps\" AND status not in (Resolved, Closed) ORDER BY created DESC"
+                ;; :startIndex
+                ;; :limit 10
+                ;; :filename "cw_cd")
           ))
+
 
   (use-package org-jira)
 
