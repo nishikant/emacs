@@ -45,6 +45,7 @@ inspired by a bunch of resources I've found online. Lot of it taken from https:/
 - C-= select current region and it expands on multiple repeats
 - C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
 - C-x C-n set-goal-column https://irreal.org/blog/?p=266
+- C-M-j in ivy-mode use typed word instead of selection.
 - OrgMode: C-c C-q add tag
 - OrgMode: C-c C-x p add a property
 - OrgMode: org-id-get-create
@@ -960,8 +961,12 @@ Using Counsel and ivy to code completion
     (add-to-list 'ivy-ignore-buffers "\\*Async Shell Command\\*")
     (add-to-list 'ivy-ignore-buffers "\\*Async-native-compile-log\\*")
     (add-to-list 'ivy-ignore-buffers "\\*scratch\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*gopls\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*gopls::stderr\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*Ibuffer\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*Completion\\*")
+    (add-to-list 'ivy-ignore-buffers "\\*gopls::stderr\\*")
 
-    (ivy-mode 1)
     (counsel-mode 1)
     :bind
     (("C-c E" . counsel-flycheck)
@@ -1056,18 +1061,18 @@ LSP mode settings. Custom language settings also included here.
                 lsp-ui-doc-header nil
                 lsp-ui-doc-delay 0.1
                 lsp-ui-doc-frame t
-                lsp-ui-doc-show-with-cursor t
+                ;; lsp-ui-doc-show-with-cursor t
                 lsp-ui-doc-include-signature t
                 lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-use-childframe nil
-                lsp-ui-doc-border (face-foreground 'default)
+                lsp-ui-doc-use-childframe t
+                ;; lsp-ui-doc-border (face-foreground 'default)
                 lsp-ui-peek-enable t
                 lsp-ui-peek-show-directory t
-                lsp-ui-sideline-update-mode 'point
-                lsp-ui-sideline-enable t
+                lsp-ui-sideline-update-mode 'line
+                ;; lsp-ui-sideline-enable t
                 lsp-ui-sideline-show-code-actions t
                 lsp-ui-sideline-show-diagnostics t
-                lsp-ui-sideline-show-hover t
+                ;; lsp-ui-sideline-show-hover t
                 lsp-ui-sideline-ignore-duplicate t)
     :config
     (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
@@ -2585,6 +2590,9 @@ Cleanup needed
 #+begin_src emacs-lisp
 
   (setq-default py-split-windows-on-execute-function 'split-window-horizontally)
+
+  (setq python-indent-guess-indent-offset t)  
+  (setq python-indent-guess-indent-offset-verbose nil)
   ;; python
 
   (use-package python-mode
@@ -2601,7 +2609,7 @@ Cleanup needed
     :hook (python-mode . (lambda () (require 'lsp-pyright)))
     :custom
     (lsp-pyright-multi-root nil))
-  (add-to-list 'lsp-enabled-clients 'pyright)
+  (add-to-list 'lsp-enabled-clients 'pylsp)
 
   (setq python-shell-interpreter "python3")
 
