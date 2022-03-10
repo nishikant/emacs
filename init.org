@@ -1048,50 +1048,34 @@ LSP mode settings. Custom language settings also included here.
        )))
   (setq lsp-eldoc-render-all t)
   ;; Optional - provides fancier overlays.
-  (use-package lsp-ui
-    :ensure t
-    :after (lsp-mode)
-    :commands lsp-ui-doc-hide
-    :bind (:map lsp-ui-mode-map
+
+
+  (use-package
+    lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :after flycheck
+
+    :bind (:map lsp-mode-map
+                ("C-h" . lsp-ui-doc-glance)
+                ("C-c f" . lsp-format-buffer)
+                ("C-<return>" . lsp-ui-sideline-apply-code-actions)
+                ("M-p" . lsp-ui-find-prev-reference)
+                ("M-n" . lsp-ui-find-next-reference)
                 ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
                 ([remap xref-find-references] . lsp-ui-peek-find-references)
-                ("C-c u" . lsp-ui-imenu))
-    :init (setq lsp-ui-doc-enable t
-                lsp-ui-doc-use-webkit nil
-                lsp-ui-doc-header nil
-                lsp-ui-doc-delay 0.1
-                lsp-ui-doc-frame t
-                ;; lsp-ui-doc-show-with-cursor t
-                lsp-ui-doc-include-signature t
-                lsp-ui-doc-alignment 'frame
-                lsp-ui-doc-use-childframe t
-                ;; lsp-ui-doc-border (face-foreground 'default)
-                lsp-ui-peek-enable t
-                lsp-ui-peek-show-directory t
-                lsp-ui-sideline-update-mode 'line
-                ;; lsp-ui-sideline-enable t
-                lsp-ui-sideline-show-code-actions t
-                lsp-ui-sideline-show-diagnostics t
-                ;; lsp-ui-sideline-show-hover t
-                lsp-ui-sideline-ignore-duplicate t)
-    :config
-    (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
-
-    ;; `C-g'to close doc
-    (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
-
-    ;; Reset `lsp-ui-doc-background' after loading theme
-    (add-hook 'after-load-theme-hook
-              (lambda ()
-                (setq lsp-ui-doc-border (face-foreground 'default))
-                (set-face-background 'lsp-ui-doc-background
-                                     (face-background 'tooltip))))
-
-    ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
-    ;; @see https://github.com/emacs-lsp/lsp-ui/issues/243
-    (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-      (setq mode-line-format nil)))
-
+                ("C-c u" . lsp-ui-imenu)
+                )
+    :custom (lsp-ui-sideline-diagnostic-max-lines 3)
+    (lsp-ui-flycheck-enable t)
+    (lsp-ui-doc-enable nil)
+    (lsp-ui-sideline-ignore-duplicate t)
+    (lsp-ui-sideline-show-code-actions t)
+    (lsp-ui-sideline-show-hover t)
+    (lsp-ui-sideline-show-symbol nil)
+    (lsp-ui-sideline-actions-kind-regex ".*")
+    (lsp-clients-clangd-args '("--compile-commands-dir=build"
+                               "--header-insertion=never"))
+    )
   ;; company-lsp integrates company mode completion with lsp-mode.
   ;; completion-at-point also works out of the box but doesn't support snippets.
   ;; uses the given recipe
@@ -2774,6 +2758,13 @@ Settings for OrgMode
 
   (epa-file-enable)
 
+
+  ;; Org Presentations using org-tree-slide
+
+  (use-package org-tree-slide
+    :custom
+    (org-image-actual-width nil))
+
   ;; knowledge management with org-roam
   (use-package org-roam
     :ensure t
@@ -2847,9 +2838,9 @@ Settings for OrgMode
           ;;       :filename "jitendra")
 
           ;; (:jql "project=\"ConnectWise DevOps\" AND status not in (Resolved, Closed) ORDER BY created DESC"
-                ;; :startIndex
-                ;; :limit 10
-                ;; :filename "cw_cd")
+          ;; :startIndex
+          ;; :limit 10
+          ;; :filename "cw_cd")
           ))
 
 
@@ -2939,23 +2930,23 @@ Settings for OrgMode
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-              Category is defined by one of the following items:
+                  Category is defined by one of the following items:
 
-              - CATEGORY property
-              - TITLE keyword
-              - TITLE property
-              - filename without directory and extension
+                  - CATEGORY property
+                  - TITLE keyword
+                  - TITLE property
+                  - filename without directory and extension
 
-              When LEN is a number, resulting string is padded right with
-              spaces and then truncated with ... on the right if result is
-              longer than LEN.
+                  When LEN is a number, resulting string is padded right with
+                  spaces and then truncated with ... on the right if result is
+                  longer than LEN.
 
-              Usage example:
+                  Usage example:
 
-                (setq org-agenda-prefix-format
-                  '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+                    (setq org-agenda-prefix-format
+                      '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-              Refer to `org-agenda-prefix-format' for more information."
+                  Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -3018,7 +3009,7 @@ Settings for OrgMode
                (org-get-tags nil t)))))))))
 
 
-              ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+                  ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
@@ -3053,6 +3044,7 @@ Settings for OrgMode
      (ruby . t)
      (dot . t)
      (python . t)
+     (plantuml . t)
      (gnuplot . t)))
 
   (setq org-confirm-babel-evaluate nil)
@@ -3113,7 +3105,7 @@ Settings for OrgMode
   (use-package plantuml-mode
     :defer t
     :custom
-    (org-plantuml-jar-path (expand-file-name "/usr/local/Cellar/plantuml/1.2021.10/libexec/plantuml.jar"))
+    (org-plantuml-jar-path (expand-file-name "/usr/local/Cellar/plantuml/1.2022.2_1/libexec/plantuml.jar"))
     :config
     (org-babel-do-load-languages
      'org-babel-load-languages
