@@ -51,7 +51,8 @@ inspired by a bunch of resources I've found online. Lot of it taken from https:/
 - OrgMode: org-id-get-create
 - OrgMode: C-ca to list all todos
 - OrgMode:
-- <el + tab : to add src section in org-mode
+  - <el + tab : to add src section in org-mode
+  - C-c C-n expand yasnippet
 
 * Package Management
 
