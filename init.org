@@ -424,7 +424,7 @@ scroll bar, async support,etc.
     (dired-async-mode 1)
     (async-bytecomp-package-mode 1)
 
-    (require 'smtpmail-async)
+    (autoload 'smtpmail-async "smtpmail-async.el" nil t)
     (setq send-mail-function 'async-smtpmail-send-it))
   (setq async-shell-command-buffer 'new-buffer)
   ;; sometimes desktop is locked, ask if we want to load it.
@@ -535,7 +535,7 @@ scroll bar, async support,etc.
 
   ;; Drag line up/down M-up, M-down, M-left, M-right comes because of this
   (use-package drag-stuff)
-  (require 'drag-stuff)
+  (autoload 'drag-stuff "drag-stuff.el" nil t)
   (drag-stuff-global-mode 1)
   (drag-stuff-define-keys)
 
@@ -737,8 +737,8 @@ Themes and other configuration
 #+begin_src emacs-lisp
 
   (use-package mark-multiple )
-  (require 'inline-string-rectangle)
-  (require 'mark-more-like-this)
+  (autoload 'inline-string-rectangle "inline-string-rectangle.el" nil t)
+  (autoload 'mark-more-like-this "mark-more-like-this.el" nil t)
 
   (use-package multiple-cursors
     :diminish multiple-cursors-mode
@@ -1044,7 +1044,7 @@ LSP mode settings. Custom language settings also included here.
     (setq lsp-enable-snippet t)
     (setq lsp-file-watch-threshold 4000)
     (setq lsp-headerline-breadcrumb-mode t)
-
+    (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
     (setq lsp-semantic-highlighting 'immediate)
     (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
     (setq lsp-enable-semantic-highlighting t)
@@ -1115,7 +1115,7 @@ Debug settings for various languages
     (require 'dap-chrome)
     (require 'dap-node)
     (require 'dap-gdb-lldb)
-    (require 'dap-go)   ;  (require 'dap-go)		; download and expand vscode-go-extenstion to the =~/.extensions/go=
+    (require 'dap-go) 
     (dap-go-setup)
     (dap-chrome-setup)
     (use-package dap-ui
@@ -1391,7 +1391,9 @@ Use Ivy frame work for code completion interface
   ;; Use M-n and M-p to select, <return> to complete or <tab> to complete the common part.
   ;; Search through the completions with C-s, C-r and C-o.
   ;; Press M-(digit) to quickly complete with one of the first 10 candidates.
+  (use-package auto-complete)
 
+  (ac-config-default)
   (use-package company
     :diminish company-mode
     :hook ((prog-mode LaTeX-mode latex-mode ess-r-mode) . company-mode)
@@ -1730,7 +1732,7 @@ Golang related configs
 
 #+begin_src emacs-lisp
 
-
+  (setenv "GO111MODULE" "on")
   ;; go-mode
   (add-to-list 'lsp-enabled-clients 'gopls)
 
@@ -1742,8 +1744,10 @@ Golang related configs
     (define-key go-mode-map (kbd "C-c c") 'go-run))
 
   ;; use golangci
+
   (use-package flycheck-golangci-lint
-    :ensure t)
+    :ensure t
+    :hook (go-mode . flycheck-golangci-lint-setup))
 
   ;; (add-hook 'before-save-hook 'gofmt-before-save)
 
@@ -1755,18 +1759,15 @@ Golang related configs
     :ensure t)
 
   ;; TBR
-  (use-package flycheck-gometalinter
-    :ensure t
-    :config
-    (flycheck-gometalinter-setup)
-    (setq flycheck-gometalinter-fast t)
-    (setq flycheck-gometalinter-disable-linters '("gotype")))
 
   (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
   (lsp-register-custom-settings
    '(("gopls.completeUnimported" t t)
      ("gopls.staticcheck" t t)))
+
+  (add-hook 'go-mode-hook (lambda ()
+                            (local-set-key (kbd "M-.") #'godef-jump)))
 
   ;; add go yasnippet
   (use-package go-snippets)
@@ -1913,7 +1914,7 @@ Nodejs & React stuff
     :diminish prettier-js-mode
     :hook (((js2-mode rjsx-mode) . prettier-js-mode))
     :init
-    ) ; (f)ormat (p)rettier
+    ) 
 
 
   ;; Javascript and coffeescript
@@ -2256,8 +2257,6 @@ Jinja2 mode
 
   ;; jinja2 mode, https://github.com/paradoxxxzero/jinja2-mode
   (use-package jinja2-mode)
-  (add-to-list 'auto-mode-alist '("\\.jinja2\\'" . jinja2-mode))
-  (add-to-list 'auto-mode-alist '("\\.j2\\'" . jinja2-mode))
 
 
 #+end_src
@@ -2266,7 +2265,6 @@ Jinja2 mode
 terminalchanges
 
 #+begin_src emacs-lisp
-
 
   ;; Multi-term use multiple terminal
   (use-package multi-term)
@@ -2573,11 +2571,9 @@ _
 Settings for OrgMode
 #+begin_src emacs-lisp
 
-
   ;; Encryption using epa https://orgmode.org/worg/org-tutorials/encrypting-files.html
 
   (epa-file-enable)
-
 
   ;; Org Presentations using org-tree-slide
 
@@ -2607,6 +2603,12 @@ Settings for OrgMode
            "* %?"
            :if-new (file+head "%<%Y-%m-%d>.org"
                               "#+title: %<%Y-%m-%d>\n"))))
+
+  (setq org-capture-templates
+        '(("o" "o3" entry
+           (file+olp+datetree buffer-name)
+           (file "~/project/emacs/org/capture_templates/o3.org"))))
+
   (setq org-roam-v2-ack t)
   (setq org-roam-db-update-method 'immediate)
 
@@ -2750,23 +2752,23 @@ Settings for OrgMode
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-                  Category is defined by one of the following items:
+                        Category is defined by one of the following items:
 
-                  - CATEGORY property
-                  - TITLE keyword
-                  - TITLE property
-                  - filename without directory and extension
+                        - CATEGORY property
+                        - TITLE keyword
+                        - TITLE property
+                        - filename without directory and extension
 
-                  When LEN is a number, resulting string is padded right with
-                  spaces and then truncated with ... on the right if result is
-                  longer than LEN.
+                        When LEN is a number, resulting string is padded right with
+                        spaces and then truncated with ... on the right if result is
+                        longer than LEN.
 
-                  Usage example:
+                        Usage example:
 
-                    (setq org-agenda-prefix-format
-                      '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+                          (setq org-agenda-prefix-format
+                            '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-                  Refer to `org-agenda-prefix-format' for more information."
+                        Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2829,7 +2831,7 @@ Settings for OrgMode
                (org-get-tags nil t)))))))))
 
 
-                  ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+                        ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
@@ -3031,55 +3033,20 @@ Mode for writing books
                 :repo  "emacs-eaf/emacs-application-framework"
                 :files ("*")))
 
+  ;; (require 'eaf)
+  ;; (require 'eaf-browser)
+
+  ;; (setq eaf-browser-dark-mode "force")
+  ;; (setq eaf-browser-enable-adblocker)
+  ;; (setq eaf-find-alternate-file-in-dired t)
+  ;; (setq eaf-browser-enable-plugin t)
+  ;; (setq eaf-browser-enable-javascript t)
+
   (quelpa '(s :fetcher github
               :repo  "magnars/s.el"
               :files ("*")))
 
   (add-to-list 'load-path "/Users/gattu/.emacs.d/site-lisp/")
-
-  (use-package eaf
-    :load-path (lambda () (expand-file-name "site-lisp/emacs-application-framework" user-emacs-directory))
-    :defer t
-    :custom
-    (browse-url-browser-function #'eaf-open-browser) ;; Make EAF Browser my default browser
-    (eaf-browser-continue-where-left-off nil)
-    (eaf-browse-blank-page-url "https://duckduckgo.com")
-    (eaf-browser-enable-adblocker t)
-    (eaf-start-python-process-when-require t)
-    (eaf-browser-default-zoom 1)
-    (eaf-browser-dark-mode t)
-    (eaf-browser-enable-adblocker t)
-    (eaf-pdf-dark-mode t)
-    (eaf-browser-enable-autofill t)
-    (eaf-file-manager-show-preview nil)
-    :demand
-    :bind
-    (("C-x j" . eaf-open-in-file-manager))
-    :config
-    (require 'eaf-file-manager nil t)
-    (require 'eaf-music-player nil t)
-    (require 'eaf-image-viewer nil t)
-    (require 'eaf-camera nil t)
-    (require 'eaf-demo nil t)
-    (require 'eaf-airshare nil t)
-    (require 'eaf-terminal nil t)
-    (require 'eaf-markdown-previewer nil t)
-    (require 'eaf-video-player nil t)
-    (require 'eaf-vue-demo nil t)
-    (require 'eaf-file-sender nil t)
-    (require 'eaf-pdf-viewer nil t)
-    (require 'eaf-mindmap nil t)
-    (require 'eaf-netease-cloud-music nil t)
-    (require 'eaf-jupyter nil t)
-    (require 'eaf-org-previewer nil t)
-    (require 'eaf-system-monitor nil t)
-    (require 'eaf-file-browser nil t)
-    (require 'eaf-browser nil t)
-    (require 'eaf-org)
-    (require 'eaf-mail)
-    (require 'eaf-all-the-icons)
-    (defalias 'browse-web #'eaf-open-browser))
-
 
   ;; A game to practice speed typing in emacs
   (use-package speed-type
