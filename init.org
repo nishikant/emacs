@@ -9,7 +9,8 @@ inspired by a bunch of resources I've found online. Lot of it taken from https:/
 * My Cheat Sheet
 - Installation command:
   brew tap daviderestivo/emacs-head
-  brew reinstall emacs-head@29 --with-dbus --with-multicolor-fonts --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
+  brew reinstall emacs-head@29 --with-dbus --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
+  Install Google Inconsolata font. Download and double click
 - C-i is tab
 - C-M-k delete brackets and everything inside it
 - C-u C-space move cursor to previous marked position
