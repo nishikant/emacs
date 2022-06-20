@@ -2745,31 +2745,31 @@ Settings for OrgMode
   (use-package vulpea)
   (add-to-list 'org-tags-exclude-from-inheritance "project")
   (setq org-agenda-prefix-format
-        '((agenda . " %i %(vulpea-agenda-category 12)%?-12t% s")
-          (todo . " %i %(vulpea-agenda-category 12) ")
-          (tags . " %i %(vulpea-agenda-category 12) ")
-          (search . " %i %(vaulpea-agenda-category 12) ")))
+        '((agenda . " %i %(vulpea-agenda-category 20)%?-20t% s")
+          (todo . " %i %(vulpea-agenda-category 20) ")
+          (tags . " %i %(vulpea-agenda-category 20) ")
+          (search . " %i %(vaulpea-agenda-category 20) ")))
 
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-                                        Category is defined by one of the following items:
+                                            Category is defined by one of the following items:
 
-                                        - CATEGORY property
-                                        - TITLE keyword
-                                        - TITLE property
-                                        - filename without directory and extension
+                                            - CATEGORY property
+                                            - TITLE keyword
+                                            - TITLE property
+                                            - filename without directory and extension
 
-                                        When LEN is a number, resulting string is padded right with
-                                        spaces and then truncated with ... on the right if result is
-                                        longer than LEN.
+                                            When LEN is a number, resulting string is padded right with
+                                            spaces and then truncated with ... on the right if result is
+                                            longer than LEN.
 
-                                        Usage example:
+                                            Usage example:
 
-                                          (setq org-agenda-prefix-format
-                                            '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+                                              (setq org-agenda-prefix-format
+                                                '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-                                        Refer to `org-agenda-prefix-format' for more information."
+                                            Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2814,6 +2814,52 @@ Settings for OrgMode
       (vulpea-ensure-filetag)))
 
 
+  (defun org-roam-node-insert-wrapper (fn)
+    "Insert a link to the note using FN.
+
+    If inserted node has PEOPLE tag on it, tag the current outline
+    accordingly."
+    (interactive)
+    (when-let*
+        ((node (funcall fn))
+         (title (org-roam-node-title node))
+         (tags (org-roam-node-tags node)))
+      (when (seq-contains-p tags "people")
+        (save-excursion
+          (ignore-errors
+            (org-back-to-heading)
+            (org-set-tags
+             (seq-uniq
+              (cons
+               (vulpea--title-to-tag title)
+               (org-get-tags nil t)))))))))
+
+  (advice-add
+   #'org-roam-node-insert
+   :around
+   #'org-roam-node-insert-wrapper)
+
+  (defun my-vulpea-insert-handle (note)
+    "Hook to be called on NOTE after `vulpea-insert'."
+    (when-let* ((title (vulpea-note-title note))
+                (tags (vulpea-note-tags note)))
+      (when (seq-contains-p tags "people")
+        (save-excursion
+          (ignore-errors
+            (org-back-to-heading)
+            (when (eq 'todo (org-element-property
+                             :todo-type
+                             (org-element-at-point)))
+              (org-set-tags
+               (seq-uniq
+                (cons
+                 (vulpea--title-to-tag title)
+                 (org-get-tags nil t))))))))))
+
+  (add-hook 'vulpea-insert-handle-functions
+            #'my-vulpea-insert-handle)
+
+
   (defun vulpea-insert ()
     "Insert a link to the note."
     (interactive)
@@ -2834,9 +2880,9 @@ Settings for OrgMode
 
   (defun vulpea-project-p ()
     "Return non-nil if current buffer has any todo entry.
-                TODO entries marked as done are ignored, meaning the this
-                function returns nil if current buffer contains only completed
-                tasks."
+                    TODO entries marked as done are ignored, meaning the this
+                    function returns nil if current buffer contains only completed
+                    tasks."
     (seq-find                                 ; (3)
      (lambda (type)
        (eq type 'todo))
@@ -2950,7 +2996,7 @@ Settings for OrgMode
     (format "inbox-%s.org" (system-name))
     "The path to the inbox file.
 
-        It is relative to `org-directory', unless it is absolute.")
+            It is relative to `org-directory', unless it is absolute.")
 
 
   (setq org-capture-templates
@@ -3052,7 +3098,7 @@ Settings for OrgMode
 
   (defun vulpea-buffer-tags-set (&rest tags)
     "Set TAGS in current buffer.
-                If filetags value is already set, replace it."
+                    If filetags value is already set, replace it."
     (if tags
         (vulpea-buffer-prop-set
          "filetags" (concat ":" (string-join tags ":") ":"))
@@ -3072,7 +3118,7 @@ Settings for OrgMode
 
   (defun vulpea-buffer-prop-set (name value)
     "Set a file property called NAME to VALUE in buffer file.
-                If the property is already set, replace its value."
+                    If the property is already set, replace its value."
     (setq name (downcase name))
     (org-with-point-at 1
       (let ((case-fold-search t))
@@ -3091,13 +3137,13 @@ Settings for OrgMode
 
   (defun vulpea-buffer-prop-set-list (name values &optional separators)
     "Set a file property called NAME to VALUES in current buffer.
-                VALUES are quoted and combined into single string using
-                `combine-and-quote-strings'.
-                If SEPARATORS is non-nil, it should be a regular expression
-                matching text that separates, but is not part of, the substrings.
-                If nil it defaults to `split-string-default-separators', normally
-                \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t.
-                If the property is already set, replace its value."
+                    VALUES are quoted and combined into single string using
+                    `combine-and-quote-strings'.
+                    If SEPARATORS is non-nil, it should be a regular expression
+                    matching text that separates, but is not part of, the substrings.
+                    If nil it defaults to `split-string-default-separators', normally
+                    \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t.
+                    If the property is already set, replace its value."
     (vulpea-buffer-prop-set
      name (combine-and-quote-strings values separators)))
 
@@ -3112,10 +3158,10 @@ Settings for OrgMode
 
   (defun vulpea-buffer-prop-get-list (name &optional separators)
     "Get a buffer property NAME as a list using SEPARATORS.
-                If SEPARATORS is non-nil, it should be a regular expression
-                matching text that separates, but is not part of, the substrings.
-                If nil it defaults to `split-string-default-separators', normally
-                \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t."
+                    If SEPARATORS is non-nil, it should be a regular expression
+                    matching text that separates, but is not part of, the substrings.
+                    If nil it defaults to `split-string-default-separators', normally
+                    \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t."
     (let ((value (vulpea-buffer-prop-get name)))
       (when (and value (not (string-empty-p value)))
         (split-string-and-unquote value separators))))
@@ -3127,7 +3173,7 @@ Settings for OrgMode
                                (point-max) t)
         (replace-match ""))))
 
-                  ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+                      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
