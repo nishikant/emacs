@@ -2605,11 +2605,6 @@ Settings for OrgMode
            :if-new (file+head "%<%Y-%m-%d>.org"
                               "#+title: %<%Y-%m-%d>\n"))))
 
-  (setq org-capture-templates
-        '(("o" "o3" entry
-           (file+olp+datetree buffer-name)
-           (file "~/project/emacs/org/capture_templates/o3.org"))))
-
   (setq org-roam-v2-ack t)
   (setq org-roam-db-update-method 'immediate)
 
@@ -2982,42 +2977,6 @@ Settings for OrgMode
       (dlet ((org-agenda-overriding-arguments (list t query)))
         (org-agenda nil "M"))))
 
-
-  ;; you don't really need much, do you?
-  (setq org-capture-templates
-        '(("j" "Journal entry" plain
-           (file+olp+datetree "~/path/to/journal.org")
-           "%K - %a\n%i\n%?\n"
-           :unnarrowed t)))
-
-
-
-  (defvar vulpea-capture-inbox-file
-    (format "inbox-%s.org" (system-name))
-    "The path to the inbox file.
-
-            It is relative to `org-directory', unless it is absolute.")
-
-
-  (setq org-capture-templates
-        '(("t" "todo" plain (file vulpea-capture-inbox-file)
-           "* TODO %?\n%U\n" :clock-in t :clock-resume t)))
-
-  (defun vulpea-capture-task ()
-    "Capture a task."
-    (interactive)
-    (org-capture nil "t"))
-
-
-
-  (setq org-agenda-custom-commands
-        '((" " "Agenda"
-           ((tags
-             "REFILE"
-             ((org-agenda-overriding-header "To refile")
-              (org-tags-match-list-sublevels nil)))))))
-
-
   (setq org-capture-templates
         '(("t" "todo" plain (file vulpea-capture-inbox-file)
            "* TODO %?\n%U\n" :clock-in t :clock-resume t)
@@ -3026,14 +2985,39 @@ Settings for OrgMode
            (function vulpea-capture-meeting-target)
            (function vulpea-capture-meeting-template)
            :clock-in t
-           :clock-resume t)))
+           :clock-resume t)
+
+          ("j" "Journal entry" plain
+           (file+olp+datetree "~/Documents/org-roam/journal.org")
+           "%K - %a\n%i\n%?\n"
+           :unnarrowed t)
+
+          ("o" "o3" entry
+           (file+olp+datetree buffer-name)
+           (file "~/project/emacs/org/capture_templates/o3.org"))))
+
+  (defvar vulpea-capture-inbox-file
+    (format "inbox-%s.org" (system-name))
+    "The path to the inbox file.
+
+            It is relative to `org-directory', unless it is absolute.")
+
+  (defun vulpea-capture-task ()
+    "Capture a task."
+    (interactive)
+    (org-capture nil "t"))
+
+  (setq org-agenda-custom-commands
+        '((" " "Agenda"
+           ((tags
+             "REFILE"
+             ((org-agenda-overriding-header "To refile")
+              (org-tags-match-list-sublevels nil)))))))
 
   (defun vulpea-capture-meeting ()
     "Capture a meeting."
     (interactive)
     (org-capture nil "m"))
-
-
 
   (defun vulpea-capture-meeting-template ()
     "Return a template for a meeting capture."
@@ -3049,8 +3033,6 @@ Settings for OrgMode
         (concat "* MEETING with "
                 (vulpea-note-title person)
                 " on [%<%Y-%m-%d %a>] :MEETING:\n%U\n\n%?"))))
-
-
 
   (defun vulpea-capture-meeting-target ()
     "Return a target for a meeting capture."
