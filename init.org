@@ -2570,6 +2570,7 @@ _
 #+end_src
 * OrgMode
 Settings for OrgMode
+
 #+begin_src emacs-lisp
 
   ;; Encryption using epa https://orgmode.org/worg/org-tutorials/encrypting-files.html
@@ -2619,6 +2620,28 @@ Settings for OrgMode
   (quelpa '(org-bars :fetcher github
                      :repo  "tonyaldon/org-bars"
                      :files ("*")))
+
+  ;; org-present used for presentations
+  (quelpa '(org-present :fetcher github
+                        :repo  "rlister/org-present"
+                        :files ("*")))
+
+  (autoload 'org-present "org-present" nil t)
+
+  (eval-after-load "org-present"
+  '(progn
+     (add-hook 'org-present-mode-hook
+               (lambda ()
+                 (org-present-big)
+                 (org-display-inline-images)
+                 (org-present-hide-cursor)
+                 (org-present-read-only)))
+     (add-hook 'org-present-mode-quit-hook
+               (lambda ()
+                 (org-present-small)
+                 (org-remove-inline-images)
+                 (org-present-show-cursor)
+                 (org-present-read-write)))))
 
   (require 'org-bars)
   (add-hook 'org-mode-hook #'org-bars-mode)
@@ -2704,7 +2727,7 @@ Settings for OrgMode
   (define-key global-map "\C-cl" 'org-store-link)
   (define-key global-map "\C-ca" 'org-agenda)
   (define-key global-map "\C-cc" 'org-capture)
-
+  (define-key global-map "\C-cq" 'vulpea-tags-add)
   ;; exporters for markdown and beamer format
 
   (use-package ox-md
@@ -2737,34 +2760,75 @@ Settings for OrgMode
                     (directory-files-recursively "~/Documents/org-roam" "\\.org$")
                     ))
 
-  (use-package vulpea)
-  (add-to-list 'org-tags-exclude-from-inheritance "project")
+
+  (use-package vulpea
+    :ensure t
+    ;; hook into org-roam-db-autosync-mode you wish to enable
+    ;; persistence of meta values (see respective section in README to
+    ;; find out what meta means)
+    :hook ((org-roam-db-autosync-mode . vulpea-db-autosync-enable)))
+
   (setq org-agenda-prefix-format
         '((agenda . " %i %(vulpea-agenda-category 20)%?-20t% s")
           (todo . " %i %(vulpea-agenda-category 20) ")
           (tags . " %i %(vulpea-agenda-category 20) ")
           (search . " %i %(vaulpea-agenda-category 20) ")))
+  ;; setup todo keywords
+  (setq
+   org-todo-keywords
+   '((sequence "TODO(t)" "|" "DONE(d!)")
+     (sequence "WAITING(w@/!)"
+               "HOLD(h@/!)"
+               "|"
+               "CANCELLED(c@/!)"
+               "MEETING"))
+   org-use-fast-todo-selection t
+   ;; block parent until children are done
+   org-enforce-todo-dependencies t
+   ;; allo to fast fix todo state without triggering anything
+   org-treat-S-cursor-todo-selection-as-state-change nil
+   ;; setup state triggers
+   org-todo-state-tags-triggers
+   '(("CANCELLED" ("CANCELLED" . t))
+     ("WAITING" ("WAITING" . t))
+     ("HOLD" ("WAITING") ("HOLD" . t))
+     (done ("WAITING") ("HOLD") ("FOCUS"))
+     ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+     ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))
+   ;; use drawer for state changes
+   org-log-into-drawer t)
 
+  ;; tags
+  (setq
+   org-tag-persistent-alist '(("FOCUS" . ?f)
+                              ("PROJECT" . ?p))
+   org-use-tag-inheritance t
+   org-tags-exclude-from-inheritance '("project"
+                                       "litnotes"
+                                       "people"))
+
+
+        ;;;###autoload
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-                                            Category is defined by one of the following items:
+        Category is defined by one of the following items:
 
-                                            - CATEGORY property
-                                            - TITLE keyword
-                                            - TITLE property
-                                            - filename without directory and extension
+        - CATEGORY property
+        - TITLE keyword
+        - TITLE property
+        - filename without directory and extension
 
-                                            When LEN is a number, resulting string is padded right with
-                                            spaces and then truncated with ... on the right if result is
-                                            longer than LEN.
+        When LEN is a number, resulting string is padded right with
+        spaces and then truncated with ... on the right if result is
+        longer than LEN.
 
-                                            Usage example:
+        Usage example:
 
-                                              (setq org-agenda-prefix-format
-                                                '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+          (setq org-agenda-prefix-format
+                '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-                                            Refer to `org-agenda-prefix-format' for more information."
+        Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2781,381 +2845,47 @@ Settings for OrgMode
           (s-truncate len (s-pad-right len " " result))
         result)))
 
+      ;;;###autoload
   (defun vulpea-ensure-filetag ()
-    "Add respective file tag if it's missing in the current note."
-    (interactive)
-    (let ((tags (vulpea-buffer-tags-get))
-          (tag (vulpea--title-as-tag)))
-      (when (and (seq-contains-p tags "people")
-                 (not (seq-contains-p tags tag)))
-        (vulpea-buffer-tags-add tag))))
+    "Add missing FILETAGS to the current note."
+    (let* ((file (buffer-file-name))
+           (path-tags
+            (when file
+              (seq-filter
+               (lambda (x) (not (string-empty-p x)))
+               (split-string
+                (string-remove-prefix
+                 vulpea-directory
+                 (file-name-directory file))
+                "/"))))
+           (original-tags (vulpea-buffer-tags-get))
+           (tags (append original-tags path-tags)))
 
-  (defun vulpea--title-as-tag ()
-    "Return title of the current note as tag."
-    (vulpea--title-to-tag (vulpea-buffer-title-get)))
-
-  (defun vulpea--title-to-tag (title)
-    "Convert TITLE to tag."
-    (concat "@" (s-replace " " "" title)))
-
-  (defun vulpea-tags-add ()
-    "Add a tag to current note."
-    (interactive)
-    ;; since https://github.com/org-roam/org-roam/pull/1515
-    ;; `org-roam-tag-add' returns added tag, we could avoid reading tags
-    ;; in `vulpea-ensure-filetag', but this way it can be used in
-    ;; different contexts while having simple implementation.
-    (when (call-interactively #'org-roam-tag-add)
-      (vulpea-ensure-filetag)))
-
-
-  (defun org-roam-node-insert-wrapper (fn)
-    "Insert a link to the note using FN.
-
-    If inserted node has PEOPLE tag on it, tag the current outline
-    accordingly."
-    (interactive)
-    (when-let*
-        ((node (funcall fn))
-         (title (org-roam-node-title node))
-         (tags (org-roam-node-tags node)))
+      ;; process people
       (when (seq-contains-p tags "people")
-        (save-excursion
-          (ignore-errors
-            (org-back-to-heading)
-            (org-set-tags
-             (seq-uniq
-              (cons
-               (vulpea--title-to-tag title)
-               (org-get-tags nil t)))))))))
+        (let ((tag (vulpea--title-as-tag)))
+          (unless (seq-contains-p tags tag)
+            (setq tags (cons tag tags)))))
 
-  (advice-add
-   #'org-roam-node-insert
-   :around
-   #'org-roam-node-insert-wrapper)
+      ;; process litnotes
+      (setq tags (litnotes-ensure-filetags tags))
 
-  (defun my-vulpea-insert-handle (note)
-    "Hook to be called on NOTE after `vulpea-insert'."
-    (when-let* ((title (vulpea-note-title note))
-                (tags (vulpea-note-tags note)))
-      (when (seq-contains-p tags "people")
-        (save-excursion
-          (ignore-errors
-            (org-back-to-heading)
-            (when (eq 'todo (org-element-property
-                             :todo-type
-                             (org-element-at-point)))
-              (org-set-tags
-               (seq-uniq
-                (cons
-                 (vulpea--title-to-tag title)
-                 (org-get-tags nil t))))))))))
+      ;; process projects
+      (if (vulpea-project-p)
+          (setq tags (cons "project" tags))
+        (setq tags (remove "project" tags)))
 
-  (add-hook 'vulpea-insert-handle-functions
-            #'my-vulpea-insert-handle)
+      (setq tags (seq-uniq tags))
+
+      ;; update tags if changed
+      (when (or (seq-difference tags original-tags)
+                (seq-difference original-tags tags))
+        (apply #'vulpea-buffer-tags-set (seq-uniq tags)))))
 
 
-  (defun vulpea-insert ()
-    "Insert a link to the note."
-    (interactive)
-    (when-let*
-        ((node (org-roam-node-insert))
-         (title (org-roam-node-title node))
-         (tags (org-roam-node-tags node)))
-      (when (seq-contains-p tags "people")
-        (save-excursion
-          (ignore-errors
-            (org-back-to-heading)
-            (org-set-tags
-             (seq-uniq
-              (cons
-               (vulpea--title-to-tag title)
-               (org-get-tags nil t)))))))))
 
 
-  (defun vulpea-project-p ()
-    "Return non-nil if current buffer has any todo entry.
-                    TODO entries marked as done are ignored, meaning the this
-                    function returns nil if current buffer contains only completed
-                    tasks."
-    (seq-find                                 ; (3)
-     (lambda (type)
-       (eq type 'todo))
-     (org-element-map                         ; (2)
-         (org-element-parse-buffer 'headline) ; (1)
-         'headline
-       (lambda (h)
-         (org-element-property :todo-type h)))))
-
-  (defun vulpea-project-update-tag ()
-    "Update PROJECT tag in the current buffer."
-    (when (and (not (active-minibuffer-window))
-               (vulpea-buffer-p))
-      (save-excursion
-        (goto-char (point-min))
-        (let* ((tags (vulpea-buffer-tags-get))
-               (original-tags tags))
-          (if (vulpea-project-p)
-              (setq tags (cons "project" tags))
-            (setq tags (remove "project" tags)))
-
-          ;; cleanup duplicates
-          (setq tags (seq-uniq tags))
-
-          ;; update tags if changed
-          (when (or (seq-difference tags original-tags)
-                    (seq-difference original-tags tags))
-            (apply #'vulpea-buffer-tags-set tags))))))
-
-  (defun vulpea-buffer-p ()
-    "Return non-nil if the currently visited buffer is a note."
-    (and buffer-file-name
-         (string-prefix-p
-          (expand-file-name (file-name-as-directory org-roam-directory))
-          (file-name-directory buffer-file-name))))
-
-  (defun vulpea-project-files ()
-    "Return a list of note files containing 'project' tag." ;
-    (seq-uniq
-     (seq-map
-      #'car
-      (org-roam-db-query
-       [:select [nodes:file]
-                :from tags
-                :left-join nodes
-                :on (= tags:node-id nodes:id)
-                :where (like tag (quote "%\"project\"%"))]))))
-
-  (defun vulpea-agenda-files-update (&rest _)
-    "Update the value of `org-agenda-files'."
-    (setq org-agenda-files (vulpea-project-files)))
-
-  (add-hook 'find-file-hook #'vulpea-project-update-tag)
-  (add-hook 'before-save-hook #'vulpea-project-update-tag)
-
-  (advice-add 'org-agenda :before #'vulpea-agenda-files-update)
-  (advice-add 'org-todo-list :before #'vulpea-agenda-files-update)
-
-  (defun my-vulpea-insert-handle (note)
-    "Hook to be called on NOTE after `vulpea-insert'."
-    (when-let* ((title (vulpea-note-title note))
-                (tags (vulpea-note-tags note)))
-      (when (seq-contains-p tags "people")
-        (save-excursion
-          (ignore-errors
-            (org-back-to-heading)
-            (when (eq 'todo (org-element-property
-                             :todo-type
-                             (org-element-at-point)))
-              (org-set-tags
-               (seq-uniq
-                (cons
-                 (vulpea--title-to-tag title)
-                 (org-get-tags nil t))))))))))
-
-  (defun vulpea--title-to-tag (title)
-    "Convert TITLE to tag."
-    (concat "@" (s-replace " " "" title)))
-
-  (add-hook 'vulpea-insert-handle-functions
-            #'my-vulpea-insert-handle)
-
-  (defun vulpea-agenda-person ()
-    "Show main `org-agenda' view."
-    (interactive)
-    (let* ((person (vulpea-select
-                    "Person"
-                    :filter-fn
-                    (lambda (note)
-                      (seq-contains-p (vulpea-note-tags note)
-                                      "people"))))
-           (node (org-roam-node-from-id (vulpea-note-id person)))
-           (names (cons (org-roam-node-title node)
-                        (org-roam-node-aliases node)))
-           (tags (seq-map #'vulpea--title-to-tag names))
-           (query (string-join tags "|")))
-      (dlet ((org-agenda-overriding-arguments (list t query)))
-        (org-agenda nil "M"))))
-
-  (setq org-capture-templates
-        '(("t" "todo" plain (file vulpea-capture-inbox-file)
-           "* TODO %?\n%U\n" :clock-in t :clock-resume t)
-
-          ("m" "Meeting" entry
-           (function vulpea-capture-meeting-target)
-           (function vulpea-capture-meeting-template)
-           :clock-in t
-           :clock-resume t)
-
-          ("j" "Journal entry" plain
-           (file+olp+datetree "~/Documents/org-roam/journal.org")
-           "%K - %a\n%i\n%?\n"
-           :unnarrowed t)
-
-          ("o" "o3" entry
-           (file+olp+datetree buffer-name)
-           (file "~/project/emacs/org/capture_templates/o3.org"))))
-
-  (defvar vulpea-capture-inbox-file
-    (format "inbox-%s.org" (system-name))
-    "The path to the inbox file.
-
-            It is relative to `org-directory', unless it is absolute.")
-
-  (defun vulpea-capture-task ()
-    "Capture a task."
-    (interactive)
-    (org-capture nil "t"))
-
-  (setq org-agenda-custom-commands
-        '((" " "Agenda"
-           ((tags
-             "REFILE"
-             ((org-agenda-overriding-header "To refile")
-              (org-tags-match-list-sublevels nil)))))))
-
-  (defun vulpea-capture-meeting ()
-    "Capture a meeting."
-    (interactive)
-    (org-capture nil "m"))
-
-  (defun vulpea-capture-meeting-template ()
-    "Return a template for a meeting capture."
-    (let ((person (vulpea-select
-                   "Person"
-                   :filter-fn
-                   (lambda (note)
-                     (let ((tags (vulpea-note-tags note)))
-                       (seq-contains-p tags "people"))))))
-      (org-capture-put :meeting-person person)
-      (if (vulpea-note-id person)
-          "* MEETING [%<%Y-%m-%d %a>] :REFILE:MEETING:\n%U\n\n%?"
-        (concat "* MEETING with "
-                (vulpea-note-title person)
-                " on [%<%Y-%m-%d %a>] :MEETING:\n%U\n\n%?"))))
-
-  (defun vulpea-capture-meeting-target ()
-    "Return a target for a meeting capture."
-    (let ((person (org-capture-get :meeting-person)))
-      ;; unfortunately, I could not find a way to reuse
-      ;; `org-capture-set-target-location'
-      (if (vulpea-note-id person)
-          (let ((path (vulpea-note-path person))
-                (headline "Meetings"))
-            (set-buffer (org-capture-target-buffer path))
-            ;; Org expects the target file to be in Org mode, otherwise
-            ;; it throws an error. However, the default notes files
-            ;; should work out of the box. In this case, we switch it to
-            ;; Org mode.
-            (unless (derived-mode-p 'org-mode)
-              (org-display-warning
-               (format
-                "Capture requirement: switching buffer %S to Org mode"
-                (current-buffer)))
-              (org-mode))
-            (org-capture-put-target-region-and-position)
-            (widen)
-            (goto-char (point-min))
-            (if (re-search-forward
-                 (format org-complex-heading-regexp-format
-                         (regexp-quote headline))
-                 nil t)
-                (beginning-of-line)
-              (goto-char (point-max))
-              (unless (bolp) (insert "\n"))
-              (insert "* " headline "\n")
-              (beginning-of-line 0)))
-        (let ((path vulpea-capture-inbox-file))
-          (set-buffer (org-capture-target-buffer path))
-          (org-capture-put-target-region-and-position)
-          (widen)))))
-
-
-  ;; functions borrowed from `vulpea' library
-  ;; https://github.com/d12frosted/vulpea/blob/6a735c34f1f64e1f70da77989e9ce8da7864e5ff/vulpea-buffer.el
-
-  (defun vulpea-buffer-tags-get ()
-    "Return filetags value in current buffer."
-    (vulpea-buffer-prop-get-list "filetags" "[ :]"))
-
-  (defun vulpea-buffer-tags-set (&rest tags)
-    "Set TAGS in current buffer.
-                    If filetags value is already set, replace it."
-    (if tags
-        (vulpea-buffer-prop-set
-         "filetags" (concat ":" (string-join tags ":") ":"))
-      (vulpea-buffer-prop-remove "filetags")))
-
-  (defun vulpea-buffer-tags-add (tag)
-    "Add a TAG to filetags in current buffer."
-    (let* ((tags (vulpea-buffer-tags-get))
-           (tags (append tags (list tag))))
-      (apply #'vulpea-buffer-tags-set tags)))
-
-  (defun vulpea-buffer-tags-remove (tag)
-    "Remove a TAG from filetags in current buffer."
-    (let* ((tags (vulpea-buffer-tags-get))
-           (tags (delete tag tags)))
-      (apply #'vulpea-buffer-tags-set tags)))
-
-  (defun vulpea-buffer-prop-set (name value)
-    "Set a file property called NAME to VALUE in buffer file.
-                    If the property is already set, replace its value."
-    (setq name (downcase name))
-    (org-with-point-at 1
-      (let ((case-fold-search t))
-        (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)")
-                               (point-max) t)
-            (replace-match (concat "#+" name ": " value) 'fixedcase)
-          (while (and (not (eobp))
-                      (looking-at "^[#:]"))
-            (if (save-excursion (end-of-line) (eobp))
-                (progn
-                  (end-of-line)
-                  (insert "\n"))
-              (forward-line)
-              (beginning-of-line)))
-          (insert "#+" name ": " value "\n")))))
-
-  (defun vulpea-buffer-prop-set-list (name values &optional separators)
-    "Set a file property called NAME to VALUES in current buffer.
-                    VALUES are quoted and combined into single string using
-                    `combine-and-quote-strings'.
-                    If SEPARATORS is non-nil, it should be a regular expression
-                    matching text that separates, but is not part of, the substrings.
-                    If nil it defaults to `split-string-default-separators', normally
-                    \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t.
-                    If the property is already set, replace its value."
-    (vulpea-buffer-prop-set
-     name (combine-and-quote-strings values separators)))
-
-  (defun vulpea-buffer-prop-get (name)
-    "Get a buffer property called NAME as a string."
-    (org-with-point-at 1
-      (when (re-search-forward (concat "^#\\+" name ": \\(.*\\)")
-                               (point-max) t)
-        (buffer-substring-no-properties
-         (match-beginning 1)
-         (match-end 1)))))
-
-  (defun vulpea-buffer-prop-get-list (name &optional separators)
-    "Get a buffer property NAME as a list using SEPARATORS.
-                    If SEPARATORS is non-nil, it should be a regular expression
-                    matching text that separates, but is not part of, the substrings.
-                    If nil it defaults to `split-string-default-separators', normally
-                    \"[ \f\t\n\r\v]+\", and OMIT-NULLS is forced to t."
-    (let ((value (vulpea-buffer-prop-get name)))
-      (when (and value (not (string-empty-p value)))
-        (split-string-and-unquote value separators))))
-
-  (defun vulpea-buffer-prop-remove (name)
-    "Remove a buffer property called NAME."
-    (org-with-point-at 1
-      (when (re-search-forward (concat "\\(^#\\+" name ":.*\n?\\)")
-                               (point-max) t)
-        (replace-match ""))))
-
-                      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
