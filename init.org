@@ -2606,6 +2606,26 @@ Settings for OrgMode
            :if-new (file+head "%<%Y-%m-%d>.org"
                               "#+title: %<%Y-%m-%d>\n"))))
 
+  (setq org-capture-templates
+        '(("t" "todo" plain (file vulpea-capture-inbox-file)
+           "* TODO %?\n%U\n" :clock-in t :clock-resume t)
+
+          ("m" "Meeting" entry
+           (function vulpea-capture-meeting-target)
+           (function vulpea-capture-meeting-template)
+           :clock-in t
+           :clock-resume t)
+
+          ("j" "Journal entry" plain
+           (file+olp+datetree "~/Documents/org-roam/journal.org")
+           "%K - %a\n%i\n%?\n"
+           :unnarrowed t)
+
+          ("o" "o3" entry
+           (file+olp+datetree buffer-name)
+           (file "~/project/emacs/org/capture_templates/o3.org"))))
+
+
   (setq org-roam-v2-ack t)
   (setq org-roam-db-update-method 'immediate)
 
@@ -2629,19 +2649,19 @@ Settings for OrgMode
   (autoload 'org-present "org-present" nil t)
 
   (eval-after-load "org-present"
-  '(progn
-     (add-hook 'org-present-mode-hook
-               (lambda ()
-                 (org-present-big)
-                 (org-display-inline-images)
-                 (org-present-hide-cursor)
-                 (org-present-read-only)))
-     (add-hook 'org-present-mode-quit-hook
-               (lambda ()
-                 (org-present-small)
-                 (org-remove-inline-images)
-                 (org-present-show-cursor)
-                 (org-present-read-write)))))
+    '(progn
+       (add-hook 'org-present-mode-hook
+                 (lambda ()
+                   (org-present-big)
+                   (org-display-inline-images)
+                   (org-present-hide-cursor)
+                   (org-present-read-only)))
+       (add-hook 'org-present-mode-quit-hook
+                 (lambda ()
+                   (org-present-small)
+                   (org-remove-inline-images)
+                   (org-present-show-cursor)
+                   (org-present-read-write)))))
 
   (require 'org-bars)
   (add-hook 'org-mode-hook #'org-bars-mode)
