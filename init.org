@@ -109,6 +109,14 @@ use-package to manage package configuration.
   (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/lisp")
   (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/langs")
 
+  (defconst env-sys-name (system-name))
+  (defconst path-home-dir (file-name-as-directory (getenv "HOME"))
+    "Path to user home directory.
+
+  In a nutshell, it's just a value of $HOME.")
+  (defvar vulpea-directory
+    (expand-file-name path-home-dir "/Documents/org-roam")
+    "Directory containing notes.")
   ;; Use it to debug a warning
   ;; (setq debug-on-message "quoted with ' rather than with #'")
 
@@ -262,8 +270,8 @@ Custom functions that help in OrgMode and other functionality.
 
   (defun insdate-insert-current-date (&optional omit-day-of-week-p)
     "Insert today's date using the current locale.
-      With a prefix argument, the date is inserted without the day of
-      the week."
+        With a prefix argument, the date is inserted without the day of
+        the week."
     (interactive "P*")
     (insert (calendar-date-string (calendar-current-date) nil
                                   omit-day-of-week-p)))
@@ -348,6 +356,12 @@ Custom functions that help in OrgMode and other functionality.
         (setq col (+ 1 (current-column)))
         (set-selective-display
          (if selective-display nil (or col 1))))))
+
+  (defvar vulpea-capture-inbox-file
+    (format "inbox-%s.org" env-sys-name)
+    "The path to the inbox file.
+
+  It is relative to `vulpea-directory', unless it is absolute.")
 
 
 #+end_src
@@ -1333,7 +1347,7 @@ Intelligent Search
 
   ;; ripgrep
   (use-package rg
-    :ensure-system-package (ripgrep))
+    :ensure-system-package (ripgrep aspell ispell))
 
   (require 'rg)
   (rg-enable-default-bindings)
@@ -2577,6 +2591,22 @@ Settings for OrgMode
 
   (epa-file-enable)
 
+  (use-package vulpea
+    :ensure t
+    ;; hook into org-roam-db-autosync-mode you wish to enable
+    ;; persistence of meta values (see respective section in README to
+    ;; find out what meta means)
+    :config
+    (add-to-list 'window-buffer-change-functions
+                 #'vulpea-setup-buffer)
+    (add-hook 'vulpea-insert-handle-functions
+              #'vulpea-insert-handle)
+
+    :hook ((before-save . vulpea-pre-save-hook)
+           (org-roam-db-autosync-mode . vulpea-db-autosync-enable)))
+
+
+
   ;; Org Presentations using org-tree-slide
 
   (use-package org-tree-slide
@@ -2597,6 +2627,7 @@ Settings for OrgMode
     (org-roam-setup)
     ;; If using org-roam-protocol
     (require 'org-roam-protocol))
+
   (setq org-roam-directory (file-truename "~/Documents/org-roam/"))
   (setq org-roam-dailies-directory "daily/")
 
@@ -2607,7 +2638,7 @@ Settings for OrgMode
                               "#+title: %<%Y-%m-%d>\n"))))
 
   (setq org-capture-templates
-        '(("t" "todo" plain (file vulpea-capture-inbox-file)
+        '(("t" "todo" plain (file buffer-name)
            "* TODO %?\n%U\n" :clock-in t :clock-resume t)
 
           ("m" "Meeting" entry
@@ -2780,13 +2811,41 @@ Settings for OrgMode
                     (directory-files-recursively "~/Documents/org-roam" "\\.org$")
                     ))
 
+  (require 'vulpea)
 
-  (use-package vulpea
-    :ensure t
-    ;; hook into org-roam-db-autosync-mode you wish to enable
-    ;; persistence of meta values (see respective section in README to
-    ;; find out what meta means)
-    :hook ((org-roam-db-autosync-mode . vulpea-db-autosync-enable)))
+  (defun vulpea-tags-add ()
+    "Add a tag to current note."
+    (interactive)
+    (org-with-point-at 1
+      (when (call-interactively #'org-roam-tag-add)
+        (vulpea-ensure-filetag))))
+
+    ;;;###autoload
+  (defun vulpea-agenda-person ()
+    "Show main `org-agenda' view."
+    (interactive)
+    (let* ((person (vulpea-select-from
+                    "Person"
+                    (vulpea-db-query-by-tags-some '("people"))))
+           (node (org-roam-node-from-id (vulpea-note-id person)))
+           (names (cons (org-roam-node-title node)
+                        (org-roam-node-aliases node)))
+           (tags (seq-map #'vulpea--title-to-tag names))
+           (query (string-join tags "|")))
+      (dlet ((org-agenda-overriding-arguments (list t query)))
+        (org-agenda nil "M"))))
+
+
+          ;;;###autoload
+  (defun vulpea-agenda-files-update (&rest _)
+    "Update the value of `org-agenda-files'."
+    (setq org-agenda-files (seq-uniq
+                            (seq-map
+                             #'vulpea-note-path
+                             (vulpea-db-query-by-tags-some '("project"))))))
+
+
+  (advice-add 'org-agenda :before #'vulpea-agenda-files-update)
 
   (setq org-agenda-prefix-format
         '((agenda . " %i %(vulpea-agenda-category 20)%?-20t% s")
@@ -2827,28 +2886,27 @@ Settings for OrgMode
                                        "litnotes"
                                        "people"))
 
-
-        ;;;###autoload
+                                       ;;;###autoload
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
-        Category is defined by one of the following items:
+                                       Category is defined by one of the following items:
 
-        - CATEGORY property
-        - TITLE keyword
-        - TITLE property
-        - filename without directory and extension
+                                       - CATEGORY property
+                                       - TITLE keyword
+                                       - TITLE property
+                                       - filename without directory and extension
 
-        When LEN is a number, resulting string is padded right with
-        spaces and then truncated with ... on the right if result is
-        longer than LEN.
+                                       When LEN is a number, resulting string is padded right with
+                                       spaces and then truncated with ... on the right if result is
+                                       longer than LEN.
 
-        Usage example:
+                                       Usage example:
 
-          (setq org-agenda-prefix-format
-                '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+                                         (setq org-agenda-prefix-format
+                                               '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
 
-        Refer to `org-agenda-prefix-format' for more information."
+                                       Refer to `org-agenda-prefix-format' for more information."
     (let* ((file-name (when buffer-file-name
                         (file-name-sans-extension
                          (file-name-nondirectory buffer-file-name))))
@@ -2865,7 +2923,103 @@ Settings for OrgMode
           (s-truncate len (s-pad-right len " " result))
         result)))
 
-      ;;;###autoload
+
+
+                    ;;;###autoload
+
+  (defun vulpea-insert-handle (note)
+    "Hook to be called on NOTE after `vulpea-insert'."
+    (when-let* ((title (vulpea-note-title note))
+                (tags (vulpea-note-tags note)))
+      (when (seq-contains-p tags "people")
+        (save-excursion
+          (ignore-errors
+            (org-back-to-heading)
+            (when (eq 'todo (org-element-property
+                             :todo-type
+                             (org-element-at-point)))
+              (org-set-tags
+               (seq-uniq
+                (cons
+                 (vulpea--title-to-tag title)
+                 (org-get-tags nil t))))))))))
+
+
+  (defun vulpea--title-as-tag ()
+    "Return title of the current note as tag."
+    (vulpea--title-to-tag (vulpea-buffer-prop-get "title")))
+
+  (defun vulpea--title-to-tag (title)
+    "Convert TITLE to tag."
+    (concat "@" (s-replace " " "" title)))
+
+
+  ;; autotag
+  (defun vulpea-project-p ()
+    "Return non-nil if current buffer has any todo entry.
+
+                  TODO entries marked as done are ignored, meaning the this
+                  function returns nil if current buffer contains only completed
+                  tasks. The only exception is headings tagged as REFILE."
+    (org-element-map
+        (org-element-parse-buffer 'headline)
+        'headline
+      (lambda (h)
+        (let ((todo-type (org-element-property :todo-type h)))
+          (or
+           ;; any headline with some todo keyword
+           (eq 'todo todo-type)
+           ;; any headline with REFILE tag (no inheritance)
+           (seq-contains-p (org-element-property :tags h) "REFILE")
+           ;; any non-todo headline with an active timestamp
+           (and
+            (not (eq 'done todo-type))
+            (org-element-property :contents-begin h)
+            (save-excursion
+              (goto-char (org-element-property :contents-begin h))
+              (let ((end (save-excursion
+                           ;; we must look for active timestamps only
+                           ;; before then next heading, even if it's
+                           ;; child, but org-element-property
+                           ;; :contents-end includes all children
+                           (or
+                            (re-search-forward org-element-headline-re
+                                               (org-element-property :contents-end h)
+                                               ':noerror)
+                            (org-element-property :contents-end h)))))
+                (re-search-forward org-ts-regexp end 'noerror)))))))
+      nil 'first-match))
+
+
+  (defun vulpea-buffer-p ()
+    "Return non-nil if the currently visited buffer is a note."
+    (and buffer-file-name
+         (eq major-mode 'org-mode)
+         (string-suffix-p "org" buffer-file-name)
+         (string-prefix-p
+          (expand-file-name (file-name-as-directory vulpea-directory))
+          (file-name-directory buffer-file-name))))
+
+
+            ;;;###autoload
+  (defun vulpea-setup-buffer (&optional _)
+    "Setup current buffer for notes viewing and editing."
+    (when (and (not (active-minibuffer-window))
+               (vulpea-buffer-p))
+      (org-with-point-at 1
+        (org-fold-hide-drawer-toggle 'off))
+      (setq-local tab-width 1)
+      (vulpea-ensure-filetag)))
+
+          ;;;###autoload
+  (defun vulpea-pre-save-hook ()
+    "Do all the dirty stuff when file is being saved."
+    (when (and (not (active-minibuffer-window))
+               (vulpea-buffer-p))
+      (vulpea-ensure-filetag)))
+
+
+            ;;;###autoload
   (defun vulpea-ensure-filetag ()
     "Add missing FILETAGS to the current note."
     (let* ((file (buffer-file-name))
@@ -2887,8 +3041,6 @@ Settings for OrgMode
           (unless (seq-contains-p tags tag)
             (setq tags (cons tag tags)))))
 
-      ;; process litnotes
-      (setq tags (litnotes-ensure-filetags tags))
 
       ;; process projects
       (if (vulpea-project-p)
@@ -2903,9 +3055,80 @@ Settings for OrgMode
         (apply #'vulpea-buffer-tags-set (seq-uniq tags)))))
 
 
+  (cl-defun vulpea-db-process-notes (&key
+                                     filter-fn
+                                     process-fn
+                                     quiet)
+    "Process `vulpea-note's.
+
+                             Mostly used for simple migrations.
+
+                             This function has the following features and properties.
+
+                             - It tries to avoid performance degradation even when 10k+ notes
+                               are being processed.
+
+                             - Each (id . file) pair is processed only once, meaning that
+                               PROCESS-FN is not called multiple times on the same node.
+                               Despite this, keep your PROCESS-FN idempotent.
+
+                             - Point is placed at the beginning of note. Meaning that for
+                               file-level notes the point is at the beginning of buffer; and
+                               for heading-level notes the point is at the beginning of
+                               heading.
+
+                             - Progress is printed on the go unless QUIET is non-nil.
+
+                             Notes are selected by using FILTER-FN which takes `vulpea-note'
+                             as its only argument and returns non-nil if the note needs to be
+                             selected.
+
+                             PROCESS-FN is called with `vulpea-note' as it's argument. Result
+                             is ignored. Any buffer modification is saved."
+    (let* ((notes (seq-filter
+                   (lambda (n) (null (vulpea-note-primary-title n)))
+                   (vulpea-db-query filter-fn)))
+           (count (seq-length notes)))
+      (unless quiet
+        (pcase count
+          (`0 (message "No notes to process"))
+          (`1 (message "Processing 1 note"))
+          (_ (message "Processing %d notes" count))))
+      (seq-map-indexed
+       (lambda (n i)
+         (let ((level (vulpea-note-level n))
+               (file-name (file-name-nondirectory (vulpea-note-path n)) ))
+           (unless quiet
+             (message
+              (s-truncate
+               80
+               (format
+                "[%s/%d] Processing %s"
+                (string-from-number (+ i 1) :padding-num count)
+                count
+                (if (= 0 level)
+                    file-name
+                  (concat file-name "#" (vulpea-note-title n))))))))
+         (cl-letf (((symbol-function 'message) (lambda (&rest _))))
+           (vulpea-visit n))
+         (when process-fn
+           (funcall process-fn n))
+         (save-buffer)
+         (kill-buffer))
+       notes)))
+
+                             ;;;###autoload
+  (defun vulpea-db-build ()
+    "Update notes database."
+    (when (file-directory-p vulpea-directory)
+      (org-roam-db-sync)
+      (vino-db-sync)
+      (org-roam-update-org-id-locations)
+      (org-persist-gc)
+      (org-persist-write-all)))
 
 
-      ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+                               ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
@@ -2919,20 +3142,7 @@ Settings for OrgMode
   (setq org-habit-graph-column 60)
 
   (setq org-agenda-custom-commands
-        '(("p" "Personal agenda"
-           ((tags ":today:" ((org-agenda-overriding-header "Today's tasks:")))
-            (agenda "")
-            (todo "TODO"
-                  ((org-agenda-skip-function '(or (hrs/org-skip-subtree-if-priority ?A)
-                                                  (hrs/org-skip-subtree-if-habit)))
-                   (org-agenda-overriding-header "Other tasks:")))
-            (todo "PENDING"
-                  ((org-agenda-skip-function '(hrs/org-skip-subtree-if-priority ?A))
-                   (org-agenda-overriding-header "Pending:")))
-            (todo "BLOCKED"
-                  ((org-agenda-skip-function '(hrs/org-skip-subtree-if-priority ?A))
-                   (org-agenda-overriding-header "Blocked:")))))))
-
+        '(("p" "personal agenda" vulpea-agenda-person)))
 
   (org-babel-do-load-languages
    'org-babel-load-languages
