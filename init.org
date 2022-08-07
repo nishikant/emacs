@@ -2064,7 +2064,6 @@ Settings for handling markdown files
 Dockerfile and docker-compose related settings
 #+begin_src emacs-lisp
 
-
   ;; dockerfile-mode
   (use-package dockerfile-mode
     :ensure t)
@@ -2077,6 +2076,12 @@ Dockerfile and docker-compose related settings
   (use-package docker-tramp
     :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
+  (use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview)
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))
 
 #+end_src
 
