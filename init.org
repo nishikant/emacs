@@ -1130,7 +1130,7 @@ Debug settings for various languages
     (require 'dap-chrome)
     (require 'dap-node)
     (require 'dap-gdb-lldb)
-    (require 'dap-go) 
+    (require 'dap-go)
     (dap-go-setup)
     (dap-chrome-setup)
     (use-package dap-ui
@@ -1309,10 +1309,6 @@ Use fly check to check syntax
             ("C-." . flyspell-correct-wrapper))
       :custom (flyspell-correct-interface #'flyspell-correct-ivy)))
 
-
-
-
-
 #+end_src
 
 ** Git
@@ -1348,7 +1344,6 @@ Intelligent Search
   ;; ripgrep
   (use-package rg
     :ensure-system-package (ripgrep aspell ispell))
-
   (require 'rg)
   (rg-enable-default-bindings)
   (setq rg-align-position-numbers t)
@@ -1833,7 +1828,7 @@ cc-mode for working c, c++
 
 #+begin_src emacs-lisp
 
-
+  (add-to-list 'lsp-enabled-clients 'clangd)
   ;; cc-mode
   (use-package cc-mode
     :config
@@ -1842,9 +1837,15 @@ cc-mode for working c, c++
                 (local-set-key (kbd "C-M-h") 'backward-kill-word)
                 (local-set-key (kbd "C-c h") 'c-mark-function))))
 
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
+  (with-eval-after-load 'lsp-mode
+    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+    (require 'dap-cpptools)
+    (yas-global-mode))
+
   ;; lsp-mode for c++
   (use-package ccls
-
     :hook ((c-mode c++-mode objc-mode cuda-mode) .
            (lambda () (require 'ccls) (lsp))))
   (setq ccls-initialization-options '(:index (:comments 2) :completion (:detailedLabel t)))
@@ -1929,7 +1930,7 @@ Nodejs & React stuff
     :diminish prettier-js-mode
     :hook (((js2-mode rjsx-mode) . prettier-js-mode))
     :init
-    ) 
+    )
 
 
   ;; Javascript and coffeescript
@@ -2392,7 +2393,7 @@ Cleanup needed
 
   (setq-default py-split-windows-on-execute-function 'split-window-horizontally)
 
-  (setq python-indent-guess-indent-offset t)  
+  (setq python-indent-guess-indent-offset t)
   (setq python-indent-guess-indent-offset-verbose nil)
   ;; python
 
@@ -3216,12 +3217,15 @@ Settings for OrgMode
   (use-package plantuml-mode
     :defer t
     :custom
-    (org-plantuml-jar-path (expand-file-name "/usr/local/Cellar/plantuml/1.2022.2_1/libexec/plantuml.jar"))
+    (org-plantuml-jar-path (expand-file-name "/opt/homebrew/Cellar/plantuml/1.2022.6/libexec/plantuml.jar"))
     :config
     (org-babel-do-load-languages
      'org-babel-load-languages
      '(;; other Babel languages
        (plantuml . t))))
+
+  (setq plantuml-default-exec-mode 'jar)
+
 
 
   ;; Enable plantuml-mode for PlantUML files
