@@ -1,5 +1,3 @@
-* Direct (10m)
-* Manager (10m)
-  - %?
-* Future (10m)
-* ARs [/]
+#+filetags: :emacs:org:capture_templates:
+* Notes
+* AIs [/]
