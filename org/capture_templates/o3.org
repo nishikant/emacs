@@ -1,3 +1,2 @@
-#+filetags: :emacs:org:capture_templates:
 * Notes
 * AIs [/]
