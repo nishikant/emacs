@@ -1,5 +1,6 @@
 #+TITLE: Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/settings.el
+#+filetags: :emacs:
 
 This is an ongoing evolution of my original Emacs configuration files,
 inspired by a bunch of resources I've found online. Lot of it taken from https://github.com/MatthewZMD/.emacs.d
@@ -1133,6 +1134,8 @@ Debug settings for various languages
     (require 'dap-go)
     (dap-go-setup)
     (dap-chrome-setup)
+    (dap-firefox-setup)
+    (dap-node-setup)
     (use-package dap-ui
       :ensure nil
       :config
@@ -1404,6 +1407,7 @@ Use Ivy frame work for code completion interface
   (use-package auto-complete)
 
   (ac-config-default)
+
   (use-package company
     :diminish company-mode
     :hook ((prog-mode LaTeX-mode latex-mode ess-r-mode) . company-mode)
@@ -1427,7 +1431,7 @@ Use Ivy frame work for code completion interface
     (defun smarter-tab-to-complete ()
       "Try to `org-cycle', `yas-expand', and `yas-next-field' at current cursor position.
 
-  If all failed, try to complete the common part with `company-complete-common'"
+    If all failed, try to complete the common part with `company-complete-common'"
       (interactive)
       (when yas-minor-mode
         (let ((old-point (point))
@@ -2074,15 +2078,13 @@ Dockerfile and docker-compose related settings
   (setq dockerfile-use-buildkit t)
   (use-package docker-compose-mode
     :mode ("docker-compose.yml\\'" . docker-compose-mode))
-  (use-package docker-tramp
-    :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
   (use-package kubernetes
-  :ensure t
-  :commands (kubernetes-overview)
-  :config
-  (setq kubernetes-poll-frequency 3600
-        kubernetes-redraw-frequency 3600))
+    :ensure t
+    :commands (kubernetes-overview)
+    :config
+    (setq kubernetes-poll-frequency 3600
+          kubernetes-redraw-frequency 3600))
 
 #+end_src
 
@@ -2548,10 +2550,7 @@ Emacs lisp or elisp programming
   (require 'tree-sitter-debug)
   (require 'tree-sitter-query)
 
-  (use-package csharp-mode
-    :ensure t
-    :config
-    (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
+  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode))
   (add-to-list 'lsp-enabled-clients 'csharp)
 
 #+end_src
@@ -2610,8 +2609,6 @@ Settings for OrgMode
 
     :hook ((before-save . vulpea-pre-save-hook)
            (org-roam-db-autosync-mode . vulpea-db-autosync-enable)))
-
-
 
   ;; Org Presentations using org-tree-slide
 
