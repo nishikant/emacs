@@ -3173,11 +3173,16 @@ Settings for OrgMode
   ;; Uses more memory; see https://github.com/politza/pdf-tools/issues/51
 
 
-  (use-package pdf-tools)
+  (use-package pdf-tools
+    :config
+    (custom-set-variables
+     '(pdf-tools-handle-upgrades t)))
   (setq pdf-view-midnight-colors '("#f8f8f2" . "#282a36"))
   ;; (pdf-view-midnight-minor-mode)
 
   (pdf-tools-install)
+  (pdf-loader-install)
+
   (setq pdf-view-use-scaling t
         pdf-view-use-imagemagick nil)
   (setq org-latex-pdf-process
