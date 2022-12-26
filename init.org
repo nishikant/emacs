@@ -338,6 +338,7 @@ Custom functions that help in OrgMode and other functionality.
     (setenv "PATH" (concat (getenv "PATH") ":" path))
     (add-to-list 'exec-path path))
 
+  (hrs/append-to-path "/Users/gattu/go/bin")
   (defun hrs/insert-password ()
     "Insert password."
     (interactive)
@@ -485,6 +486,7 @@ scroll bar, async support,etc.
     :config
     (global-undo-tree-mode 1))
 
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
 
   ;; whole-line-ore-region use currentline if no region is selected.
   ;; primarily used to cut currentline if no region is defined
@@ -1422,7 +1424,7 @@ Use Ivy frame work for code completion interface
     ;; Don't use company in the following modes
     (company-global-modes '(not shell-mode eaf-mode))
     ;; Trigger completion immediately.
-    (company-idle-delay 0.1)
+    (company-idle-delay 0)
     ;; Number the candidates (use M-1, M-2 etc to select completions).
     (company-show-numbers t)
     :config
@@ -1452,6 +1454,42 @@ Use Ivy frame work for code completion interface
   (use-package smart-tab)
   (require 'smart-tab)
   (global-smart-tab-mode 1)
+
+  (use-package corfu
+    :ensure t
+    ;; Optional customizations
+    :custom
+    (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+    (corfu-auto t)                 ;; Enable auto completion
+    (corfu-separator ?\s)          ;; Orderless field separator
+    (corfu-quit-at-boundary t)   ;; Never quit at completion boundary
+    (corfu-quit-no-match t)      ;; Never quit, even if there is no match
+    (corfu-preview-current nil)    ;; Disable current candidate preview
+    (corfu-preselect-first nil)    ;; Disable candidate preselection
+    (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+    (corfu-echo-documentation nil) ;; Disable documentation in the echo area
+    (corfu-scroll-margin 5)        ;; Use scroll margin
+
+    ;; Recommended: Enable Corfu globally.
+    ;; This is recommended since Dabbrev can be used globally (M-/).
+    ;; See also `corfu-excluded-modes'.
+    :init
+    (global-corfu-mode))
+  ;; Enable auto completion and configure quitting
+  (setq corfu-auto t
+        corfu-quit-no-match 'separator) ;; or t
+  ;; Use Dabbrev with Corfu!
+  (use-package dabbrev
+    ;; Swap M-/ and C-M-/
+    :bind (("M-/" . dabbrev-completion)
+           ("C-M-/" . dabbrev-expand))
+    ;; Other useful Dabbrev configurations.
+    :custom
+    (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
+      ;;; Enhances completion at point see https://github.com/minad/cape
+  (use-package cape
+    :ensure t)
 
 #+end_src
 
@@ -1775,7 +1813,7 @@ Golang related configs
   ;; TBR
 
   (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
+  (add-hook 'go-mode-hook #'yas-minor-mode)
   (lsp-register-custom-settings
    '(("gopls.completeUnimported" t t)
      ("gopls.staticcheck" t t)))
@@ -2419,7 +2457,7 @@ Cleanup needed
 
   (use-package py-autopep8)
   (require 'py-autopep8)
-  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+  (py-autopep8-mode)
 
   ;; to reformat your python buffer enable blacken-mode in relevant python buffers
   (use-package blacken)
@@ -2602,8 +2640,6 @@ Settings for OrgMode
     ;; persistence of meta values (see respective section in README to
     ;; find out what meta means)
     :config
-    (add-to-list 'window-buffer-change-functions
-                 #'vulpea-setup-buffer)
     (add-hook 'vulpea-insert-handle-functions
               #'vulpea-insert-handle)
 
@@ -2761,6 +2797,8 @@ Settings for OrgMode
 
   ;; org-mode
   (use-package org-contrib)
+
+  (use-package ob-ipython)
   (use-package org
     :config
     (require 'org-tempo)
@@ -3153,6 +3191,7 @@ Settings for OrgMode
      (ruby . t)
      (dot . t)
      (python . t)
+     (ipython . t)
      (plantuml . t)
      (gnuplot . t)))
 
@@ -3220,11 +3259,7 @@ Settings for OrgMode
     :defer t
     :custom
     (org-plantuml-jar-path (expand-file-name "/opt/homebrew/Cellar/plantuml/1.2022.6/libexec/plantuml.jar"))
-    :config
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '(;; other Babel languages
-       (plantuml . t))))
+    :config)
 
   (setq plantuml-default-exec-mode 'jar)
 
