@@ -3,15 +3,18 @@
 #+filetags: :emacs:
 
 This is an ongoing evolution of my original Emacs configuration files,
-inspired by a bunch of resources I've found online. Lot of it taken from https://github.com/MatthewZMD/.emacs.d
+inspired by a bunch of resources I've found online. Lot of it taken
+from https://github.com/MatthewZMD/.emacs.d
 
 #+OPTIONS: toc: include all
 
 * My Cheat Sheet
 - Installation command:
   brew tap daviderestivo/emacs-head
-  brew reinstall emacs-head@29 --with-dbus --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple --with-native-comp --with-native-full-aot --bottle-arch
-  Install Google Inconsolata font. Download and double click
+  brew reinstall emacs-head@30 --with-dbus --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple
+- # Native compilation seems to screw the battery --with-native-comp
+  --with-native-full-aot --bottle-arch
+- Install Google Inconsolata font. Download and double click
 - C-i is tab
 - C-M-k delete brackets and everything inside it
 - C-u C-space move cursor to previous marked position
@@ -2579,9 +2582,9 @@ Emacs lisp or elisp programming
 #+begin_src emacs-lisp
 
 
-  (quelpa '(elisp-tree-sitter :fetcher github
-                              :repo  "emacs-tree-sitter/elisp-tree-sitter"
-                              :files ("*")))
+  (use-package tree-sitter)
+  (use-package tree-sitter-langs)
+
   (require 'tree-sitter)
   (require 'tree-sitter-hl)
   (require 'tree-sitter-langs)
@@ -2712,9 +2715,7 @@ Settings for OrgMode
                      :files ("*")))
 
   ;; org-present used for presentations
-  (quelpa '(org-present :fetcher github
-                        :repo  "rlister/org-present"
-                        :files ("*")))
+  (use-package org-present)
 
   (autoload 'org-present "org-present" nil t)
 
