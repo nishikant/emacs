@@ -1051,7 +1051,7 @@ LSP mode settings. Custom language settings also included here.
      (typescript-language-server . "npm install -g typescript-language-server")
      (javascript-typescript-langserver . "npm install -g javascript-typescript-langserver")
      (bash-language-server . "npm install -g bash-language-server")
-     (python-lsp-server . "pip3 install python-lsp-server[all]")
+     (python-lsp-server . "pip3 install python-lsp-server[yapf]")
      (jedi . "pip3 install jedi")
      (tsc . "npm install -g typescript")
      (sqls . "go install github.com/lighttiger2505/sqls@latest")
@@ -2456,8 +2456,6 @@ Cleanup needed
     (lsp-pyright-multi-root nil))
   (add-to-list 'lsp-enabled-clients 'pylsp)
 
-  (setq python-shell-interpreter "python3")
-
   (use-package py-autopep8)
   (require 'py-autopep8)
   (py-autopep8-mode)
@@ -2475,7 +2473,7 @@ Cleanup needed
   (setq ein:slice-image t)
 
   ;; Try ein and decide if this is needed
-  (use-package jupyter)
+  ;; (use-package jupyter)
 
   ;; Use IPython for REPL
   (setq python-shell-completion-native-enable nil)
@@ -2801,7 +2799,7 @@ Settings for OrgMode
   ;; org-mode
   (use-package org-contrib)
 
-  (use-package ob-ipython)
+  ;; (use-package ob-ipython)
   (use-package org
     :config
     (require 'org-tempo)
@@ -3194,7 +3192,7 @@ Settings for OrgMode
      (ruby . t)
      (dot . t)
      (python . t)
-     (ipython . t)
+     ;; (ipython . t)
      (plantuml . t)
      (gnuplot . t)))
 
@@ -3340,6 +3338,88 @@ Mode for writing books
 * Experimental stuff
 #+begin_src emacs-lisp
 
+  (defvar xah-brackets nil "string of left/right brackets pairs.")
+  (setq xah-brackets "()[]{}<>（）［］｛｝⦅⦆〚〛⦃⦄“”‘’‹›«»「」〈〉《》【】〔〕⦗⦘『』〖〗〘〙｢｣⟦⟧⟨⟩⟪⟫⟮⟯⟬⟭⌈⌉⌊⌋⦇⦈⦉⦊❛❜❝❞❨❩❪❫❴❵❬❭❮❯❰❱❲❳〈〉⦑⦒⧼⧽﹙﹚﹛﹜﹝﹞⁽⁾₍₎⦋⦌⦍⦎⦏⦐⁅⁆⸢⸣⸤⸥⟅⟆⦓⦔⦕⦖⸦⸧⸨⸩｟｠⧘⧙⧚⧛⸜⸝⸌⸍⸂⸃⸄⸅⸉⸊᚛᚜༺༻༼༽⏜⏝⎴⎵⏞⏟⏠⏡﹁﹂﹃﹄︹︺︻︼︗︘︿﹀︽︾﹇﹈︷︸")
+
+  (defvar xah-left-brackets '("(" "{" "[" "<" "〔" "【" "〖" "〈" "《" "「" "『" "“" "‘" "‹" "«" )
+    "List of left bracket chars.")
+  (progn
+    ;; make xah-left-brackets based on xah-brackets
+    (setq xah-left-brackets '())
+    (dotimes (-x (- (length xah-brackets) 1))
+      (when (= (% -x 2) 0)
+        (push (char-to-string (elt xah-brackets -x))
+              xah-left-brackets)))
+    (setq xah-left-brackets (reverse xah-left-brackets)))
+
+  (defvar xah-right-brackets '(")" "]" "}" ">" "〕" "】" "〗" "〉" "》" "」" "』" "”" "’" "›" "»")
+    "list of right bracket chars.")
+  (progn
+    (setq xah-right-brackets '())
+    (dotimes (-x (- (length xah-brackets) 1))
+      (when (= (% -x 2) 1)
+        (push (char-to-string (elt xah-brackets -x))
+              xah-right-brackets)))
+    (setq xah-right-brackets (reverse xah-right-brackets)))
+
+  (defun xah-backward-left-bracket ()
+    "Move cursor to the previous occurrence of left bracket.
+      The list of brackets to jump to is defined by `xah-left-brackets'.
+      URL `http://ergoemacs.org/emacs/emacs_navigating_keys_for_brackets.html'
+      Version 2015-10-01"
+    (interactive)
+    (search-backward-regexp (regexp-opt xah-left-brackets) nil t))
+
+  (global-set-key (kbd "C-c b") 'xah-backward-left-bracket)
+
+  (defun xah-forward-right-bracket ()
+    "Move cursor to the next occurrence of right bracket.
+      The list of brackets to jump to is defined by `xah-right-brackets'.
+      URL `http://ergoemacs.org/emacs/emacs_navigating_keys_for_brackets.html'
+      Version 2015-10-01"
+    (interactive)
+    (search-forward-regexp (regexp-opt xah-right-brackets) nil t))
+
+  (global-set-key (kbd "C-c k") 'xah-forward-right-bracket)
+  (defun xah-forward-quote ()
+    "Move cursor to the next occurrence of \".
+    If there are consecutive quotes of the same char, keep moving until none.
+    Returns `t' if found, else `nil'.
+    URL `http://ergoemacs.org/emacs/emacs_navigating_keys_for_brackets.html'
+    Version 2016-07-23"
+    (interactive)
+    (if (search-forward-regexp "\\\"+" nil t)
+        t
+      (progn
+        (message "No more quotes after cursor..")
+        nil)))
+  (global-set-key (kbd "C-c u") 'xah-forward-quote)
+  (defun xah-forward-quote-twice ()
+    "Call `xah-forward-quote' twice.
+    Returns `t' if found, else `nil'.
+    URL `http://ergoemacs.org/emacs/emacs_navigating_keys_for_brackets.html'
+    Version 2016-07-23"
+    (interactive)
+    (when (xah-forward-quote)
+      (xah-forward-quote)))
+  (global-set-key (kbd "C-c e f") 'xah-forward-quote)
+  (defun xah-backward-quote ()
+    "Move cursor to the previous occurrence of \".
+    If there are consecutive quotes of the same char, keep moving until none.
+    Returns `t' if found, else `nil'.
+    URL `http://ergoemacs.org/emacs/emacs_navigating_keys_for_brackets.html'
+    Version 2016-07-23"
+    (interactive)
+    (if (search-backward-regexp "\\\"+" nil t)
+        (when (char-before) ; isn't nil, at beginning of buffer
+          (while (char-equal (char-before) (char-after))
+            (left-char)
+            t))
+      (progn
+        (message "No more quotes before cursor.")
+        nil)))
+  (global-set-key (kbd "C-c w") 'xah-forward-quote)
+
   (use-package ibuffer
     :ensure nil
     :bind ("C-x C-b" . ibuffer)
@@ -3389,8 +3469,7 @@ Mode for writing books
   (use-package hackernews
     :commands (hackernews)
     :bind
-    (("C-c h" . hackernews)
-     ("C-c m" . hackernews)))
+    ("C-c m" . hackernews))
 
 
   ;; 2048 Game
@@ -3478,7 +3557,6 @@ Mode for writing books
 
   ;; not sure about this
   (use-package let-alist)
-
   (use-package flycheck-package)
   (eval-after-load 'flycheck
     '(flycheck-package-setup))
