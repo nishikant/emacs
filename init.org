@@ -2469,6 +2469,8 @@ Cleanup needed
   (use-package ein)
 
   (require 'ein)
+  (require 'ein-notebook)
+
   (setq ein:output-area-inlined-images t)
   (setq ein:slice-image t)
 
