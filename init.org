@@ -1821,9 +1821,6 @@ Golang related configs
    '(("gopls.completeUnimported" t t)
      ("gopls.staticcheck" t t)))
 
-  (add-hook 'go-mode-hook (lambda ()
-                            (local-set-key (kbd "M-.") #'godef-jump)))
-
   ;; add go yasnippet
   (use-package go-snippets)
 
