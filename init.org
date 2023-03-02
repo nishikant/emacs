@@ -3402,7 +3402,7 @@ Mode for writing books
     (interactive)
     (when (xah-forward-quote)
       (xah-forward-quote)))
-  (global-set-key (kbd "C-c e f") 'xah-forward-quote)
+  (global-set-key (kbd "C-c e f") 'xah-forward-quote-twice)
   (defun xah-backward-quote ()
     "Move cursor to the previous occurrence of \".
     If there are consecutive quotes of the same char, keep moving until none.
@@ -3418,7 +3418,7 @@ Mode for writing books
       (progn
         (message "No more quotes before cursor.")
         nil)))
-  (global-set-key (kbd "C-c w") 'xah-forward-quote)
+  (global-set-key (kbd "C-c w") 'xah-backward-quote)
 
   (use-package ibuffer
     :ensure nil
