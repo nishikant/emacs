@@ -1394,12 +1394,7 @@ LSP mode settings. Custom language settings also included here.
            ("C-c e R" . lsp-rename)
            ("C-c e i" . lsp-find-implementation)
            ("C-c e t" . lsp-find-type-definition)
-           (:map lsp-mode-map
-                 ("M-<return>" . lsp-execute-code-action))
-           (:map c++-mode-map
-                 ("C-c x" . lsp-clangd-find-other-file))
-           (:map c-mode-map
-                 ("C-c x" . lsp-clangd-find-other-file)))
+           )
 
     :ensure-system-package ((node)
                             (typescript-language-server . "npm install -g typescript-language-server")
@@ -1414,7 +1409,6 @@ LSP mode settings. Custom language settings also included here.
                             (gopls . "GOBIN=/Users/gattu/go/bin GO111MODULE=on go install golang.org/x/tools/gopls@latest"))
     :init
 
-    (setenv "LSP_USE_PLISTS" "1")
     ;; Increase the amount of data emacs reads from processes
     (setq read-process-output-max (* 1024 1024))
     (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
@@ -1457,15 +1451,8 @@ LSP mode settings. Custom language settings also included here.
       (lsp-register-custom-settings
        '(("gopls.completeUnimported" t t)
          ("gopls.staticcheck" t t)
-         ;; ("gopls.experimentalWorkspaceModule" t t)
-         )))
-
-    (use-package lsp-ui
-      :ensure t
-      :after lsp
-      :init
-      (setq lsp-ui-sideline-show-code-actions t)
-      (setq lsp-ui-sideline-show-diagnostics t)))
+         ("gopls.experimentalWorkspaceModule" t t)
+         ))))
 
   (use-package lsp-languages
     :no-require t :ensure nil
@@ -1485,68 +1472,36 @@ LSP mode settings. Custom language settings also included here.
            (kotlin-mode . lsp-deferred)
            (web-mode . lsp-deferred)
            ((js2-mode rjsx-mode) . lsp-deferred)
-           (javascript-mode . lsp-deferred))
-    :init
-    (use-package lsp-javascript :ensure nil :no-require t
-      :hook (javascript-mode . lsp-deferred)
-      :config
-      (setq lsp-javascript-display-inlay-hints t
-            lsp-javascript-display-return-type-hints t
-            lsp-javascript-display-variable-type-hints t
-            lsp-javascript-display-parameter-type-hints t)
-      (with-eval-after-load 'js
-        (define-key js-mode-map (kbd "M-.") 'xref-find-definitions)))
-
-    (use-package lsp-rust :ensure nil :no-require t
-      :hook (rust-mode       . lsp-deferred)
-      :config
-      (lsp-rust-analyzer-inlay-hints-mode 1))
-
-    (use-package lsp-haskell :ensure t
-      :hook (haskell-mode    . lsp-deferred))
-
-    (use-package lsp-java :ensure t
-      :hook (java-mode       . lsp-deferred)
-      :init
-      (require 'lsp-java-boot)
-      (add-hook 'java-mode-hook #'lsp-java-boot-lens-mode))
-
-    (use-package lsp-pyright :ensure t
-      :hook (python-mode . (lambda ()
-                             (require 'lsp-pyright)
-                             (lsp-deferred)))
-      :init
-      (setq python-shell-enable-font-lock nil)))
+           (javascript-mode . lsp-deferred)))
 
   ;; Optional - provides fancier overlays.
 
 
-  ;; (use-package
-  ;;   lsp-ui
-  ;;   :hook (lsp-mode . lsp-ui-mode)
-  ;;   :after flycheck
+  (use-package
+    lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :after flycheck
 
-  ;;   :bind (:map lsp-mode-map
-  ;;               ("C-h" . lsp-ui-doc-glance)
-  ;;               ("C-c f" . lsp-format-buffer)
-  ;;               ("C-<return>" . lsp-ui-sideline-apply-code-actions)
-  ;;               ("M-p" . lsp-ui-find-prev-reference)
-  ;;               ("M-n" . lsp-ui-find-next-reference)
-  ;;               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-  ;;               ([remap xref-find-references] . lsp-ui-peek-find-references)
-  ;;               ("C-c u" . lsp-ui-imenu)
-  ;;               )
-  ;;   :custom (lsp-ui-sideline-diagnostic-max-lines 3)
-  ;;   (lsp-ui-flycheck-enable t)
-  ;;   (lsp-ui-doc-enable nil)
-  ;;   (lsp-ui-sideline-ignore-duplicate t)
-  ;;   (lsp-ui-sideline-show-code-actions t)
-  ;;   (lsp-ui-sideline-show-hover t)
-  ;;   (lsp-ui-sideline-show-symbol nil)
-  ;;   (lsp-ui-sideline-actions-kind-regex ".*")
-  ;;   (lsp-clients-clangd-args '("--compile-commands-dir=build"
-  ;;                              "--header-insertion=never"))
-  ;;   )
+    :bind (:map lsp-mode-map
+                ("C-h" . lsp-ui-doc-glance)
+                ("C-c f" . lsp-format-buffer)
+                ("C-<return>" . lsp-ui-sideline-apply-code-actions)
+                ("M-p" . lsp-ui-find-prev-reference)
+                ("M-n" . lsp-ui-find-next-reference)
+                ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+                ([remap xref-find-references] . lsp-ui-peek-find-references)
+                ("C-c u" . lsp-ui-imenu)
+                )
+    :custom (lsp-ui-sideline-diagnostic-max-lines 3)
+    (lsp-ui-flycheck-enable t)
+    (lsp-ui-doc-enable nil)
+    (lsp-ui-sideline-ignore-duplicate t)
+    (lsp-ui-sideline-show-code-actions t)
+    (lsp-ui-sideline-show-hover t)
+    (lsp-ui-sideline-show-symbol nil)
+    (lsp-ui-sideline-actions-kind-regex ".*")
+    (lsp-clients-clangd-args '("--compile-commands-dir=build"
+                               "--header-insertion=never")))
 
 #+end_src
 
@@ -2124,7 +2079,7 @@ Use Ivy frame work for code completion interface
                 ([tab]        . corfu-next)
                 ("S-TAB"      . corfu-previous)
                 ([backtab]    . corfu-previous)
-                ("S-<return>" . corfu-insert)
+                ("<return>" . corfu-insert)
                 ("RET"        . nil))
 
     :init
@@ -2152,13 +2107,8 @@ Use Ivy frame work for code completion interface
     ;; Ensure that pcomplete does not write to the buffer
     ;; and behaves as a pure `completion-at-point-function'.
     (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
-  (use-package yasnippet
-    :ensure t
-    :init
-    (setq yas-nippet-dir "~/.emacs.d/snippets")
-    (yas-global-mode))
-  (use-package yasnippet-snippets
-    :ensure t :after yasnippet)
+
+
   (use-package cape-yasnippet
     :ensure nil
     :quelpa (cape-yasnippet :fetcher github :repo "elken/cape-yasnippet")
