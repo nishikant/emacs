@@ -1547,7 +1547,9 @@ Use fly check to check syntax
     :ensure nil
     :custom
     (imenu-auto-rescan t)
-    (imenu-max-items nil))
+    ;; (imenu-max-items nil)
+
+    )
 
   ;; flycheck
 
@@ -2012,21 +2014,19 @@ LSP mode settings. Custom language settings also included here.
                      (erase-buffer) (insert (format "%s" (substitute-command-keys help)))
                      (view-mode +1))
                    (switch-to-buffer-other-window h-at-p-buf))
-          (if (not arg) (message "No local help at point"))))
-      (setq lsp-modeline-diagnostics-scope :workspace)
-      (setq lsp-headerline-breadcrumb-enable t)
-      (setq lsp-enable-snippet t)
-      (setq lsp-file-watch-threshold 4000)
-      (setq lsp-headerline-breadcrumb-mode t)
-      (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
-      (setq lsp-semantic-highlighting 'immediate)
-      (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
-      (setq lsp-enable-semantic-highlighting t)
-      (lsp-register-custom-settings
-       '(("gopls.completeUnimported" t t)
-         ("gopls.staticcheck" t t)
-         ("gopls.experimentalWorkspaceModule" t t)
-         ))))
+          (if (not arg) (message "No local help at point")))))
+    (setq lsp-modeline-diagnostics-scope :workspace)
+    (setq lsp-headerline-breadcrumb-enable t)
+    (setq lsp-enable-snippet t)
+    (setq lsp-file-watch-threshold 4000)
+    (setq lsp-headerline-breadcrumb-mode t)
+    (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
+    (setq lsp-semantic-highlighting 'immediate)
+    (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
+    (setq lsp-enable-semantic-highlighting t)
+    (lsp-register-custom-settings
+     '(("gopls.completeUnimported" t t)
+       ("gopls.staticcheck" t t))))
 
   (use-package lsp-languages
     :no-require t :ensure nil
