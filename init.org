@@ -2837,8 +2837,7 @@ Cleanup needed
   (use-package py-autopep8)
   (require 'py-autopep8)
   (py-autopep8-mode)
-
-  (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+  (add-hook 'python-mode-hook 'py-autopep8-mode)
 
   ;; to reformat your python buffer enable blacken-mode in relevant python buffers
   (use-package blacken)
@@ -3414,8 +3413,8 @@ Settings for OrgMode
   (setq org-roam-completion-system 'ivy)
 
   ;; (use-package org-bullets
-    ;; :init
-    ;; (add-hook 'org-mode-hook 'org-bullets-mode))
+  ;; :init
+  ;; (add-hook 'org-mode-hook 'org-bullets-mode))
 
 
   ;; org-bars
