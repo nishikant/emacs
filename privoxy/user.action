@@ -1682,7 +1682,6 @@ adressbuch.web.de
 
 { +fast-redirects{check-decoded-url} }
 
-*.adrecover.com*
 www.example.com/nasty-ads/sponsor.gif
 
 # The URLs of dynamically generated banners, especially from large banner
