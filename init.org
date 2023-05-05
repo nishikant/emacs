@@ -3385,7 +3385,7 @@ Settings for OrgMode
     ;; If using org-roam-protocol
     (require 'org-roam-protocol))
 
-  (setq org-roam-directory (file-truename "~/Documents/org-roam/"))
+  (setq org-roam-directory (file-truename "~/Documents/"))
   (setq org-roam-dailies-directory "daily/")
 
   (setq org-roam-dailies-capture-templates
