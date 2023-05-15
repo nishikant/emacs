@@ -943,7 +943,7 @@ Themes and other configuration
     :init
     (setq dired-bind-jump nil)
     :config
-    (setq dired-listing-switches "-aghoA --group-directories-first")
+    (setq dired-listing-switches "-aghoA")
   ;;;;; Hide . and .. in dired
     (setq dired-omit-files
           (setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\..*$"))
