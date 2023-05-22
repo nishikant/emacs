@@ -1454,7 +1454,7 @@ LSP mode settings. Custom language settings also included here.
     (setq lsp-enable-snippet t)
     (setq lsp-file-watch-threshold 4000)
     (setq lsp-headerline-breadcrumb-mode t)
-    (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
+
     (setq lsp-semantic-highlighting 'immediate)
     (setq lsp-clients-go-library-directories '("/Users/gattu/project/go/"))
     (setq lsp-enable-semantic-highlighting t)
@@ -1522,28 +1522,21 @@ Debug settings for various languages
 #+begin_src emacs-lisp
 
 
-
-  (use-package dap-mode
-    :ensure t
-    :defer t
-    :bind (:map dap-mode-map
-                ("C-x D D" . dap-debug)
-                ("C-x D d" . dap-debug-last))
-    :init
-    (defun my/dap-cpp-setup ()
-      (require 'dap-gdb-lldb)
-      (dap-gdb-lldb-setup))
-    :config
-    (my/dap-cpp-setup)
-    (setq dap-auto-configure-features '(sessions locals controls tooltip)))
   ;; DAP mode
-  (use-package dap-java :ensure nil)
-  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
   (use-package dap-mode
     :diminish dap-mode
     :ensure t
+    :defer t
     :after (lsp-mode)
+    :bind (:map dap-mode-map
+                ("C-x D D" . dap-debug)
+                ("C-x D d" . dap-debug-last))
+    :init (defun my/dap-cpp-setup ()
+            (require 'dap-gdb-lldb)
+            (dap-gdb-lldb-setup))
     :config
+    (my/dap-cpp-setup)
+    (setq dap-auto-configure-features '(sessions locals controls tooltip))
     (dap-mode 1)
     (dap-auto-configure-mode)
     (setq dap-print-io t)
@@ -1564,7 +1557,9 @@ Debug settings for various languages
       :ensure nil
       :config
       (dap-ui-mode 1)))
-
+  (use-package dap-java :ensure nil)
+  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
+  (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
 
   ;; Rust template
   (require 'dap-mode)
