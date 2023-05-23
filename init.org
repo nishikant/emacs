@@ -12,10 +12,24 @@ from https://github.com/Gavinok/emacs.d
 These are helpful things that I should learn to use.
 
 - Installation command:
+#+begin_src bash :tangle no
+
+  brew install tree-sitter
+  git clone git@github.com:casouri/tree-sitter-module.git
+  cd tree-sitter-module
+  ./batch.sh
+  mkdir ~/.emacs.d/tree-sitter-langs
+  mv dist/* ~/.emacs.d/tree-sitter-langs/
   brew tap daviderestivo/emacs-head
-  brew reinstall emacs-head@30 --with-dbus --with-mailutils --with-cocoa --with-imagemagick --with-xwidgets --with-ctags --with-modern-icon-purple
-- # Native compilation seems to screw the battery --with-native-comp
-  --with-native-full-aot --bottle-arch
+
+  brew reinstall emacs-head@30 --with-dbus --with-mailutils \
+  --with-cocoa --with-imagemagick --with-xwidgets --with-ctags \
+  --with-modern-icon-purple --with-tree-sitter
+  # Native compilation seems to screw the battery --with-native-comp
+  # --with-native-full-aot --bottle-arch
+
+#+end_src
+
 - Install Google Inconsolata font. Download and double click
 - C-i is tab
 - C-M-k delete brackets and everything inside it
@@ -82,10 +96,10 @@ use-package to manage package configuration.
 
   (defun set-exec-path-from-shell-PATH ()
     "Set up Emacs' `exec-path' and PATH environment variable to match
-  that used by the user's shell.
+    that used by the user's shell.
 
-  This is particularly useful under Mac OS X and macOS, where GUI
-  apps are not started from a shell."
+    This is particularly useful under Mac OS X and macOS, where GUI
+    apps are not started from a shell."
     (interactive)
     (let ((path-from-shell (replace-regexp-in-string
                             "[ \t\n]*$" "" (shell-command-to-string
@@ -135,15 +149,12 @@ use-package to manage package configuration.
 
   (add-to-list 'load-path "~/.emacs.d/site-lisp/")
   (add-to-list 'load-path "~/.emacs.d/quelpa/build/")
-  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/core")
-  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/lisp")
-  (add-to-list 'load-path "~/.emacs.d/quelpa/build/elisp-tree-sitter/langs")
 
   (defconst env-sys-name (system-name))
   (defconst path-home-dir (file-name-as-directory (getenv "HOME"))
     "Path to user home directory.
 
-            In a nutshell, it's just a value of $HOME.")
+              In a nutshell, it's just a value of $HOME.")
   ;; Use it to debug a warning
   ;; (setq debug-on-message "quoted with ' rather than with #'")
 
@@ -385,13 +396,12 @@ scroll bar, async support,etc.
     :ensure t
     :commands (keycast-mode))
 
-  (use-package treesit-langs
-    :ensure nil
-    :unless (version< emacs-version "29")
-    :quelpa (treesit-langs :fetcher github :repo "kiennq/treesit-langs"
-                           :files ("tree-sitter-langs-build.el"
-                                   "treesit-*.el"
-                                   "queries")))
+
+  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter-langs/"))
+
+  (use-package tree-sitter-langs
+    :hook
+    (tree-sitter-after-on . tree-sitter-hl-mode))
 
   (use-package pomm
     :ensure t
@@ -512,7 +522,7 @@ scroll bar, async support,etc.
   ;; use trash
   (setq delete-by-moving-to-trash t)
 
-                  ;;;;;
+                     ;;;;;
 
   (use-package emacs
     :ensure nil
@@ -573,7 +583,7 @@ scroll bar, async support,etc.
     (unless my/is-termux
       (fringe-mode))
 
-                  ;;;; Defaults
+                     ;;;; Defaults
     ;; Handle long lines
     (setq-default bidi-paragraph-direction 'left-to-right)
     (setq-default bidi-inhibit-bpa t)
@@ -587,9 +597,9 @@ scroll bar, async support,etc.
                   inhibit-startup-screen t
                   ring-bell-function 'ignore)
 
-                  ;;;; UTF-8
+                     ;;;; UTF-8
     (prefer-coding-system 'utf-8)
-                  ;;;; Remove Extra Ui
+                     ;;;; Remove Extra Ui
     (fset 'yes-or-no-p 'y-or-n-p)    ; don't ask to spell out "yes"
     (show-paren-mode 1)              ; Highlight parenthesis
     (setq-default x-select-enable-primary t) ; use primary as clipboard in emacs
@@ -611,8 +621,8 @@ scroll bar, async support,etc.
     (customize-set-value 'recentf-make-menu-items 150)
     (customize-set-value 'recentf-make-saved-items 150))
 
-                    ;;;;
-                        ;;; Defaults
+                       ;;;;
+                           ;;; Defaults
   (use-package undo-fu
     :ensure t
     :bind (("C-x u"   . undo-fu-only-undo)
@@ -630,7 +640,7 @@ scroll bar, async support,etc.
   (use-package use-package-chords
     :ensure t
     :config (key-chord-mode 1))
-                ;;; General Key Bindings
+                   ;;; General Key Bindings
   (use-package crux
     :ensure t
     :bind (("C-x w v" . crux-swap-windows)
@@ -649,7 +659,7 @@ scroll bar, async support,etc.
     :ensure nil
     :bind (("M-SPC" . cycle-spacing)))
 
-              ;;; Aligning Text
+                 ;;; Aligning Text
   (use-package align
     :ensure nil
     :defer t
@@ -737,7 +747,7 @@ scroll bar, async support,etc.
     (clipmon-mode-start))
 
   ;; winner mode to handle windows config rollback
-        ;;; Winner Mode
+           ;;; Winner Mode
   (use-package winner
     :ensure nil
     :bind (("s-/" . winner-undo)
