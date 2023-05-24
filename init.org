@@ -228,7 +228,7 @@ All the shortcuts I use
   (global-set-key (kbd "C-:") 'hippie-expand-lines)
   (global-set-key (kbd "C-,") 'completion-at-point)
 
-  (global-set-key (kbd "C-x g") 'magit-status)
+
 
 
 
@@ -1089,6 +1089,29 @@ Configuration for currently used theme
 #+end_src
 
 * Code
+** Git
+
+Using Magit to handle all git related stuff.
+#+begin_src emacs-lisp
+
+  ;; magit
+  (use-package git-timemachine)
+  (use-package magit
+    :ensure t
+    :config
+    (setq magit-completing-read-function 'ivy-completing-read)
+    :diminish auto-revert-mode)
+  (global-set-key (kbd "C-x g") 'magit-status)
+  ;; gitignore-mode
+  (use-package git-modes
+    :ensure t
+    :config
+    (add-hook 'gitignore-mode-hook (lambda ()
+                                     (setq require-final-newline t))))
+
+
+#+end_src
+
 ** Global
 Coding related global settings
 #+begin_src emacs-lisp
@@ -2185,29 +2208,6 @@ Use fly check to check syntax
             ([remap flyspell-correct-word-before-point] . flyspell-correct-wrapper)
             ("C-." . flyspell-correct-wrapper))
       :custom (flyspell-correct-interface #'flyspell-correct-ivy)))
-
-#+end_src
-
-** Git
-
-Using Magit to handle all git related stuff.
-#+begin_src emacs-lisp
-
-  ;; magit
-  (use-package git-timemachine)
-  (use-package magit
-    :ensure t
-    :config
-    (setq magit-completing-read-function 'ivy-completing-read)
-    :diminish auto-revert-mode)
-
-  ;; gitignore-mode
-  (use-package git-modes
-    :ensure t
-    :config
-    (add-hook 'gitignore-mode-hook (lambda ()
-                                     (setq require-final-newline t))))
-
 
 #+end_src
 
