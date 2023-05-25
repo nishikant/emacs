@@ -1366,44 +1366,7 @@ Using Counsel and ivy to code completion
   (use-package flx
     :after ivy)
 
-  (use-package counsel
-    :demand
-    :init
-    (setq ivy-use-virtual-buffers t
-          ivy-re-builders-alist
-          '((counsel-git-grep . ivy--regex-plus)
-            (counsel-rg . ivy--regex-plus)
-            (swiper . ivy--regex-plus)
-            (swiper-all . ivy--regex-plus)
-            (t . ivy--regex-fuzzy)))
-    :config
 
-    ;; do not show below files in C-x b
-    (add-to-list 'ivy-ignore-buffers "\\`\\*remind-bindings\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*weechat-relay")
-    (add-to-list 'ivy-ignore-buffers "\\*Messages\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*system-packages\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*quelpa-build-checkout\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*Async Shell Command\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*Async-native-compile-log\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*scratch\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*gopls\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*gopls::stderr\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*Ibuffer\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*Completion\\*")
-    (add-to-list 'ivy-ignore-buffers "\\*gopls::stderr\\*")
-
-    (counsel-mode 1)
-    :bind
-    (("C-c E" . counsel-flycheck)
-     ("C-c f" . counsel-fzf)
-     ("C-c g" . counsel-git)
-     ("C-c j" . counsel-git-grep)
-     ("C-c L" . counsel-locate)
-     ("C-c o" . counsel-outline)
-     ("C-c r" . counsel-rg)
-     ("C-c R" . counsel-register)
-     ("C-c T" . counsel-load-theme)))
 
   (use-package ivy-posframe
     :init
@@ -1808,7 +1771,7 @@ Use Ivy frame work for code completion interface
            :map help-map
            ("a" . consult-apropos)
            :map minibuffer-local-map
-           ("M-r" . consult-history))
+           ("M-r" . cape-history))
     :custom
     (completion-in-region-function #'consult-completion-in-region)
     :config
