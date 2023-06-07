@@ -3338,9 +3338,13 @@ Settings for OrgMode
     (org-image-actual-width nil))
 
   ;; knowledge management with org-roam
-
+  (setq find-file-visit-truename t)
   (use-package org-roam
     :ensure t
+    :custom
+    (org-roam-directory (file-truename
+                         (concat (file-name-as-directory path-home-dir)
+                                 "Documents/")))
     :bind (("\C-c n l" . org-roam-buffer-toggle)
            ("\C-c n f" . org-roam-node-find)
            ("\C-c n g" . org-roam-graph)
@@ -3350,10 +3354,10 @@ Settings for OrgMode
            ("\C-c n j" . org-roam-dailies-capture-today))
     :config
     (org-roam-setup)
+
     ;; If using org-roam-protocol
     (require 'org-roam-protocol))
-
-  (setq org-roam-directory (file-truename "~/Documents/"))
+  ;; (setq org-roam-directory (file-truename "~/Documents/"))
   (setq org-roam-dailies-directory "daily/")
 
   (setq org-roam-dailies-capture-templates
@@ -3442,7 +3446,8 @@ Settings for OrgMode
 
   (setq org-adapt-indentation nil)
 
-  (setq org-directory "~/Documents/org-roam")
+  (setq org-directory (concat (file-name-as-directory path-home-dir)
+                                 "Documents/"))
 
   (setq org-log-done 'time)
 
@@ -3508,7 +3513,7 @@ Settings for OrgMode
   (use-package org-noter
     :after (pdf-tools)
     :init
-    (setq org-noter-notes-search-path '("~/Documents/org-roam/")))
+    (setq org-noter-notes-search-path '("~/Documents/")))
 
   (use-package org-transclusion
     :after org
@@ -3550,7 +3555,7 @@ Settings for OrgMode
   (setq org-agenda-sorting-strategy '(habit-down category-up))
   (setq org-agenda-files
         (seq-filter (lambda(x) (not (string-match "/org/"(file-name-directory x))))
-                    (directory-files-recursively "~/Documents/org-roam" "\\.org$")
+                    (directory-files-recursively "~/Documents/" "\\.org$")
                     ))
 
   ;; setup todo keywords
