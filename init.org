@@ -67,6 +67,7 @@ These are helpful things that I should learn to use.
 - C-c @ C-c/e Either hide or show the current block (hs-toggle-hiding).
 - C-x C-n set-goal-column https://irreal.org/blog/?p=266
 - C-M-j in ivy-mode use typed word instead of selection.
+- C-c C-j terminal line mode, C-c C-k terminal char mode
 - OrgMode: C-c C-q add tag
 - OrgMode: C-c C-x p add a property
 - OrgMode: org-id-get-create
