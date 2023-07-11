@@ -3321,7 +3321,7 @@ Settings for OrgMode
 
   (epa-file-enable)
 
-          ;;;; Better Looking Bullets
+            ;;;; Better Looking Bullets
   (use-package org-modern
     :hook ((org-mode                 . org-modern-mode)
            (org-agenda-finalize-hook . org-modern-agenda))
@@ -3475,7 +3475,7 @@ Settings for OrgMode
     :init
     (add-hook 'org-agenda-finalize-hook 'org-timeline-insert-timeline :append))
 
-  ;;;; Drag And Drop
+    ;;;; Drag And Drop
   (use-package org-download
     :bind ("C-c i" . org-download-screenshot)
     :hook ((org-mode dired-mode) . org-download-enable)
@@ -3483,7 +3483,7 @@ Settings for OrgMode
     (setq-default org-download-screenshot-method "gnome-screenshot -a -f %s")
     (setq-default org-download-image-dir "./pic"))
 
-  ;;;; Templates
+    ;;;; Templates
   (use-package org-tempo
     :ensure nil
     :after org
@@ -3510,7 +3510,8 @@ Settings for OrgMode
 
 
 
-
+  (use-package nov)
+  (use-package djvu)
   (use-package org-noter
     :after (pdf-tools)
     :init
@@ -3594,7 +3595,7 @@ Settings for OrgMode
                                        "people"))
 
 
-                                         ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
+                                           ;;;; https://d12frosted.io/posts/2020-06-25-task-management-with-roam-vol3.html
   (defun hrs/mark-done-and-archive ()
     "Mark the state of an `org-mode' item as DONE and archive it."
     (interactive)
