@@ -23,8 +23,8 @@ These are helpful things that I should learn to use.
   brew tap daviderestivo/emacs-head
 
   brew reinstall emacs-head@30 --with-dbus --with-mailutils \
-  --with-cocoa --with-imagemagick --with-xwidgets --with-ctags \
-  --with-modern-icon-purple --with-tree-sitter
+       --with-cocoa --with-imagemagick --with-xwidgets --with-ctags \
+       --with-modern-icon-purple --with-tree-sitter
   # Native compilation seems to screw the battery --with-native-comp
   # --with-native-full-aot --bottle-arch
 
@@ -740,12 +740,6 @@ scroll bar, async support,etc.
   (drag-stuff-global-mode 1)
   (drag-stuff-define-keys)
 
-  ;; use emacs as a clipboard manager
-  (use-package clipmon
-    :ensure t :defer 5
-    :unless (and my/is-termux (not (executable-find "clipmon")))
-    :config
-    (clipmon-mode-start))
 
   ;; winner mode to handle windows config rollback
            ;;; Winner Mode
@@ -1551,11 +1545,17 @@ Debug settings for various languages
     (dap-firefox-setup)
     (dap-node-setup)
     (use-package dap-ui
+      :defer t
       :ensure nil
       :config
       (dap-ui-mode 1)))
-  (use-package dap-java :ensure nil)
-  (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
+  (use-package dap-java
+    :defer t
+    :ensure nil)
+  (use-package lsp-java
+    :defer t
+    :config
+    (add-hook 'java-mode-hook 'lsp))
   (setq lsp-java-vmargs '("-cp" ".:/Users/gattu/project/java/algs4.jars:/Library/Java/Extensions"))
 
   ;; Rust template
@@ -3448,7 +3448,7 @@ Settings for OrgMode
   (setq org-adapt-indentation nil)
 
   (setq org-directory (concat (file-name-as-directory path-home-dir)
-                                 "Documents/"))
+                              "Documents/"))
 
   (setq org-log-done 'time)
 
