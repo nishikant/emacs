@@ -142,9 +142,6 @@ jmobqzz.dnsalias.net
 # as set in default.action anyway:
 #
 { +block{Nasty ads.} }
-.acdcdn.g
-.youradexchange.
-.prtrackings.
 .0427d7.
 .0llii0g6.
 .1378km.de
@@ -173,12 +170,13 @@ jmobqzz.dnsalias.net
 .99admanager.com
 .9ts3tpia.com
 .Bizographics.
+.a-mo.
 .a1.yimg.com
 .aad73c550c.
 .abendblatt.de/.*teaser
 .abv.at
+.acdcdn.g
 .actionallocator.
-.a-mo.
 .ad-balancer.
 .ad-traffic.
 .ad.netzquadrat.
@@ -314,6 +312,7 @@ jmobqzz.dnsalias.net
 .betclick.
 .bfd69dd9.
 .biallo1.de
+.bidswitch.
 .bidsystem.com
 .bidvertiser.
 .bigpoint.com
@@ -693,7 +692,6 @@ jmobqzz.dnsalias.net
 .nativeads.
 .ncjshop.co.uk
 .ndtv.com/bookflip/
-/container.html
 .neosmi.ru
 .netagent.cz
 .netdebit-counter.
@@ -718,6 +716,7 @@ jmobqzz.dnsalias.net
 .olizyr.com
 .onadadserver.
 .onadmarketing.
+.onatrack.
 .onclickads.
 .online-media24.
 .openx.net
@@ -782,6 +781,7 @@ jmobqzz.dnsalias.net
 .protrafv2.
 .proximic.com
 .proxysolutions.net/affiliates/
+.prtrackings.
 .ptp24.com
 .pub2srv.
 .pubexchange.
@@ -1025,6 +1025,7 @@ jmobqzz.dnsalias.net
 .xxxblackbook.
 .yadro.
 .yesmessenger.
+.youradexchange.
 .yourlayer.
 .youtube./api/stats/
 .zanox-affiliate.
@@ -1053,6 +1054,7 @@ jmobqzz.dnsalias.net
 /client/overture.aspx
 /clientscript/affiliate.js
 /cms_media/module_adbanner/
+/container.html
 /cxo_adtech/
 /displayads/
 /extjs/smartad.*\.js
