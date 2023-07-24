@@ -1379,7 +1379,7 @@ LSP mode settings. Custom language settings also included here.
 #+begin_src emacs-lisp
 
 
-            ;;; LSP
+              ;;; LSP
   ;; Should boost performance with lsp
   ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
 
@@ -1422,6 +1422,10 @@ LSP mode settings. Custom language settings also included here.
           lsp-enable-indentation nil
           lsp-diagnostics-provider :flymake
           lsp-keymap-prefix "C-x L")
+
+    (defun my/lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(flex))) ;; Configure flex
     ;; to enable the lenses
     (add-hook 'lsp-mode-hook #'lsp-lens-mode)
     (add-hook 'lsp-completion-mode-hook
@@ -1451,7 +1455,9 @@ LSP mode settings. Custom language settings also included here.
     (setq lsp-enable-semantic-highlighting t)
     (lsp-register-custom-settings
      '(("gopls.completeUnimported" t t)
-       ("gopls.staticcheck" t t))))
+       ("gopls.staticcheck" t t)))
+    :hook
+    (lsp-completion-mode . my/lsp-mode-setup-completion))
 
   (use-package lsp-languages
     :no-require t :ensure nil
