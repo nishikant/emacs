@@ -3501,21 +3501,6 @@ Settings for OrgMode
       (dolist (template templates)
         (push template org-structure-template-alist))))
 
-  ;; Org Agenda Notifications
-  (use-package org-yaap
-    :ensure nil
-    :after org
-    :defer 5
-    :quelpa (org-yaap :fetcher gitlab :repo "tygrdev/org-yaap")
-    :custom
-    (org-yaap-altert-severity 'critical)
-    (org-yaap-altert-before 10)
-    :config
-    (org-yaap-mode 1)
-    (org-yaap-daemon-start))
-
-
-
   (use-package nov)
   (use-package djvu)
   (use-package org-noter
