@@ -84,34 +84,6 @@ use-package to manage package configuration.
 
 #+begin_src emacs-lisp
 
-  (setq initial-scratch-message nil)
-
-  ;; Minimal UI
-  (setq-default
-   package-native-compile t
-   default-frame-alist
-   '((tool-bar-lines . 0)
-     (menu-bar-lines . 0)
-     (undecorated . t)
-     (vertical-scroll-bars . nil)
-     (horizontal-scroll-bars . nil)))
-
-  (defun set-exec-path-from-shell-PATH ()
-    "Set up Emacs' `exec-path' and PATH environment variable to match
-    that used by the user's shell.
-
-    This is particularly useful under Mac OS X and macOS, where GUI
-    apps are not started from a shell."
-    (interactive)
-    (let ((path-from-shell (replace-regexp-in-string
-                            "[ \t\n]*$" "" (shell-command-to-string
-                                            "$SHELL --login -c 'echo $PATH'"
-                                            ))))
-      (setenv "PATH" path-from-shell)
-      (setq exec-path (split-string path-from-shell path-separator))))
-
-  (set-exec-path-from-shell-PATH)
-
   ;; Initialize package sources
   (require 'package)
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -133,6 +105,40 @@ use-package to manage package configuration.
 
   ;; Compile the latest versions
   (setq use-package-always-ensure t)
+
+  (setq initial-scratch-message nil)
+  ;;{{{ Set up package and use-package
+
+
+  (eval-after-load 'gnutls
+    '(add-to-list 'gnutls-trustfiles "/etc/ssl/cert.pem"))
+  (require 'bind-key)
+
+  ;; Minimal UI
+  (setq-default
+   package-native-compile t
+   default-frame-alist
+   '((tool-bar-lines . 0)
+     (menu-bar-lines . 0)
+     (undecorated . t)
+     (vertical-scroll-bars . nil)
+     (horizontal-scroll-bars . nil)))
+
+  (defun set-exec-path-from-shell-PATH ()
+    "Set up Emacs' `exec-path' and PATH environment variable to match
+      that used by the user's shell.
+
+      This is particularly useful under Mac OS X and macOS, where GUI
+      apps are not started from a shell."
+    (interactive)
+    (let ((path-from-shell (replace-regexp-in-string
+                            "[ \t\n]*$" "" (shell-command-to-string
+                                            "$SHELL --login -c 'echo $PATH'"
+                                            ))))
+      (setenv "PATH" path-from-shell)
+      (setq exec-path (split-string path-from-shell path-separator))))
+
+  (set-exec-path-from-shell-PATH)
 
   (use-package use-package-ensure-system-package
     :ensure t)
@@ -156,7 +162,7 @@ use-package to manage package configuration.
   (defconst path-home-dir (file-name-as-directory (getenv "HOME"))
     "Path to user home directory.
 
-              In a nutshell, it's just a value of $HOME.")
+                In a nutshell, it's just a value of $HOME.")
   ;; Use it to debug a warning
   ;; (setq debug-on-message "quoted with ' rather than with #'")
 
@@ -1092,6 +1098,17 @@ Using Magit to handle all git related stuff.
 
   ;; magit
   (use-package git-timemachine)
+
+  (use-package transient
+    :ensure t ; make sure it is installed
+    :demand t ; make sure it is loaded
+    )
+
+  (use-package magit-popup
+    :ensure t ; make sure it is installed
+    :demand t ; make sure it is loaded
+    )
+
   (use-package magit
     :ensure t
     :config
@@ -1697,7 +1714,8 @@ cc-mode for working c, c++
 
   ;; Clojure
 
-  (use-package cider)
+  (use-package cider
+    :defer t)
 
 
 #+end_src
@@ -2929,13 +2947,30 @@ Cleanup needed
   (use-package blacken)
 
   ;; Emacs Ipython Notebook
-  (use-package ein)
-
-  (require 'ein)
-  (require 'ein-notebook)
-
-  (setq ein:output-area-inlined-images t)
-  (setq ein:slice-image t)
+  (use-package ein
+    :defer t
+    :config
+    (add-hook 'ein:notebook-mode-hook 'jedi:setup)
+    (add-hook 'ein:connect-mode-hook 'ein:jedi-setup)
+    (setq ein:polymode t)
+    (setq ein:use-auto-complete t)
+    (setq ein:use-smartrep t)
+    :custom
+    (ein:completion-backend 'ein:use-ac-backend)
+    (ein:completion-backend 'ein:ac-jedi-backend)
+    ;; (ein:completion-backend 'ein:use-jedi-backend)
+    (ein:completion-backend 'ein:use-company-backend)
+    ;; (setq ein:polymode t)
+    ;; (setq ein:use-auto-complete t)
+    ;; (setq ein:use-smartrep t)
+    ;; (add-hook 'find-file-hook 'ein:maybe-open-file-as-notebook)
+    (ein:completion-backend 'ein:use-ac-backend)
+    (ein:complete-on-dot t)
+    (ein:truncate-long-cell-output t)
+    (ein:auto-save-on-execute t)
+    ;; (ein:auto-black-on-execute t)
+    (ein:output-area-inlined-images t) ;; not necessary in older versions
+    (ein:slice-image t))
 
   ;; Try ein and decide if this is needed
   ;; (use-package jupyter)
