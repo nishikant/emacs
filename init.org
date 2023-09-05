@@ -406,7 +406,11 @@ scroll bar, async support,etc.
 
 
   (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter-langs/"))
-
+  (use-package treesit-auto
+    :demand t
+    :config
+    (setq treesit-auto-install t)
+    (global-treesit-auto-mode))
   (use-package tree-sitter-langs
     :hook
     (tree-sitter-after-on . tree-sitter-hl-mode))
@@ -1434,7 +1438,9 @@ LSP mode settings. Custom language settings also included here.
                                     "--clang-tidy"
                                     "--enable-config"))
     ;; General lsp-mode settings
-    (setq lsp-completion-provider :none
+    (setq lsp-completion-provider :capf
+          lsp-completion-no-cache t
+          lsp-completion-enable t
           lsp-enable-snippet t
           lsp-enable-on-type-formatting nil
           lsp-enable-indentation nil
