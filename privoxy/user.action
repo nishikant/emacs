@@ -157,6 +157,7 @@ jmobqzz.dnsalias.net
 .33across.
 .35l3.info
 .35l7.info
+.3lift.
 .45i73jv6.
 .4allclick.ru
 .4fcams.
@@ -225,6 +226,7 @@ jmobqzz.dnsalias.net
 .adriver.
 .adrolays.
 .adroll.
+.ads/ga-audiences.
 .ads4finies.
 .adsafeprotected.
 .adsbyisocket.
@@ -464,9 +466,8 @@ jmobqzz.dnsalias.net
 .fastpic./.*\.swf
 .fastpromo.in
 .faxso.ru
-.feedjit.
 .feed.playstream.media
-.playstream.
+.feedjit.
 .fetchback.com
 .filefactory./img/premium/
 .filepost.com/static/images/bn/
@@ -496,6 +497,7 @@ jmobqzz.dnsalias.net
 .fulltiltpoker.
 .fundingchoicesmessages.google.com
 .funpic.de/layer.php
+.g.doubleclick.
 .gagacon.com
 .gameoftraffic.
 .games724.
@@ -526,6 +528,7 @@ jmobqzz.dnsalias.net
 .gravity.com
 .grifiins.ru
 .gsadserver.
+.gstatic.
 .gumgum.
 .gunggo.com
 .guruads.
@@ -632,6 +635,7 @@ jmobqzz.dnsalias.net
 .lifestatic.biz
 .liftsk.
 .ligatus.
+.lijit.
 .lijit.com
 .linkbucks.com/.....aad/
 .linkbucksmedia.com/director/
@@ -723,10 +727,12 @@ jmobqzz.dnsalias.net
 .okeo.ru
 .okoshechka.net
 .olizyr.com
+.omnitagjs.
 .onadadserver.
 .onadmarketing.
 .onatrack.
 .onclickads.
+.onetag-sys.
 .online-media24.
 .openx.net
 .openx.org
@@ -756,6 +762,7 @@ jmobqzz.dnsalias.net
 .placement24.
 .planet49.com
 .planetapes.de
+.playstream.
 .plista.com
 .plugrush.
 .pluso.ru
@@ -832,6 +839,7 @@ jmobqzz.dnsalias.net
 .ruscams.
 .russianamerica.
 .s3exy.com/n..gif
+.safeframe.googlesyndication.com
 .sancdn.net
 .sascentral.com
 .sceno.
@@ -863,6 +871,7 @@ jmobqzz.dnsalias.net
 .smartredirect.
 .smi2.ru
 .smiletraf.
+.smilewanted.
 .smsdate.com
 .sochetat.net
 .soft4dle.com
@@ -884,6 +893,7 @@ jmobqzz.dnsalias.net
 .super-adv.
 .sw3m5ncmn.
 .sweed.to
+.swguide.
 .t-online.de/-/id_68029888
 .t9media.
 .taboola.
@@ -893,6 +903,7 @@ jmobqzz.dnsalias.net
 .targetingnow.
 .tbn.ru
 .tdstraff.ru
+.teads.
 .teasermedia.
 .teasernet.
 .teaservizio.
@@ -1106,8 +1117,10 @@ jmobqzz.dnsalias.net
 62.146.71.2/beta/web/swf/PushupClient.swf
 62.212.73.194
 85.17.73.67
+OvaMediaPlayer.js
 a.lakequincy.com
 a.partner-versicherung.de
+a.teads.tv
 a3.swp.de
 abmr.net
 acoda.net
@@ -1150,6 +1163,7 @@ adservice.google.no
 adservice.google.pl
 adservice.google.ru
 adservice.google.vg
+adsnew
 adsonar.com
 adtech.panthercustomer.com
 advertising.com
@@ -1158,6 +1172,7 @@ affiliates.a2hosting.com
 afy11.net
 ahherwebcams.
 alert.scansafe.net/alert/.*
+ap.lijit.com
 app-measurement.com
 aquantive.com
 atdmt.com
@@ -1170,6 +1185,8 @@ best.filmulet.ru
 billabong3.wetter.
 bodyc.biz
 cdn.nsimg.net
+cdn.taboola.com
+cdn.vuukle.com
 cds2.freenet.
 channelintelligence.com
 chie8oo.com
@@ -1210,10 +1227,12 @@ fimserve.com
 flingwebads.com
 foxnetworks.com
 freshnews.su
+fundingchoicesmessages.google.com
 funny-sexxy.ru
 g234kj23h4.info
 golfclub.welt.de
 google-analytics.com
+googleads.g.doubleclick.net
 googleadservices.com
 googleadservices.com
 googlesyndication-cn.com
@@ -1226,6 +1245,7 @@ gredinatib.
 gstaticadssl.l.google.com
 gutscheine.focus.de
 gzhls.at/btn/
+h5.swguide.co
 hiddenjs.ru
 hitbox.com
 hosting.lockhosts.com
@@ -1235,6 +1255,7 @@ id.google.*/verify/*
 iftraff100.ru
 imagepix.org/Images/image112.gif
 images.derstandard.at/.*.swf
+images.taboola.com
 img.kwick.de/banners/
 imghoney.com/.*swf
 imgpaying./18plus.htm
@@ -1259,6 +1280,7 @@ lindwd.net
 linuxundich./static/gigahosting.*
 loadmovie.ru
 lydiz.com
+m.media-amazon.com
 makeyourblog.biz
 mediaclickru.
 mediadsale.ru
@@ -1295,6 +1317,7 @@ openx-farm.ipxmuc-a.cxo.name
 openx.*.
 ordenn.ucoz.ru
 ox.comventure.de
+pagead2.googlesyndication.com
 pap.ultramegabit.com
 passul.t-online.
 pay-hit.com
@@ -1323,6 +1346,7 @@ rotation.linuxnewmedia.
 ru4.com
 rubiconproject.com
 s0-2mdn-net.l.google.com
+s0.2mdn.net
 samsungadhub.com
 sandugach.ucoz.ru
 scorecardresearch.com
@@ -1354,6 +1378,7 @@ turbobit.net/oexktl
 usercode2.info
 v2mlblue.org
 versicherung.welt.de
+vidstat.taboola.com
 vsexshop.ru
 webmaster.pornme.com
 wedinin.com
